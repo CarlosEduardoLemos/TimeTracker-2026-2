@@ -2,32 +2,37 @@
 
 ## Decisões em vigor
 
-- React/Vite é a interface ativa; Blazor está arquivado em `legacy/`.
-- Hooks customizados são modulares (`src/hooks/useDashboardData.js`, `useTheme.js`, `useActiveSection.js`) e centralizados via barrel `src/hooks/index.js`, com retrocompatibilidade em `useDashboard.js`.
-- Constantes de interface (paletas de cores de avatares, rótulos de API e mapeamento de status) são centralizadas em `src/constants/ui.js`.
-- O estado é local ao `App`; não há store global porque o escopo atual não exige um.
-- Componentes recebem dados por propriedades tipadas com JSDoc e não se acoplam à infraestrutura de transporte HTTP.
-- Dados demonstrativos são isolados em `src/data/dashboardData.js` para manter clareza sobre o que é real vs. mock.
-- A suíte de testes automatizados cobre utilitários, serviços, custom hooks e componentes com Vitest e Testing Library.
+- React/Vite é o frontend ativo; Blazor permanece apenas como referência em `legacy/`.
+- A aplicação possui páginas em `src/pages/` e navegação por hash via `useHashRoute`.
+- `App.jsx` funciona como bootstrap/layout; o domínio do painel foi extraído para `DashboardPage.jsx`.
+- O cliente HTTP continua centralizado em `src/services/api.js`.
+- Componentes compartilhados incluem `PageHeader`, `EmptyState` e `IntegrationNotice`.
+- O frontend não gera mocks operacionais em falha de API.
+- Rankings e métricas de produtividade foram removidos do fluxo principal por não fazerem parte dos requisitos.
+- Funcionalidades dependentes de persistência permanecem bloqueadas até contrato oficial.
 
-## Melhorias Realizadas
+## Melhorias realizadas
 
-- [x] Modularização dos custom hooks com responsabilidade única e barrel exports.
-- [x] Criação de testes unitários para componentes estruturais (`Card`, `SectionHeading`, `Sidebar`, `Header`, `PeopleCard`, `ReportsAndAgent`).
-- [x] Criação de testes unitários para o hook `useTheme` (persistência em `localStorage` e preferência do SO).
-- [x] Extração de constantes de UI para evitar repetições mágicas de strings e arrays de estilos.
-- [x] Elaboração do catálogo detalhado de componentes ([COMPONENTES.md](COMPONENTES.md)).
-- [x] Elaboração da documentação técnica dos custom hooks ([HOOKS.md](HOOKS.md)).
-- [x] Elaboração do guia prático de testes automatizados ([TESTES.md](TESTES.md)).
-- [x] Correção de inconsistências documentais sobre suíte de testes em `CONTRIBUTING.md` e `FUNCIONALIDADES.md`.
+- [x] Remoção de produtividade/ranking do dashboard.
+- [x] Remoção do fallback automático para dados fictícios.
+- [x] Estrutura dos seis indicadores previstos no RF-27.
+- [x] Navegação Painel/Colaboradores/Tasks/Relatórios/Configurações.
+- [x] Telas de Login/Cadastro do gestor.
+- [x] Estrutura de Colaboradores e associação.
+- [x] Formulário e validação de Tasks.
+- [x] Estrutura de Jornada/Inatividade.
+- [x] Estrutura de Relatórios e filtros.
+- [x] Melhoria do drawer mobile com Escape/retorno de foco.
+- [x] Testes para novos fluxos frontend.
+- [x] Auditoria e atualização da documentação técnica após as entregas.
 
 ## Pendências priorizadas
 
-1. Definir contrato oficial com o time de backend para os endpoints pendentes (ranking de aplicativos, intervalos da timeline e regras oficiais de produtividade).
-2. Validar acessibilidade profunda com leitor de tela (NVDA/JAWS) e revisão de contraste de cores nos modos claro e escuro.
-3. Substituir caracteres textuais decorativos por uma biblioteca de ícones SVG acessíveis (ex: Lucide React).
-4. Avaliar biblioteca de gerenciamento de cache de servidor (como TanStack Query) caso surjam rotas adicionais ou requisitos avançados de mutação.
+1. Integrar autenticação e sessão quando houver contrato oficial.
+2. Integrar colaboradores/código de associação após definição das regras pendentes.
+3. Integrar CRUD de tasks, jornada/inatividade e filtros completos do RF-27.
+4. Integrar relatório/exportação completos.
+5. Realizar validação final com leitor de tela e auditoria de contraste.
+6. Adicionar E2E quando os fluxos backend estiverem operacionais.
 
-## Critério para novas refatorações
-
-Uma refatoração deve preservar o comportamento documentado em `FUNCIONALIDADES.md`, manter a centralização do cliente HTTP e ser validada com a suíte de testes (`npm.cmd test`) e build (`npm.cmd run build`). Se alterar interface, fluxo ou contrato, atualize o documento correspondente antes de concluir a mudança.
+Refatorações futuras não devem introduzir requisitos novos nem alterar contratos externos sem alinhamento com a equipe responsável.

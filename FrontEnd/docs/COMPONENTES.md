@@ -1,255 +1,82 @@
-# Catálogo de Componentes — TimeTrack Frontend
+# Catálogo de componentes — TimeTrack Frontend
 
-Este documento descreve todos os componentes React disponíveis em `FrontEnd/src/components/`, suas propriedades, responsabilidades, comportamento com dados reais vs. demonstrativos e diretrizes de acessibilidade.
+Este documento descreve os componentes reutilizáveis da implementação atual. As telas completas ficam em `src/pages/`.
 
-Todos os componentes são exportados centralizadamente através de `src/components/index.js`.
+## Componentes compartilhados
 
----
+### `Card`
+Contêiner visual reutilizável para conteúdo do dashboard.
 
-## Sumário
+### `SectionHeading`
+Título/descrição de seções internas existentes.
 
-- [Componentes Base](#componentes-base)
-  - [Card](#card)
-  - [SectionHeading](#sectionheading)
-  - [Sidebar](#sidebar)
-- [Componentes de Cabeçalho e Ações](#componentes-de-cabeçalho-e-ações)
-  - [Header](#header)
-  - [ReportsAndAgent](#reportsandagent)
-- [Componentes de Métricas e Gráficos](#componentes-de-métricas-e-gráficos)
-  - [MetricCard](#metriccard)
-  - [ActivityChart](#activitychart)
-  - [CategoryChart](#categorychart)
-- [Componentes de Listagem e Atividades](#componentes-de-listagem-e-atividades)
-  - [AppsCard](#appscard)
-  - [TimelineCard](#timelinecard)
-  - [PeopleCard](#peoplecard)
+### `PageHeader`
+Cabeçalho padrão das novas páginas administrativas, com título, descrição e ação opcional.
 
----
+### `EmptyState`
+Estado vazio reutilizável para telas sem dados/integracão disponível.
 
-## Componentes Base
+### `IntegrationNotice`
+Aviso visual usado quando a interface já está estruturada, mas a ação depende de contrato externo. Evita apresentar funcionalidade simulada como pronta.
 
-### Card
+## Navegação
 
-Contêiner semântico retangular reutilizável (`<article>`) que padroniza bordas, sombras e fundo nos temas claro e escuro.
+### `Sidebar`
 
-- **Arquivo:** `src/components/Card.jsx`
-- **Tag HTML:** `<article>`
+Navegação principal desktop/mobile para:
 
-#### Propriedades (Props)
+- Painel;
+- Colaboradores;
+- Tasks;
+- Relatórios;
+- Configurações.
 
-| Propriedade | Tipo | Padrão | Descrição |
-| --- | --- | --- | --- |
-| `children` | `React.ReactNode` | — *(obrigatório)* | Conteúdo interno do card. |
-| `className` | `string` | `""` | Classes adicionais do Tailwind para estilização específica (ex: grids, paddings). |
-| `id` | `string` | `undefined` | Identificador HTML opcional para navegação por âncoras da sidebar. |
+Usa links por hash e `aria-current="page"`. No mobile, o drawer pode ser fechado por botão, clique no backdrop ou tecla `Escape`; ao fechar por teclado, o foco retorna ao botão de abertura.
 
-#### Exemplo de Uso
+A Sidebar não exibe mais identidade fictícia de gestor. Login/Cadastro são apresentados enquanto a sessão real não existe.
 
-```jsx
-import { Card } from "@/components";
+## Dashboard
 
-<Card id="meu-card" className="p-6">
-  <h2>Título</h2>
-  <p>Conteúdo aqui</p>
-</Card>
-```
+### `Header`
+Filtro de data de referência e colaborador, status da API, tema, refresh manual e última atualização.
 
----
+### `MetricCard`
+Cartão de indicador. No RF-27 é usado para Online, Offline, Tasks ativas, Tempo ativo, Tempo inativo e Possível hora extra. Valores sem suporte de API permanecem `—`.
 
-### SectionHeading
+### `ActivityChart`
+Gráfico baseado no tempo registrado disponível. Não calcula nem compara produtividade.
 
-Cabeçalho de seção padronizado contendo título com tipagem de exibição, descrição explicativa e elemento de ação contextual à direita.
+### `TimelineCard`
+Estrutura para Activity Timeline. Deve receber aplicação, início, fim, duração, estado Ativo/Inativo, task e classificação dentro/fora do escopo quando a API disponibilizar esses campos.
 
-- **Arquivo:** `src/components/SectionHeading.jsx`
+### `PeopleCard`
+Tabela de acompanhamento da equipe com dados minimizados. Não apresenta `window_title`, hostname ou categorias de produtividade. O contrato atual ainda não permite preencher todos os campos previstos pelo RF-27.
 
-#### Propriedades (Props)
+### `AppsCard`
+Componente mantido para compatibilidade, sem ranking de aplicativos. O domínio correto é classificação de aplicações dentro/fora do escopo da task.
 
-| Propriedade | Tipo | Padrão | Descrição |
-| --- | --- | --- | --- |
-| `title` | `string` | — *(obrigatório)* | Título principal da seção. |
-| `description` | `string` | — *(obrigatório)* | Texto de apoio e contexto da seção. |
-| `action` | `React.ReactNode` | `undefined` | Elemento complementar à direita (botão, badge, link). |
+### `CategoryChart`
+Componente legado do modelo anterior. Não é utilizado pelo `DashboardPage` atual porque categorias de produtividade não fazem parte do RF-27.
 
-#### Exemplo de Uso
+### `ReportsAndAgent`
+Mantém preferência de atualização automática e informação de exportação. CSV/PDF ficam desabilitados enquanto o contrato de relatório completo não estiver disponível.
 
-```jsx
-<SectionHeading
-  title="Tempo por categoria"
-  description="Classificação por palavras-chave"
-  action={<span className="text-xs text-muted">Dados do período</span>}
-/>
-```
+## Páginas
 
----
+### `AuthPage`
+Login/Cadastro do gestor com validação local. Sem persistência de credenciais e sem chamada a endpoint inventado.
 
-### Sidebar
+### `CollaboratorsPage`
+Estrutura de equipe e associação por código. Ação de geração depende de API e regras ainda pendentes.
 
-Barra de navegação lateral fixa para visualização em desktop (`lg:` a partir de 1024px). Fornece navegação por âncoras com indicação visual da seção ativa e informações de usuário/configurações.
+### `TasksPage`
+Formulário de task com descrição, serviços/aplicações e espaço para colaboradores. Validação local implementada; persistência bloqueada.
 
-- **Arquivo:** `src/components/Sidebar.jsx`
-- **Tag HTML:** `<aside>`
+### `SettingsPage`
+Jornada semanal e limite de inatividade por colaborador. Persistência depende do backend.
 
-#### Propriedades (Props)
+### `ReportsPage`
+Filtros por período, colaborador e task e ações CSV/PDF. Exportação permanece bloqueada até contrato compatível com RF-24/RF-25.
 
-| Propriedade | Tipo | Padrão | Descrição |
-| --- | --- | --- | --- |
-| `activeSection` | `string` | `"visao-geral"` | ID da seção correspondente à posição atual do scroll (gerenciado por `useActiveSection`). |
-| `items` | `Array<[id, icon, label]>` | `navItems` | Lista opcional de itens de navegação. Por padrão consome a lista de `dashboardData.js`. |
-
-#### Acessibilidade
-
-- O item ativo recebe `aria-current="page"`.
-- Possui foco acessível via teclado com anéis de foco (`focus-visible:ring-2 focus-visible:ring-brand`).
-- É ocultado automaticamente durante impressão (`@media print`).
-
----
-
-## Componentes de Cabeçalho e Ações
-
-### Header
-
-Cabeçalho principal do dashboard contendo data formatada por extenso, filtros interativos de data e colaborador, status em tempo real da conexão com a API e botões de ação rápida.
-
-- **Arquivo:** `src/components/Header.jsx`
-- **Tag HTML:** `<header>`
-
-#### Propriedades (Props)
-
-| Propriedade | Tipo | Padrão | Descrição |
-| --- | --- | --- | --- |
-| `formattedDate` | `string` | — *(obrigatório)* | Data exibida no formato por extenso (ex: `"SEXTA-FEIRA, 11 DE SETEMBRO"`). |
-| `dark` | `boolean` | — *(obrigatório)* | Indica se o tema escuro está ativado. |
-| `toggleTheme` | `() => void` | — *(obrigatório)* | Função disparada ao clicar no botão de alternância de tema. |
-| `selectedDate` | `string` | — *(obrigatório)* | Data atual do filtro no formato `AAAA-MM-DD`. |
-| `setSelectedDate` | `(date: string) => void` | — *(obrigatório)* | Atualizador da data selecionada. |
-| `apiStatus` | `"online" \| "offline" \| "loading"` | `"offline"` | Estado da API HTTP. |
-| `selectedUsername` | `string` | `""` | Colaborador filtrado ou string vazia para todos. |
-| `setSelectedUsername` | `(username: string) => void` | — *(obrigatório)* | Atualizador do colaborador selecionado. |
-| `users` | `Array<{username: string, full_name?: string}>` | `[]` | Lista de colaboradores para o dropdown. |
-| `refreshing` | `boolean` | `false` | Se uma consulta em segundo plano está em andamento. |
-| `onRefresh` | `() => void` | `undefined` | Callback disparado para forçar atualização manual dos dados. |
-| `updatedAt` | `Date \| null` | `null` | Horário da última sincronização bem-sucedida. |
-
----
-
-### ReportsAndAgent
-
-Seção de relatórios e preferências de atualização em segundo plano. Oferece links para download dos relatórios gerados pelo backend (CSV e PDF) e exportação instantânea no cliente com fallback resiliente.
-
-- **Arquivo:** `src/components/ReportsAndAgent.jsx`
-- **Tag HTML:** `<section>`
-
-#### Propriedades (Props)
-
-| Propriedade | Tipo | Padrão | Descrição |
-| --- | --- | --- | --- |
-| `selectedDate` | `string` | — *(obrigatório)* | Data base para os relatórios (`AAAA-MM-DD`). |
-| `selectedUsername` | `string` | `""` | Colaborador filtrado nos relatórios. |
-| `autoRefresh` | `boolean` | `true` | Se a atualização a cada 30 segundos está ativa. |
-| `setAutoRefresh` | `(enabled: boolean) => void` | — *(obrigatório)* | Callback para alternar a atualização automática. |
-| `realtimePeople` | `Array<Object>` | `[]` | Lista de pessoas online para possibilitar geração instantânea do CSV pelo navegador caso a API esteja lenta. |
-
----
-
-## Componentes de Métricas e Gráficos
-
-### MetricCard
-
-Cartão de indicador numérico resumido com ícone em tom destacado, valor principal, legenda e indicação contextual.
-
-- **Arquivo:** `src/components/MetricCard.jsx`
-
-#### Propriedades (Props)
-
-| Propriedade | Tipo | Padrão | Descrição |
-| --- | --- | --- | --- |
-| `icon` | `React.ReactNode` | — *(obrigatório)* | Ícone representativo ou símbolo textual. |
-| `tone` | `string` | — *(obrigatório)* | Classes de cor de fundo e texto do ícone (ex: `"bg-violet-100 text-violet-600"`). |
-| `label` | `string` | — *(obrigatório)* | Nome do indicador (ex: `"Tempo monitorado"`). |
-| `value` | `React.ReactNode` | — *(obrigatório)* | Valor numérico ou formatado (ex: `"7h 20min"`). |
-| `detail` | `string` | — *(obrigatório)* | Informação complementar abaixo do valor. |
-| `positive` | `boolean` | `false` | Destaca a cor do detalhe em verde positivo se verdadeiro. |
-
----
-
-### ActivityChart
-
-Gráfico de barras duplas comparando o tempo total monitorado versus tempo produtivo ao longo dos últimos sete dias.
-
-- **Arquivo:** `src/components/ActivityChart.jsx`
-- **Dependência:** Recharts (`BarChart`, `Bar`, `ResponsiveContainer`, `Tooltip`)
-
-#### Propriedades (Props)
-
-| Propriedade | Tipo | Padrão | Descrição |
-| --- | --- | --- | --- |
-| `weeklySummaries` | `Array<Object>` | `[]` | Resumos dos últimos 7 dias retornados pela API. |
-| `useDemoData` | `boolean` | `true` | Se deve exibir os dados semanais de demonstração caso `weeklySummaries` esteja vazio. |
-
----
-
-### CategoryChart
-
-Gráfico de rosca (*donut*) exibindo a distribuição do tempo monitorado por categorias de atividade (Desenvolvimento, Comunicação, Design, Social, Outros).
-
-- **Arquivo:** `src/components/CategoryChart.jsx`
-- **Dependência:** Recharts (`PieChart`, `Pie`, `Cell`, `Tooltip`)
-
-#### Propriedades (Props)
-
-| Propriedade | Tipo | Padrão | Descrição |
-| --- | --- | --- | --- |
-| `summaryUsers` | `Array<Object>` | `[]` | Lista de usuários com seus respectivos arrays `by_category`. |
-| `useDemoData` | `boolean` | `true` | Se deve utilizar as categorias de demonstração se não houver dados reais. |
-
----
-
-## Componentes de Listagem e Atividades
-
-### AppsCard
-
-Ranking visual dos softwares mais utilizados no dia com barras proporcionais de utilização.
-
-- **Arquivo:** `src/components/AppsCard.jsx`
-
-#### Propriedades (Props)
-
-| Propriedade | Tipo | Padrão | Descrição |
-| --- | --- | --- | --- |
-| `useDemoData` | `boolean` | `true` | Exibe os dados demonstrativos enquanto a API não disponibilizar o endpoint de ranking. |
-
----
-
-### TimelineCard
-
-Visualização cronológica das faixas de atividade ao longo do horário comercial (08:00 às 18:00).
-
-- **Arquivo:** `src/components/TimelineCard.jsx`
-
-#### Propriedades (Props)
-
-| Propriedade | Tipo | Padrão | Descrição |
-| --- | --- | --- | --- |
-| `useDemoData` | `boolean` | `true` | Exibe os intervalos da demonstração enquanto o endpoint de timeline não estiver disponível no backend. |
-
----
-
-### PeopleCard
-
-Tabela detalhada de acompanhamento em tempo real dos colaboradores da equipe: avatar com iniciais, máquina, software, título da janela ativa, categoria, status de presença e tempo decorrido desde a última atividade.
-
-- **Arquivo:** `src/components/PeopleCard.jsx`
-
-#### Propriedades (Props)
-
-| Propriedade | Tipo | Padrão | Descrição |
-| --- | --- | --- | --- |
-| `realtimePeople` | `Array<RealtimePerson>` | `[]` | Dados de `/activities/realtime`. |
-| `useDemoData` | `boolean` | `true` | Se deve exibir a equipe de demonstração caso a API esteja indisponível. Quando a API responde com sucesso mas lista vazia, exibe mensagem clara de estado vazio. |
-
-#### Acessibilidade
-
-- Contém rolagem horizontal com suporte a foco via teclado (`tabIndex={0}`).
-- Cabeçalhos de coluna semânticos com `<th>`.
-- Status com indicador visual (`status-dot`) e texto para leitores de tela.
-
+### `DashboardPage`
+Orquestra o dashboard existente e concentra os hooks/estado que antes estavam em `App.jsx`.

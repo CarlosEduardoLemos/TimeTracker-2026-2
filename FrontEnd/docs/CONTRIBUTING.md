@@ -1,5 +1,9 @@
 # Contribuindo no frontend
 
+## Escopo
+
+Mudanças de frontend devem permanecer em `FrontEnd/`. Dependências de backend/API devem ser registradas em `docs/INTEGRACAO-FRONTEND-BACKEND.md` ou `docs/IMPLEMENTACAO-REQUISITOS-FRONTEND.md`, sem alterar áreas externas.
+
 ## Ambiente e validação
 
 ```powershell
@@ -10,39 +14,42 @@ npm.cmd test
 npm.cmd run build
 ```
 
-Toda alteração deve passar pelos testes automatizados (`npm.cmd test`), pelo build de produção (`npm.cmd run build`) e por uma verificação manual no navegador nos temas claro/escuro e em diferentes larguras de tela (mobile e desktop).
+Revise também tema claro/escuro, mobile/tablet/desktop e navegação por teclado.
 
-## Convenções
+## Convenções atuais
 
-- Componentes visuais ficam em `src/components/`, com export nomeado e responsabilidade única.
-- Todo novo componente ou hook deve ser acompanhado de seus respectivos testes unitários (`.test.jsx` ou `.test.js`).
-- Lógica de requisição, temporizador ou navegador deve ficar em hooks/serviços, não espalhada em cards.
-- A API só deve ser acessada por `src/services/api.js`.
-- Regras de cálculo e formatação devem ficar em `src/utils/` quando forem reutilizáveis.
-- Use `camelCase` para JavaScript, `PascalCase` para componentes e nomes descritivos para propriedades.
-- Adicione JSDoc descritivo com `@param` e `@returns` para funções e componentes públicos.
-- Mantenha `dark:` ao introduzir cores de superfície ou texto e teste o foco via teclado.
+- telas completas em `src/pages/`;
+- componentes reutilizáveis em `src/components/`;
+- hooks em `src/hooks/`;
+- chamadas HTTP centralizadas em `src/services/api.js`;
+- regras/formatação reutilizáveis em `src/utils/`;
+- navegação principal por `useHashRoute` e itens definidos em `dashboardData.js`;
+- não criar dados fictícios para suprir contrato ausente;
+- não armazenar credenciais/tokens em logs ou armazenamento inseguro;
+- novas ações dependentes de API devem possuir loading/error/empty/success quando forem habilitadas.
 
 ## Quando atualizar documentação
 
-| Mudança | Documento a atualizar |
+| Mudança | Documento |
 | --- | --- |
-| Tela, filtro, métrica ou estado | `FUNCIONALIDADES.md` |
-| Componente visual ou propriedades | `COMPONENTES.md` |
-| Custom hook ou fluxo de estado | `HOOKS.md` |
-| Estrutura geral, camadas ou build | `ARQUITETURA.md` |
-| Endpoint, resposta ou variável de ambiente | `INTEGRACAO-FRONTEND-BACKEND.md` |
-| Testes, ferramentas ou novos padrões de teste | `TESTES.md` |
-| Token, classe compartilhada ou comportamento visual | `STYLES.md` |
-| Decisão de organização ou pendência importante | `REFACTORING.md` |
+| Tela, rota, filtro ou estado | `FUNCIONALIDADES.md` |
+| Componente/página | `COMPONENTES.md` |
+| Hook/fluxo de estado | `HOOKS.md` |
+| Estrutura geral | `ARQUITETURA.md` |
+| Contrato/dependência de API | `INTEGRACAO-FRONTEND-BACKEND.md` |
+| Testes | `TESTES.md` |
+| Estilos/a11y/responsividade | `STYLES.md` |
+| Decisão ou pendência | `REFACTORING.md` |
+| Alteração ligada a requisito | `IMPLEMENTACAO-REQUISITOS-FRONTEND.md` |
 
-## Checklist para pull request
+## Checklist de PR
 
-- [ ] `npm.cmd test` executa com sucesso e todos os testes passam.
-- [ ] `npm.cmd run build` conclui sem erro de compilação ou resolução.
-- [ ] Novos componentes ou hooks possuem testes unitários correspondentes.
-- [ ] Fluxo alterado foi exercitado no navegador.
-- [ ] Data, filtros e estados de API indisponível foram considerados quando relevantes.
-- [ ] Tema escuro, responsividade e navegação por teclado foram revisados.
-- [ ] A documentação correspondente em `docs/` foi atualizada.
-- [ ] Não foram incluídos segredos, dados pessoais reais ou arquivos gerados em `dist/`.
+- [ ] Alterações restritas ao escopo autorizado.
+- [ ] `npm.cmd test` passa.
+- [ ] `npm.cmd run build` passa.
+- [ ] Testes adicionados/atualizados para comportamento alterado.
+- [ ] Estados de loading/error/empty/success avaliados quando aplicável.
+- [ ] Tema e responsividade revisados.
+- [ ] Navegação por teclado/foco revisada.
+- [ ] Documentação correspondente atualizada.
+- [ ] Nenhum segredo, dado pessoal real ou `dist/` incluído.

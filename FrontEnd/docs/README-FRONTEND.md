@@ -1,15 +1,14 @@
-# Guia de Navegação da Documentação do Frontend
+# Guia de navegação da documentação do frontend
 
-Toda a documentação técnica detalhada foi organizada no diretório `FrontEnd/docs/`:
-
-- [Sumário Geral da Documentação](README.md)
-- [Catálogo de Componentes](COMPONENTES.md)
-- [Documentação de Hooks Customizados](HOOKS.md)
-- [Guia de Testes Automatizados](TESTES.md)
+- [Sumário geral](README.md)
 - [Arquitetura](ARQUITETURA.md)
-- [Como o painel funciona (Funcionalidades)](FUNCIONALIDADES.md)
-- [Integração Frontend-Backend](INTEGRACAO-FRONTEND-BACKEND.md)
-- [Estilos e Interface (Design System)](STYLES.md)
-- [Guia de Contribuição](CONTRIBUTING.md)
-- [Histórico de Refatoração e Pendências](REFACTORING.md)
-- [Backend e Código Legado](BACKEND.md)
+- [Funcionalidades e rotas](FUNCIONALIDADES.md)
+- [Catálogo de componentes e páginas](COMPONENTES.md)
+- [Hooks customizados](HOOKS.md)
+- [Integração frontend-backend e dependências](INTEGRACAO-FRONTEND-BACKEND.md)
+- [Testes automatizados](TESTES.md)
+- [Estilos, responsividade e acessibilidade](STYLES.md)
+- [Guia de contribuição](CONTRIBUTING.md)
+- [Histórico de refatoração e pendências](REFACTORING.md)
+- [Implementação dos requisitos e auditoria](IMPLEMENTACAO-REQUISITOS-FRONTEND.md)
+- [Limite de responsabilidade/legado](BACKEND.md)
