@@ -21,23 +21,23 @@ describe("Header", () => {
     updatedAt: new Date(2026, 8, 11, 14, 30),
   };
 
-  it("renders heading, formatted date and user options", () => {
+  it("renders requirement-aligned heading, date and user options", () => {
     render(<Header {...defaultProps} />);
 
     expect(screen.getByText(/SEXTA-FEIRA, 11 DE SETEMBRO/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 1, name: "Visão geral da operação" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Visão geral da equipe" })).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Filtrar colaborador" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Toda a equipe" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Ana Carolina" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Bruno Mendes" })).toBeInTheDocument();
+    expect(screen.getByText(/sem interpretar atividade como produtividade/i)).toBeInTheDocument();
   });
 
   it("calls toggleTheme when the theme button is clicked", () => {
     const toggleTheme = vi.fn();
     render(<Header {...defaultProps} toggleTheme={toggleTheme} />);
 
-    const themeButton = screen.getByRole("button", { name: "Ativar tema escuro" });
-    fireEvent.click(themeButton);
+    fireEvent.click(screen.getByRole("button", { name: "Ativar tema escuro" }));
     expect(toggleTheme).toHaveBeenCalledTimes(1);
   });
 
@@ -45,24 +45,22 @@ describe("Header", () => {
     const onRefresh = vi.fn();
     render(<Header {...defaultProps} onRefresh={onRefresh} />);
 
-    const refreshButton = screen.getByRole("button", { name: "Atualizar dados agora" });
-    fireEvent.click(refreshButton);
+    fireEvent.click(screen.getByRole("button", { name: "Atualizar dados agora" }));
     expect(onRefresh).toHaveBeenCalledTimes(1);
   });
 
   it("disables refresh button during refreshing state", () => {
     render(<Header {...defaultProps} refreshing={true} />);
-
-    const refreshButton = screen.getByRole("button", { name: "Atualizando dados" });
-    expect(refreshButton).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Atualizando dados" })).toBeDisabled();
   });
 
-  it("triggers setSelectedDate when date input changes", () => {
+  it("triggers setSelectedDate when reference date changes", () => {
     const setSelectedDate = vi.fn();
     render(<Header {...defaultProps} setSelectedDate={setSelectedDate} />);
 
-    const dateInput = screen.getByLabelText("Data do relatório");
-    fireEvent.change(dateInput, { target: { value: "2026-09-10" } });
+    fireEvent.change(screen.getByLabelText("Data de referência"), {
+      target: { value: "2026-09-10" },
+    });
     expect(setSelectedDate).toHaveBeenCalledWith("2026-09-10");
   });
 
@@ -70,8 +68,9 @@ describe("Header", () => {
     const setSelectedUsername = vi.fn();
     render(<Header {...defaultProps} setSelectedUsername={setSelectedUsername} />);
 
-    const select = screen.getByRole("combobox", { name: "Filtrar colaborador" });
-    fireEvent.change(select, { target: { value: "ana" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Filtrar colaborador" }), {
+      target: { value: "ana" },
+    });
     expect(setSelectedUsername).toHaveBeenCalledWith("ana");
   });
 
@@ -86,9 +85,8 @@ describe("Header", () => {
     expect(screen.getByText("Conectando à API")).toBeInTheDocument();
   });
 
-  it("renders last updated timestamp when provided", () => {
+  it("documents unavailable period and task filters in the interface", () => {
     render(<Header {...defaultProps} />);
-    expect(screen.getByText(/Atualizado às/i)).toBeInTheDocument();
+    expect(screen.getByText(/Filtro por período e task dependem/i)).toBeInTheDocument();
   });
 });
-

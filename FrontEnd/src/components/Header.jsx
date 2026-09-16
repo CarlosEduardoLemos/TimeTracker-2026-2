@@ -1,27 +1,6 @@
 import { API_STATUS_LABELS } from "../constants/ui";
 import { safeIsoDate } from "../utils/dashboard";
 
-/**
- * @typedef {Object} HeaderProps
- * @property {string} formattedDate - Data formatada por extenso para exibição no topo
- * @property {boolean} dark - Se o tema escuro está ativado
- * @property {() => void} toggleTheme - Callback para alternar entre tema claro e escuro
- * @property {string} selectedDate - Data atualmente filtrada no formato AAAA-MM-DD
- * @property {(date: string) => void} setSelectedDate - Atualizador de estado da data selecionada
- * @property {string} [apiStatus="offline"] - Estado de conexão ("loading" | "online" | "offline")
- * @property {string} [selectedUsername=""] - Usuário filtrado ou vazio para todos
- * @property {(username: string) => void} setSelectedUsername - Atualizador do colaborador selecionado
- * @property {Array<{username: string, full_name?: string}>} [users=[]] - Lista de colaboradores
- * @property {boolean} [refreshing=false] - Indica se há recarga em segundo plano
- * @property {() => void} [onRefresh] - Callback para acionar a recarga manual
- * @property {Date|null} [updatedAt=null] - Data/hora da última atualização com sucesso
- */
-
-/**
- * Cabeçalho do dashboard com filtros de data e colaborador, status de conexão da API e controles de tema e recarga.
- *
- * @param {HeaderProps} props
- */
 export function Header({
   formattedDate,
   dark,
@@ -41,12 +20,12 @@ export function Header({
   return (
     <header id="visao-geral" className="mb-8 flex flex-col justify-between gap-6 xl:flex-row xl:items-start">
       <div>
-        <p className="eyebrow">{formattedDate} · DADOS AO VIVO</p>
+        <p className="eyebrow">{formattedDate} · DADOS DA API</p>
         <h1 className="font-display text-[29px] font-extrabold text-ink dark:text-white">
-          Visão geral da operação
+          Visão geral da equipe
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          Acompanhe o ritmo da equipe e a atividade monitorada de hoje.
+          Acompanhe estados dos colaboradores e registros disponíveis sem interpretar atividade como produtividade.
         </p>
       </div>
 
@@ -75,7 +54,8 @@ export function Header({
           </span>
         </button>
 
-        <label className="control gap-2" title="Selecionar data">
+        <label className="control gap-2" title="Selecionar data de referência">
+          <span className="sr-only">Data de referência</span>
           <span aria-hidden="true">▣</span>
           <input
             className="min-w-0 bg-transparent text-xs outline-none"
@@ -83,11 +63,12 @@ export function Header({
             value={selectedDate}
             onChange={(event) => setSelectedDate?.(event.target.value)}
             max={safeIsoDate()}
-            aria-label="Data do relatório"
+            aria-label="Data de referência"
           />
         </label>
 
         <label className="control gap-2" title="Filtrar colaborador">
+          <span className="sr-only">Colaborador</span>
           <span aria-hidden="true">♙</span>
           <select
             className="min-w-0 max-w-[190px] bg-transparent text-xs outline-none dark:bg-slate-900"
@@ -126,6 +107,10 @@ export function Header({
             Atualizado às {updatedAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
           </span>
         )}
+
+        <p className="w-full text-right text-[10px] leading-relaxed text-muted">
+          Filtro por período e task dependem de contrato ainda não disponível na API atual.
+        </p>
       </div>
     </header>
   );

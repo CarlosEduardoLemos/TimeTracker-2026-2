@@ -1,51 +1,44 @@
-import { apps } from "../data/dashboardData";
 import { Card } from "./Card";
 import { SectionHeading } from "./SectionHeading";
 
 /**
- * Componente AppsCard
- * Card exibindo os aplicativos mais usados com barras de progresso
+ * Lista aplicações registradas sem ranking ou interpretação de produtividade.
+ *
+ * Estrutura esperada: { name, time, inScope }.
+ * O componente não é renderizado no Dashboard enquanto o contrato atual da API
+ * não fornece a classificação dentro/fora do escopo da task.
  */
-export function AppsCard({ useDemoData = true }) {
+export function AppsCard({ applications = [] }) {
   return (
     <Card className="min-h-[257px]">
       <SectionHeading
-        title="Aplicativos mais usados"
-        description="Hoje, por tempo de uso"
-        action={
-          <a href="#relatorios" className="text-xs font-bold text-brand">
-            Ver relatório <span>→</span>
-          </a>
-        }
+        title="Aplicações registradas"
+        description="Classificação em relação ao escopo da task"
       />
-      {useDemoData ? <div className="mt-5 grid gap-4">
-        {apps.map((app) => (
-          <div
-            key={app.name}
-            className="grid grid-cols-[155px_1fr_59px] items-center gap-3 text-xs"
-          >
-            <div className="flex items-center gap-2 font-semibold text-ink dark:text-white">
-              <span
-                className={`grid h-6 w-6 place-items-center rounded-md text-[10px] font-bold text-white ${app.tone}`}
-              >
-                {app.symbol}
+      {applications.length ? (
+        <ul className="mt-5 grid gap-3" aria-label="Aplicações registradas">
+          {applications.map((application) => (
+            <li
+              key={application.name}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line px-3 py-2 text-xs dark:border-slate-700"
+            >
+              <strong className="text-ink dark:text-white">{application.name}</strong>
+              <span className="text-muted">{application.time || "—"}</span>
+              <span className="font-semibold text-muted">
+                {application.inScope === true
+                  ? "Dentro do escopo"
+                  : application.inScope === false
+                    ? "Fora do escopo"
+                    : "Escopo não informado"}
               </span>
-              {app.name}
-            </div>
-            <div className="h-1 rounded-full bg-slate-100 dark:bg-slate-700">
-              <div
-                className="h-full rounded-full bg-violet-500"
-                style={{ width: `${app.percent}%` }}
-              />
-            </div>
-            <strong className="text-right text-[11px] text-ink dark:text-white">
-              {app.time}
-            </strong>
-          </div>
-        ))}
-      </div> : <p className="mt-8 text-center text-xs text-muted">
-        O backend ainda não disponibiliza o ranking de aplicativos por período.
-      </p>}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-8 text-center text-xs leading-relaxed text-muted">
+          A API atual ainda não disponibiliza aplicações associadas à task com classificação dentro/fora do escopo.
+        </p>
+      )}
     </Card>
   );
 }
