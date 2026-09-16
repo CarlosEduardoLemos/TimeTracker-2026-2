@@ -38,9 +38,7 @@ O **Dashboard PWA** é utilizado pelo gestor.
 
 ## 2. Contas e associação
 
-O colaborador utiliza o Agente Desktop.
-
-Caso não exista um usuário registrado na estação, o agente permite criar uma conta de colaborador.
+O colaborador utiliza o Agente Desktop, sendo identificado pelo nome de usuario do windows e nome da máquina.
 
 O gestor possui no Dashboard a opção de criar uma conta utilizando e-mail.
 
