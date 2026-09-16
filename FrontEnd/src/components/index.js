@@ -1,18 +1,13 @@
-// Componentes base
+export { ActivityChart } from "./ActivityChart";
+export { AppsCard } from "./AppsCard";
 export { Card } from "./Card";
+export { EmptyState } from "./EmptyState";
+export { Header } from "./Header";
+export { IntegrationNotice } from "./IntegrationNotice";
+export { MetricCard } from "./MetricCard";
+export { PageHeader } from "./PageHeader";
+export { PeopleCard } from "./PeopleCard";
+export { ReportsAndAgent } from "./ReportsAndAgent";
 export { SectionHeading } from "./SectionHeading";
 export { Sidebar } from "./Sidebar";
-
-// Componentes de métrica
-export { MetricCard } from "./MetricCard";
-
-// Componentes de gráficos e cards
-export { ActivityChart } from "./ActivityChart";
-export { CategoryChart } from "./CategoryChart";
-export { AppsCard } from "./AppsCard";
 export { TimelineCard } from "./TimelineCard";
-export { PeopleCard } from "./PeopleCard";
-
-// Componentes de seção
-export { ReportsAndAgent } from "./ReportsAndAgent";
-export { Header } from "./Header";
