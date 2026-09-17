@@ -8,7 +8,7 @@ flowchart TB
   A --> R[useHashRoute]
   A --> P[pages/]
   P --> C[components/]
-  P --> H[hooks: useDashboardData / useTheme]
+  P --> H[hooks: useDashboardData / useAutoRefresh / useTheme]
   H --> S[services/api.js]
   S --> API[API HTTP]
   C --> CSS[index.css + Tailwind]
@@ -21,7 +21,7 @@ flowchart TB
 | Composição | `src/App.jsx` | Seleciona a página e aplica Sidebar/layout nas áreas autenticadas futuramente. |
 | Páginas | `src/pages/` | Painel, autenticação, colaboradores, tasks, relatórios e configurações. |
 | Componentes | `src/components/` | Elementos visuais reutilizáveis e componentes do dashboard. |
-| Estado/efeitos | `src/hooks/` | Dados do dashboard, tema e navegação. |
+| Estado/efeitos | `src/hooks/` | Ciclo de dados do dashboard, auto-refresh/visibilidade, tema e navegação. |
 | HTTP | `src/services/api.js` | Centraliza os contratos atualmente consumidos. |
 | Utilitários | `src/utils/` | Formatação e funções auxiliares. |
 | Navegação | `src/data/dashboardData.js` | Itens da Sidebar previstos no sitemap. |
@@ -44,7 +44,7 @@ Rotas desconhecidas retornam para `painel`. Login e cadastro são renderizados f
 
 ## Dashboard
 
-`DashboardPage.jsx` mantém o comportamento atualmente suportado por `useDashboardData`: data de referência, filtro de colaborador, auto-refresh, retry, status da API e indicadores que podem ser calculados com segurança.
+`DashboardPage.jsx` compõe a interface e delega transformações puras para `utils/dashboard.js`. `useDashboardData` cuida do ciclo das requisições; `useAutoRefresh` cuida separadamente do intervalo de 30 segundos e da Visibility API.
 
 Indicadores exigidos por RF-27 que ainda não existem no contrato permanecem explicitamente indisponíveis; não são inferidos nem preenchidos com mocks.
 

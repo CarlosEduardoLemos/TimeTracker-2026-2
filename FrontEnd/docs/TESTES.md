@@ -34,6 +34,7 @@ npm.cmd run build
 
 - `useTheme.test.js`
 - `useHashRoute.test.js`
+- `useAutoRefresh.test.js`: valida intervalo, modo desabilitado e retorno à aba visível.
 
 ### Páginas
 
@@ -43,8 +44,8 @@ npm.cmd run build
 
 ### Serviços/utilitários
 
-- `api.test.js`
-- `dashboard.test.js`
+- `api.test.js`: datas, URLs e degradação segura de chamadas opcionais.
+- `dashboard.test.js`: formatação, totais, filtro de realtime, contagem por status e data do cabeçalho.
 - `report.test.js`
 
 ## Padrões

@@ -11,25 +11,27 @@ import { getSummaryTotalSeconds } from "../utils/dashboard";
 import { Card } from "./Card";
 import { SectionHeading } from "./SectionHeading";
 
+function buildRegisteredTimeChartData(weeklySummaries) {
+  return weeklySummaries.map((summary) => ({
+    day: new Intl.DateTimeFormat("pt-BR", { weekday: "short" })
+      .format(new Date(`${summary.date}T12:00:00`))
+      .replace(".", ""),
+    // Décimos de hora preservam uma casa decimal sem acumular erro visual.
+    registered: Math.round((getSummaryTotalSeconds(summary) / 3600) * 10),
+  }));
+}
+
+function getChartMaximum(chartData) {
+  return Math.max(10, ...chartData.map(({ registered }) => registered));
+}
+
 /**
  * Exibe o tempo total registrado por dia usando apenas dados atualmente
  * disponíveis na API. Não calcula ou apresenta métricas de produtividade.
  */
 export function ActivityChart({ weeklySummaries = [] }) {
-  const chartData = weeklySummaries.map((summary) => {
-    const registered = Math.round((getSummaryTotalSeconds(summary) / 3600) * 10);
-    return {
-      day: new Intl.DateTimeFormat("pt-BR", { weekday: "short" })
-        .format(new Date(`${summary.date}T12:00:00`))
-        .replace(".", ""),
-      registered,
-    };
-  });
-
-  const chartMaximum = Math.max(
-    10,
-    ...chartData.map(({ registered }) => registered),
-  );
+  const chartData = buildRegisteredTimeChartData(weeklySummaries);
+  const chartMaximum = getChartMaximum(chartData);
 
   return (
     <Card id="atividade" className="min-h-[286px] lg:col-span-1">
@@ -62,12 +64,12 @@ export function ActivityChart({ weeklySummaries = [] }) {
                 cursor={{ fill: "rgba(100, 116, 139, 0.08)" }}
                 content={({ active, payload }) => {
                   if (!active || !payload?.length) return null;
-                  const item = payload[0].payload;
+                  const chartItem = payload[0].payload;
                   return (
                     <div className="chart-tooltip flex flex-col gap-1 text-[11px]">
-                      <span className="font-bold text-white">{item.day}</span>
+                      <span className="font-bold text-white">{chartItem.day}</span>
                       <span className="text-violet-200">
-                        Registrado: {(item.registered / 10).toFixed(1)}h
+                        Registrado: {(chartItem.registered / 10).toFixed(1)}h
                       </span>
                     </div>
                   );

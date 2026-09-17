@@ -3,6 +3,27 @@ import { formatRelativeActivityTime } from "../utils/dashboard";
 import { Card } from "./Card";
 import { SectionHeading } from "./SectionHeading";
 
+function buildPeopleRows(realtimePeople) {
+  return realtimePeople.map((person, index) => {
+    const username = String(person.username || "Desconhecido");
+    const secondsSinceLastActivity = Math.max(
+      0,
+      Number(person.seconds_since_last_activity) || 0,
+    );
+
+    return {
+      username,
+      initials: username.slice(0, 2).toUpperCase(),
+      statusLabel:
+        USER_STATUS_LABELS[person.status] ||
+        (person.status === "online" ? "Online" : "Ausente"),
+      applicationName: person.process_name || "—",
+      lastActivityLabel: formatRelativeActivityTime(secondsSinceLastActivity),
+      avatarColor: AVATAR_COLOR_PALETTE[index % AVATAR_COLOR_PALETTE.length],
+    };
+  });
+}
+
 /**
  * Visão resumida da equipe.
  *
@@ -11,26 +32,7 @@ import { SectionHeading } from "./SectionHeading";
  * necessário sem inferir dados inexistentes.
  */
 export function PeopleCard({ realtimePeople = [] }) {
-  const people = realtimePeople.map((person, index) => {
-    const username = String(person.username || "Desconhecido");
-    const secondsSinceLastActivity = Math.max(
-      0,
-      Number(person.seconds_since_last_activity) || 0,
-    );
-    const statusLabel =
-      USER_STATUS_LABELS[person.status] ||
-      (person.status === "online" ? "Online" : "Ausente");
-    const avatarColor = AVATAR_COLOR_PALETTE[index % AVATAR_COLOR_PALETTE.length];
-
-    return {
-      username,
-      initials: username.slice(0, 2).toUpperCase(),
-      statusLabel,
-      application: person.process_name || "—",
-      updated: formatRelativeActivityTime(secondsSinceLastActivity),
-      avatarColor,
-    };
-  });
+  const peopleRows = buildPeopleRows(realtimePeople);
 
   return (
     <Card id="equipe" className="overflow-hidden p-5 lg:col-span-2">
@@ -54,8 +56,8 @@ export function PeopleCard({ realtimePeople = [] }) {
             </tr>
           </thead>
           <tbody>
-            {people.length ? (
-              people.map((person) => (
+            {peopleRows.length ? (
+              peopleRows.map((person) => (
                 <tr
                   key={person.username}
                   className="border-t border-slate-100 text-[11px] text-muted dark:border-slate-700"
@@ -86,9 +88,9 @@ export function PeopleCard({ realtimePeople = [] }) {
                     <span aria-label="Task ativa indisponível na API atual">—</span>
                   </td>
                   <td className="px-5 py-3 text-xs text-ink dark:text-white">
-                    {person.application}
+                    {person.applicationName}
                   </td>
-                  <td className="px-5 py-3">{person.updated}</td>
+                  <td className="px-5 py-3">{person.lastActivityLabel}</td>
                 </tr>
               ))
             ) : (

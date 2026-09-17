@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  countPeopleByStatus,
+  filterRealtimePeople,
+  formatDashboardReferenceDate,
   formatDuration,
   formatRelativeActivityTime,
   getSummaryTotalSeconds,
@@ -39,5 +42,33 @@ describe("dashboard utilities", () => {
     expect(safeIsoDate(null)).toMatch(fallbackRegex);
     expect(safeIsoDate("invalid-date")).toMatch(fallbackRegex);
     expect(safeIsoDate("2026-02-31")).toMatch(fallbackRegex);
+  });
+
+  it("filters realtime people only when a collaborator is selected", () => {
+    const people = [
+      { username: "ana", status: "online" },
+      { username: "bruno", status: "offline" },
+    ];
+
+    expect(filterRealtimePeople(people, "")).toEqual(people);
+    expect(filterRealtimePeople(people, "ana")).toEqual([people[0]]);
+    expect(filterRealtimePeople(null, "ana")).toEqual([]);
+  });
+
+  it("counts people by status without mutating the source list", () => {
+    const people = [
+      { username: "ana", status: "online" },
+      { username: "bruno", status: "online" },
+      { username: "carla", status: "offline" },
+    ];
+
+    expect(countPeopleByStatus(people, "online")).toBe(2);
+    expect(countPeopleByStatus(people, "offline")).toBe(1);
+    expect(countPeopleByStatus(undefined, "online")).toBe(0);
+  });
+
+  it("formats the dashboard reference date in pt-BR", () => {
+    expect(formatDashboardReferenceDate("2026-09-16")).toContain("16");
+    expect(formatDashboardReferenceDate("2026-09-16")).toContain("SETEMBRO");
   });
 });

@@ -19,21 +19,26 @@ export function getSummaryTotalSeconds(summary) {
 export function formatRelativeActivityTime(totalSeconds) {
   const seconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
   if (seconds < 60) return `há ${seconds}s`;
+
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `há ${minutes}min`;
+
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   if (remainingMinutes === 0) return `há ${hours}h`;
+
   return `há ${hours}h ${remainingMinutes}min`;
 }
 
 /**
- * Valida se uma string de data é válida (AAAA-MM-DD); caso contrário, retorna a data local atual.
+ * Valida uma data ISO local (AAAA-MM-DD). Valores inválidos retornam a data
+ * atual para manter os filtros do Dashboard em um estado utilizável.
  */
 export function safeIsoDate(dateString) {
   if (typeof dateString === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
     const [year, month, day] = dateString.split("-").map(Number);
     const date = new Date(Date.UTC(year, month - 1, day));
+
     if (
       !Number.isNaN(date.getTime()) &&
       date.getUTCFullYear() === year &&
@@ -43,6 +48,7 @@ export function safeIsoDate(dateString) {
       return dateString;
     }
   }
+
   const now = new Date();
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
@@ -51,4 +57,29 @@ export function safeIsoDate(dateString) {
 
 export function getLocalIsoDate() {
   return safeIsoDate();
+}
+
+export function filterRealtimePeople(realtimePeople, selectedUsername = "") {
+  const people = Array.isArray(realtimePeople) ? realtimePeople : [];
+
+  if (!selectedUsername) return people;
+
+  return people.filter((person) => person.username === selectedUsername);
+}
+
+export function countPeopleByStatus(people, status) {
+  if (!Array.isArray(people)) return 0;
+  return people.filter((person) => person.status === status).length;
+}
+
+export function formatDashboardReferenceDate(dateString) {
+  const date = safeIsoDate(dateString);
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+  })
+    .format(new Date(`${date}T12:00:00`))
+    .toUpperCase();
 }

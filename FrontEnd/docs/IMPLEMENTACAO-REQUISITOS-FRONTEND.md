@@ -89,3 +89,24 @@ npm.cmd run build
 - [x] Arquivo adequado (`BACKEND.md`) preservado sem mudança desnecessária.
 - [ ] Integrações funcionais pendem de contratos externos.
 - [ ] Execução final de testes/build deve ser feita no checkout completo após aplicar esta atualização documental.
+
+
+---
+
+## Entrega 3 — revisão técnica e refatoração Clean Code
+
+Foi realizada uma revisão do código ativo exclusivamente dentro de `FrontEnd/`, sem alteração de funcionalidades de produto ou contratos externos.
+
+Principais mudanças:
+
+- separação do auto-refresh/Visibility API em `useAutoRefresh`;
+- simplificação de `useDashboardData`;
+- remoção de duplicação e código inalcançável em `services/api.js`;
+- extração de transformações puras do `DashboardPage`;
+- preparação de dados separada da renderização em `ActivityChart` e `PeopleCard`;
+- remoção de props não utilizadas;
+- novos testes para auto-refresh, resiliência da API e helpers do Dashboard.
+
+A matriz completa com O QUE, ONDE, POR QUE, COMO, IMPACTO e VALIDAÇÃO está em [`REFATORACAO-CLEAN-CODE.md`](REFATORACAO-CLEAN-CODE.md).
+
+Nenhum arquivo de backend, banco, API, infraestrutura, Docker ou CI/CD foi modificado.

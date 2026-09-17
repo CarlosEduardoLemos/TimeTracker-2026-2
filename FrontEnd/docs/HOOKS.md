@@ -4,14 +4,24 @@
 
 **Arquivo:** `src/hooks/useDashboardData.js`
 
-Responsável pelo ciclo de consulta do painel. Recebe data, colaborador e opção de auto-refresh; retorna dados, estados de loading/refresh/error, data da última atualização e função `refresh`.
+Responsável pelo ciclo de consulta e pelo estado dos dados do painel. Recebe data, colaborador e opção de auto-refresh; retorna dados, estados de loading/refresh/error, data da última atualização e função `refresh`.
 
 Comportamentos relevantes:
 
 - cancela requisições anteriores com `AbortController`;
-- pausa atualização automática quando a aba fica oculta;
 - mantém o último resultado durante refresh do mesmo filtro;
-- não transforma falha de API em dados fictícios.
+- não transforma falha de API em dados fictícios;
+- delega o agendamento periódico ao `useAutoRefresh`, evitando misturar timer/Visibility API com estado de rede.
+
+## `useAutoRefresh`
+
+**Arquivo:** `src/hooks/useAutoRefresh.js`
+
+Responsável exclusivamente pelo agendamento periódico. Enquanto habilitado e a aba está visível, dispara `onRefresh` a cada 30 segundos por padrão. Ao ocultar a aba, interrompe o timer; ao retornar, solicita uma atualização imediata e reinicia o intervalo.
+
+Esse hook não conhece a API nem o formato do Dashboard. Ele apenas coordena tempo e visibilidade do documento.
+
+Possui testes em `useAutoRefresh.test.js` para intervalo, modo desabilitado e retorno à aba visível.
 
 ## `useTheme`
 

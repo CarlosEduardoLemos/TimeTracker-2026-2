@@ -26,6 +26,17 @@
 - [x] Testes para novos fluxos frontend.
 - [x] Auditoria e atualização da documentação técnica após as entregas.
 
+## Revisão técnica Clean Code
+
+- [x] `useDashboardData` deixou de gerenciar diretamente timer e Visibility API; a responsabilidade foi extraída para `useAutoRefresh`.
+- [x] `api.js` centralizou montagem de filtros, normalização de resumos e tratamento resiliente de chamadas opcionais.
+- [x] Ramos de validação inalcançáveis de `getPreviousDateKeys` foram removidos, mantendo `safeIsoDate` como fonte de sanitização.
+- [x] Transformações de filtro/contagem/data saíram de `DashboardPage` para funções puras e testáveis em `utils/dashboard.js`.
+- [x] `ActivityChart` e `PeopleCard` tiveram preparação de dados separada da renderização sem criar novas camadas arquiteturais.
+- [x] Props não utilizadas deixaram de ser passadas para `ReportsAndAgent`.
+
+Arquivos de compatibilidade ou candidatos a remoção (`useActiveSection`, `useDashboard.js`, `CategoryChart`, `AppsCard` e `utils/report.js`) foram preservados conscientemente para evitar quebra sem decisão explícita do time. Consulte `REFATORACAO-CLEAN-CODE.md`.
+
 ## Pendências priorizadas
 
 1. Integrar autenticação e sessão quando houver contrato oficial.
