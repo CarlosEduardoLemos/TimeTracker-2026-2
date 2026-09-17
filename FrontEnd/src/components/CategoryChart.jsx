@@ -1,108 +1,21 @@
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
-import { categories as demoCategories } from "../data/dashboardData";
-import { formatDuration } from "../utils/dashboard";
 import { Card } from "./Card";
 import { SectionHeading } from "./SectionHeading";
 
 /**
- * Componente CategoryChart
- * Gráfico de pizza mostrando tempo por categoria de atividade
+ * Componente legado preservado apenas para compatibilidade de importação.
+ * A categorização por palavras-chave não faz parte do Dashboard analítico
+ * definido em RF-27 e, portanto, não é mais renderizada como indicador.
  */
-export function CategoryChart({ summaryUsers = [], useDemoData = true }) {
-  const categoryMap = new Map();
-
-  summaryUsers.forEach((user) => {
-    (user.by_category ?? []).forEach((category) => {
-      const current = categoryMap.get(category.category) ?? {
-        name: category.category,
-        value: 0,
-        color: category.color || "#94a3b8",
-      };
-      current.value += Number(category.total_seconds) || 0;
-      categoryMap.set(category.category, current);
-    });
-  });
-
-  const categories = categoryMap.size
-    ? [...categoryMap.values()].map((category) => ({
-        ...category,
-        time: formatDuration(category.value),
-      }))
-    : useDemoData
-      ? demoCategories
-      : [];
-  const totalSeconds = categories.reduce((total, category) => total + category.value, 0);
+export function CategoryChart() {
   return (
-    <Card className="min-h-[286px]">
+    <Card className="min-h-[180px]">
       <SectionHeading
-        title="Tempo por categoria"
-        description="Classificação por palavras-chave"
-        action={
-          <span className="text-xs text-muted">Dados do período</span>
-        }
+        title="Classificação de atividade"
+        description="Visualização descontinuada no Dashboard atual"
       />
-      <div className="mt-5 flex items-center justify-center gap-6">
-        <div className="relative h-36 w-36 shrink-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Tooltip
-                content={({ active, payload }) => {
-                  if (!active || !payload?.length) return null;
-                  const item = payload[0].payload;
-                  const percent = totalSeconds > 0
-                    ? ((item.value / totalSeconds) * 100).toFixed(1)
-                    : "0.0";
-                  return (
-                    <div className="chart-tooltip flex flex-col gap-0.5 text-[11px]">
-                      <span className="flex items-center gap-1.5 font-bold text-white">
-                        <i className="legend-dot" style={{ backgroundColor: item.color }} />
-                        {item.name}
-                      </span>
-                      <span className="text-slate-200">
-                        {item.time} ({percent}%)
-                      </span>
-                    </div>
-                  );
-                }}
-              />
-              <Pie
-                data={categories}
-                dataKey="value"
-                innerRadius={51}
-                outerRadius={69}
-                paddingAngle={1}
-                strokeWidth={0}
-              >
-                {categories.map((category) => (
-                  <Cell key={category.name} fill={category.color} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="absolute inset-0 grid place-content-center text-center">
-            <strong className="font-display text-[23px] text-ink dark:text-white">
-              {formatDuration(totalSeconds)}
-            </strong>
-            <span className="text-[10px] text-muted">monitoradas</span>
-          </div>
-        </div>
-        <div className="grid gap-3.5">
-          {categories.length ? categories.map((category) => (
-            <div key={category.name} className="text-[11px] text-muted">
-              <span>
-                <i
-                  className="legend-dot"
-                  style={{ backgroundColor: category.color }}
-                />
-                {category.name}
-              </span>
-              <strong className="mt-1 block text-xs text-ink dark:text-white">
-                {category.time}
-              </strong>
-            </div>
-          )) : <p className="max-w-32 text-center text-xs text-muted">Sem atividades classificadas nesta data.</p>}
-        </div>
-      </div>
+      <p className="mt-8 text-center text-xs leading-relaxed text-muted">
+        O Dashboard deve priorizar Ativo/Inativo, tempo por task e classificação dentro/fora do escopo, conforme RF-27.
+      </p>
     </Card>
   );
 }

@@ -7,66 +7,49 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { week } from "../data/dashboardData";
-import { getProductiveSeconds, getSummaryTotalSeconds } from "../utils/dashboard";
+import { getSummaryTotalSeconds } from "../utils/dashboard";
 import { Card } from "./Card";
 import { SectionHeading } from "./SectionHeading";
 
+function buildRegisteredTimeChartData(weeklySummaries) {
+  return weeklySummaries.map((summary) => ({
+    day: new Intl.DateTimeFormat("pt-BR", { weekday: "short" })
+      .format(new Date(`${summary.date}T12:00:00`))
+      .replace(".", ""),
+    // Décimos de hora preservam uma casa decimal sem acumular erro visual.
+    registered: Math.round((getSummaryTotalSeconds(summary) / 3600) * 10),
+  }));
+}
+
+function getChartMaximum(chartData) {
+  return Math.max(10, ...chartData.map(({ registered }) => registered));
+}
+
 /**
- * Componente ActivityChart
- * Gráfico de barras mostrando atividade semanal (monitorado vs produtivo)
+ * Exibe o tempo total registrado por dia usando apenas dados atualmente
+ * disponíveis na API. Não calcula ou apresenta métricas de produtividade.
  */
-export function ActivityChart({ weeklySummaries = [], useDemoData = true }) {
-  const chartData = weeklySummaries.length
-    ? weeklySummaries.map((summary) => {
-        const monitored = Math.round((getSummaryTotalSeconds(summary) / 3600) * 10);
-        const productive = Math.round(getProductiveSeconds(summary) / 3600 * 10);
-        return {
-          day: new Intl.DateTimeFormat("pt-BR", { weekday: "short" })
-            .format(new Date(`${summary.date}T12:00:00`))
-            .replace(".", ""),
-          monitored,
-          productive,
-          hours: `${(monitored / 10).toFixed(1)}h monitoradas`,
-        };
-      })
-    : useDemoData
-      ? week
-      : [];
-  const chartMaximum = Math.max(
-    10,
-    ...chartData.flatMap(({ monitored, productive }) => [monitored, productive]),
-  );
+export function ActivityChart({ weeklySummaries = [] }) {
+  const chartData = buildRegisteredTimeChartData(weeklySummaries);
+  const chartMaximum = getChartMaximum(chartData);
+
   return (
     <Card id="atividade" className="min-h-[286px] lg:col-span-1">
       <SectionHeading
-        title="Atividade da equipe"
-        description="Tempo monitorado e produtivo"
+        title="Tempo registrado"
+        description="Total diário disponível na API atual"
         action={
           <span className="control inline-flex items-center" aria-label="Período exibido">
             Últimos 7 dias
           </span>
         }
       />
-      <div className="mt-1 flex justify-end gap-4 text-[11px] text-muted">
-        <span>
-          <i className="legend-dot bg-violet-300" />
-          Monitorado
-        </span>
-        <span>
-          <i className="legend-dot bg-indigo-600" />
-          Produtivo
-        </span>
-      </div>
+
       {chartData.length ? (
-        <div
-          className="mt-3 h-[190px]"
-          aria-label="Gráfico de atividades semanais"
-        >
+        <div className="mt-5 h-[190px]" aria-label="Gráfico de tempo registrado por dia">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
-              barGap={4}
               margin={{ top: 12, right: 4, left: -24, bottom: 0 }}
             >
               <CartesianGrid stroke="#94a3b8" strokeOpacity={0.18} vertical={false} />
@@ -81,34 +64,30 @@ export function ActivityChart({ weeklySummaries = [], useDemoData = true }) {
                 cursor={{ fill: "rgba(100, 116, 139, 0.08)" }}
                 content={({ active, payload }) => {
                   if (!active || !payload?.length) return null;
-                  const item = payload[0].payload;
-                  const monHours = (item.monitored / 10).toFixed(1);
-                  const prodHours = (item.productive / 10).toFixed(1);
+                  const chartItem = payload[0].payload;
                   return (
                     <div className="chart-tooltip flex flex-col gap-1 text-[11px]">
-                      <span className="font-bold text-white">{item.day}</span>
-                      <span className="flex items-center gap-1 text-violet-300">
-                        <i className="legend-dot bg-violet-300" />
-                        Monitorado: {monHours}h
-                      </span>
-                      <span className="flex items-center gap-1 text-indigo-300">
-                        <i className="legend-dot bg-indigo-400" />
-                        Produtivo: {prodHours}h
+                      <span className="font-bold text-white">{chartItem.day}</span>
+                      <span className="text-violet-200">
+                        Registrado: {(chartItem.registered / 10).toFixed(1)}h
                       </span>
                     </div>
                   );
                 }}
               />
-              <Bar dataKey="monitored" fill="#b7aff7" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="productive" fill="#6350df" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="registered" fill="#6350df" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       ) : (
-        <div className="grid h-[190px] place-items-center text-center text-xs text-muted">
-          O backend ainda não disponibiliza o histórico semanal necessário para este gráfico.
+        <div className="mt-5 grid h-[190px] place-items-center rounded-lg bg-slate-50 px-4 text-center text-xs text-muted dark:bg-slate-800/60">
+          Nenhum tempo registrado foi retornado para o período disponível.
         </div>
       )}
+
+      <p className="mt-3 text-[11px] leading-relaxed text-muted">
+        O gráfico obrigatório de tempo por task será habilitado quando a API disponibilizar os registros associados às tasks.
+      </p>
     </Card>
   );
 }

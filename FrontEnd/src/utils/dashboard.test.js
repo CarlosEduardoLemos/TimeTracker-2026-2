@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  countPeopleByStatus,
+  filterRealtimePeople,
+  formatDashboardReferenceDate,
   formatDuration,
   formatRelativeActivityTime,
-  getProductiveSeconds,
   getSummaryTotalSeconds,
   safeIsoDate,
 } from "./dashboard";
@@ -14,28 +16,12 @@ describe("dashboard utilities", () => {
     expect(formatDuration(-10)).toBe("0h 00min");
   });
 
-  it("sums monitored time from users", () => {
+  it("sums registered time from users without productivity classification", () => {
     expect(
       getSummaryTotalSeconds({
         users: [{ total_seconds: 3600 }, { total_seconds: "120" }],
       }),
     ).toBe(3720);
-  });
-
-  it("excludes non-productive categories", () => {
-    expect(
-      getProductiveSeconds({
-        users: [
-          {
-            by_category: [
-              { category: "Desenvolvimento", total_seconds: 1800 },
-              { category: "Social", total_seconds: 600 },
-              { category: "Outros", total_seconds: 300 },
-            ],
-          },
-        ],
-      }),
-    ).toBe(1800);
   });
 
   it("formats relative activity time appropriately", () => {
@@ -51,12 +37,38 @@ describe("dashboard utilities", () => {
 
   it("validates and sanitizes ISO dates safely", () => {
     expect(safeIsoDate("2026-09-11")).toBe("2026-09-11");
-    // Datas inválidas retornam o formato YYYY-MM-DD da data atual
     const fallbackRegex = /^\d{4}-\d{2}-\d{2}$/;
     expect(safeIsoDate("")).toMatch(fallbackRegex);
     expect(safeIsoDate(null)).toMatch(fallbackRegex);
     expect(safeIsoDate("invalid-date")).toMatch(fallbackRegex);
     expect(safeIsoDate("2026-02-31")).toMatch(fallbackRegex);
   });
-});
 
+  it("filters realtime people only when a collaborator is selected", () => {
+    const people = [
+      { username: "ana", status: "online" },
+      { username: "bruno", status: "offline" },
+    ];
+
+    expect(filterRealtimePeople(people, "")).toEqual(people);
+    expect(filterRealtimePeople(people, "ana")).toEqual([people[0]]);
+    expect(filterRealtimePeople(null, "ana")).toEqual([]);
+  });
+
+  it("counts people by status without mutating the source list", () => {
+    const people = [
+      { username: "ana", status: "online" },
+      { username: "bruno", status: "online" },
+      { username: "carla", status: "offline" },
+    ];
+
+    expect(countPeopleByStatus(people, "online")).toBe(2);
+    expect(countPeopleByStatus(people, "offline")).toBe(1);
+    expect(countPeopleByStatus(undefined, "online")).toBe(0);
+  });
+
+  it("formats the dashboard reference date in pt-BR", () => {
+    expect(formatDashboardReferenceDate("2026-09-16")).toContain("16");
+    expect(formatDashboardReferenceDate("2026-09-16")).toContain("SETEMBRO");
+  });
+});

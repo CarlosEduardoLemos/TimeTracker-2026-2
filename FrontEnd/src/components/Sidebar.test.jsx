@@ -1,31 +1,30 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Sidebar } from "./Sidebar";
 
 describe("Sidebar", () => {
-  it("renders navigation links and highlights active section", () => {
-    render(<Sidebar activeSection="atividade" />);
-
-    const nav = screen.getByRole("navigation", { name: "Menu principal" });
-    expect(nav).toBeInTheDocument();
-
-    const activeLink = within(nav).getByRole("link", { name: /Atividades/i });
-    expect(activeLink).toHaveAttribute("aria-current", "page");
-
-    const inactiveLink = within(nav).getByRole("link", { name: /Visão geral/i });
-    expect(inactiveLink).not.toHaveAttribute("aria-current");
+  it("renders sitemap navigation and highlights the active route", () => {
+    render(<Sidebar activeSection="tasks" />);
+    const desktopNav = screen.getAllByRole("navigation", { name: "Menu principal" })[0];
+    expect(within(desktopNav).getByRole("link", { name: "Tasks" })).toHaveAttribute("aria-current", "page");
+    expect(within(desktopNav).getByRole("link", { name: "Painel" })).not.toHaveAttribute("aria-current");
+    expect(within(desktopNav).getByRole("link", { name: "Colaboradores" })).toBeInTheDocument();
+    expect(within(desktopNav).getByRole("link", { name: "Relatórios" })).toBeInTheDocument();
+    expect(within(desktopNav).getByRole("link", { name: "Configurações" })).toBeInTheDocument();
   });
 
-  it("renders user information and settings", () => {
-    render(<Sidebar activeSection="visao-geral" />);
+  it("does not expose a fictitious authenticated manager", () => {
+    render(<Sidebar activeSection="painel" />);
+    expect(screen.queryByText("Luan Menezes")).not.toBeInTheDocument();
+    expect(screen.getByText(/identificação do usuário será exibida após integração/i)).toBeInTheDocument();
+  });
 
-    expect(screen.getByText("Luan Menezes")).toBeInTheDocument();
-    expect(screen.getByText("Administrador")).toBeInTheDocument();
-
-    const configButton = screen.getByRole("button", {
-      name: "Configurações — indisponível",
-    });
-    expect(configButton).toBeDisabled();
+  it("opens and closes the mobile menu with Escape", () => {
+    render(<Sidebar activeSection="painel" />);
+    const openButton = screen.getByRole("button", { name: "Abrir menu" });
+    fireEvent.click(openButton);
+    expect(screen.getByRole("dialog", { name: "Menu principal mobile" })).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Menu principal mobile" })).not.toBeInTheDocument();
   });
 });
-

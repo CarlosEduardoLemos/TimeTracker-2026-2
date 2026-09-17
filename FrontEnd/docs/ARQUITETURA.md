@@ -1,70 +1,65 @@
 # Arquitetura do frontend
 
-## Camadas
+## Visão geral
 
 ```mermaid
 flowchart TB
   M[main.jsx] --> A[App.jsx]
-  A --> H[hooks: useDashboardData, useTheme, useActiveSection]
+  A --> R[useHashRoute]
+  A --> P[pages/]
+  P --> C[components/]
+  P --> H[hooks: useDashboardData / useAutoRefresh / useTheme]
   H --> S[services/api.js]
-  S --> API[API HTTP FastAPI]
-  A --> C[components]
-  C --> CONST[constants/ui.js]
-  C --> U[utils e data demonstrativa]
-  A --> CSS[index.css + Tailwind]
+  S --> API[API HTTP]
+  C --> CSS[index.css + Tailwind]
 ```
 
 | Camada | Local | Responsabilidade |
 | --- | --- | --- |
-| Entrada | `src/main.jsx` | Monta `App` no elemento `#root` usando `StrictMode`. |
-| Composição | `src/App.jsx` | Mantém filtros/preferências e orquestra a passagem de dados para os componentes. |
-| Hooks modulares | `src/hooks/` | Busca de dados (`useDashboardData`), controle de tema (`useTheme`) e rastreamento de scroll (`useActiveSection`). |
-| Constantes de UI | `src/constants/ui.js` | Paletas de avatares, status de atividade e rótulos de API compartilhados. |
-| HTTP | `src/services/api.js` | Centraliza URL base, `fetch`, resiliência a falhas secundárias e URLs de exportação. |
-| Apresentação | `src/components/` | Renderiza seções visuais sem acoplamento direto com a camada de rede. |
-| Regras auxiliares | `src/utils/` | Formatação de tempo, totais, produtividade e exportação CSV. |
-| Demonstração | `src/data/dashboardData.js` | Dados estáticos para modo offline / demonstração. |
+| Entrada | `src/main.jsx` | Monta `App` em `StrictMode`. |
+| Roteamento | `src/hooks/useHashRoute.js` | Resolve rotas por hash e aplica fallback seguro para `painel`. |
+| Composição | `src/App.jsx` | Seleciona a página e aplica Sidebar/layout nas áreas autenticadas futuramente. |
+| Páginas | `src/pages/` | Painel, autenticação, colaboradores, tasks, relatórios e configurações. |
+| Componentes | `src/components/` | Elementos visuais reutilizáveis e componentes do dashboard. |
+| Estado/efeitos | `src/hooks/` | Ciclo de dados do dashboard, auto-refresh/visibilidade, tema e navegação. |
+| HTTP | `src/services/api.js` | Centraliza os contratos atualmente consumidos. |
+| Utilitários | `src/utils/` | Formatação e funções auxiliares. |
+| Navegação | `src/data/dashboardData.js` | Itens da Sidebar previstos no sitemap. |
 
-## Estado do dashboard e Hooks
+## Navegação
 
-A camada de estado do frontend está modularizada em `src/hooks/`:
+O frontend utiliza hash routing sem dependência externa de roteador. Rotas reconhecidas:
 
-- **`useDashboardData(selectedDate, selectedUsername, autoRefresh)`:** Responsável pelo ciclo de vida das requisições, controle de concorrência com `AbortController`, pausas automáticas quando a aba está em segundo plano (Visibility API) e *stale-while-revalidate*.
-- **`useTheme()`:** Gerencia tema claro/escuro com persistência em `localStorage` e sincronização do atributo `data-theme` no `<html>`.
-- **`useActiveSection()`:** Utiliza `IntersectionObserver` para destacar a seção visível na barra lateral de forma performática.
-
-Consulte [Documentação de Hooks](HOOKS.md) para a especificação detalhada de parâmetros e tipos de retorno.
-
-## Componentes e Contratos
-
-Os componentes visuais estão organizados em `src/components/` e são exportados por `src/components/index.js`. Os dados fluem de cima para baixo como propriedades (*props*).
-
-| Componente | Responsabilidade | Documentação |
-| --- | --- | --- |
-| `Header` | Filtros de data, seleção de colaborador, status da API e tema. | [Catálogo de Componentes](COMPONENTES.md#header) |
-| `Sidebar` | Navegação desktop por âncoras e perfil do usuário. | [Catálogo de Componentes](COMPONENTES.md#sidebar) |
-| `MetricCard` | Cartões de indicadores operacionais resumidos. | [Catálogo de Componentes](COMPONENTES.md#metriccard) |
-| `ActivityChart` | Gráfico de barras semanais (monitorado vs. produtivo). | [Catálogo de Componentes](COMPONENTES.md#activitychart) |
-| `CategoryChart` | Gráfico de rosca com distribuição de categorias. | [Catálogo de Componentes](COMPONENTES.md#categorychart) |
-| `PeopleCard` | Tabela em tempo real com atividades da equipe. | [Catálogo de Componentes](COMPONENTES.md#peoplecard) |
-| `ReportsAndAgent` | Exportação de relatórios (CSV/PDF) e auto-refresh. | [Catálogo de Componentes](COMPONENTES.md#reportsandagent) |
-| `Card`, `SectionHeading` | Blocos visuais reutilizáveis de apresentação. | [Catálogo de Componentes](COMPONENTES.md#componentes-base) |
-
-## Testes Automatizados
-
-O frontend adota **Vitest** e **React Testing Library** com cobertura de componentes, hooks, serviços e utilitários.
-
-```powershell
-npm.cmd test
-npm.cmd run test:coverage
+```text
+#/painel
+#/colaboradores
+#/tasks
+#/relatorios
+#/configuracoes
+#/login
+#/cadastro
 ```
 
-Consulte [Guia de Testes Automatizados](TESTES.md) para diretrizes de escrita e execução.
+Rotas desconhecidas retornam para `painel`. Login e cadastro são renderizados fora do shell com Sidebar. As demais telas usam o layout principal.
 
-## Configuração de Build
+## Dashboard
 
-- `vite.config.js`: porta 5173, alias `@` para `/src`, divisão de bundles (`vendor` para React e `charts` para Recharts) e remoção de `console` em produção.
-- `tailwind.config.js`: tema customizado (`ink`, `brand`, `muted`, `line`, `page`), dark mode por `[data-theme="dark"]`.
-- `postcss.config.js`: integração do Tailwind e Autoprefixer.
+`DashboardPage.jsx` compõe a interface e delega transformações puras para `utils/dashboard.js`. `useDashboardData` cuida do ciclo das requisições; `useAutoRefresh` cuida separadamente do intervalo de 30 segundos e da Visibility API.
 
-Para validar o build: `npm.cmd run build` a partir de `FrontEnd/`.
+Indicadores exigidos por RF-27 que ainda não existem no contrato permanecem explicitamente indisponíveis; não são inferidos nem preenchidos com mocks.
+
+## Formulários administrativos
+
+`AuthPage`, `TasksPage`, `SettingsPage`, `CollaboratorsPage` e `ReportsPage` implementam apenas responsabilidade frontend: layout, labels, validação local, feedback e estados. Ações que exigem persistência permanecem bloqueadas até contrato oficial.
+
+## Segurança de frontend
+
+- Credenciais não são persistidas pelo frontend atual.
+- Não existe token fictício ou sessão simulada.
+- Permissões definitivas devem ser validadas no backend.
+- Em produção, a API deve ser acessada por HTTPS.
+- Dados não necessários ao Dashboard, como `window_title`, não são exibidos na visão gerencial.
+
+## Testes
+
+Vitest + React Testing Library cobrem componentes, hooks, serviços, utilitários e novas páginas. Consulte `TESTES.md`.
