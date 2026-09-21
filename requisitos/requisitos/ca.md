@@ -10,18 +10,13 @@
 
 **Requisitos relacionados:** RF-01, RF-02, RF-03, RF-04, RF-05.
 
-- **Dado que:** o gestor acessa o Dashboard ou o Agente Desktop é iniciado em uma estação corporativa;
-- **Quando:** ocorre o fluxo inicial de acesso;
-- **Então:**
-  - o gestor pode criar uma conta por e-mail e realizar login no Dashboard;
-  - o Agente Desktop identifica automaticamente o usuário Windows e a estação corporativa;
-  - o colaborador é registrado automaticamente quando ainda não existir no sistema;
-  - o Agente Desktop autentica-se automaticamente no backend, sem exigir conta ou login manual do colaborador;
-  - o gestor pode gerar um código de associação de 6 dígitos;
-  - o colaborador pode informar esse código;
-  - após a associação, o colaborador passa a pertencer à equipe do gestor;
-  - o gestor visualiza somente os colaboradores associados a ele;
-  - o colaborador associado fica disponível para inclusão nas tasks do gestor.
+- O gestor pode criar conta com e-mail e senha e realizar login no Dashboard.
+- O agente identifica automaticamente o usuário Windows e a estação.
+- O gestor pode gerar um código de autorização de 6 dígitos.
+- No primeiro acesso, o colaborador informa o código; se válido, o sistema autoriza o acesso, registra-o quando necessário, associa-o ao gestor e emite a credencial do agente.
+- Um código inválido não autoriza acesso, registro ou associação.
+- Nos acessos seguintes, o agente autentica-se automaticamente enquanto sua credencial estiver válida.
+- O gestor visualiza somente seus colaboradores associados, disponíveis para inclusão nas tasks.
 
 - [ ] Critério verificado e atendido.
 
