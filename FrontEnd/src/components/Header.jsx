@@ -54,7 +54,7 @@ export function Header({
           </span>
         </button>
 
-        <label className="control gap-2" title="Selecionar data de referência">
+        <label className="control items-center gap-2" title="Selecionar data de referência">
           <span className="sr-only">Data de referência</span>
           <span aria-hidden="true">▣</span>
           <input
@@ -67,7 +67,7 @@ export function Header({
           />
         </label>
 
-        <label className="control gap-2" title="Filtrar colaborador">
+        <label className="control items-center gap-2" title="Filtrar colaborador">
           <span className="sr-only">Colaborador</span>
           <span aria-hidden="true">♙</span>
           <select

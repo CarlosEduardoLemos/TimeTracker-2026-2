@@ -1,0 +1,9 @@
+diff --git a/FrontEnd/src/components/Header.jsx b/FrontEnd/src/components/Header.jsx
+--- a/FrontEnd/src/components/Header.jsx
++++ b/FrontEnd/src/components/Header.jsx
+@@
+-        <label className="control gap-2" title="Selecionar data de referência">
++        <label className="control items-center gap-2" title="Selecionar data de referência">
+@@
+-        <label className="control gap-2" title="Filtrar colaborador">
++        <label className="control items-center gap-2" title="Filtrar colaborador">
