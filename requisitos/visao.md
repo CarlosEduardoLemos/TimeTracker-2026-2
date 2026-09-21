@@ -10,7 +10,8 @@
 
 O **Time Tracker** é uma solução open source corporativa para acompanhamento de:
 
-- tasks;
+- aplicações utilizadas durante uma atividade que tem uma categoria dentro da aplicação;
+- categorização de atividades/aplicações por tasks
 - atividade e inatividade;
 - tempo de utilização;
 - jornada de trabalho.
@@ -40,27 +41,29 @@ O **Dashboard PWA** é utilizado pelo gestor.
 
 O colaborador utiliza o Agente Desktop, sendo identificado pelo nome de usuario do windows e nome da máquina.
 
+O colaborador no Agent Desktop é autenticado por um código de associação ao gestor.
+
 O gestor possui no Dashboard a opção de criar uma conta utilizando e-mail.
 
-A associação inicial entre colaborador e gestor é realizada através de um **código de 6 dígitos**.
+A associação inicial entre colaborador e gestor é realizada através de um **código associação**.
 
 ```text
 GESTOR
   ↓
-gera código
+possui código
   ↓
 COLABORADOR
   ↓
 informa código
   ↓
-associação
+associação entre Agent e dashboard
 ```
 
 Após a associação, o gestor poderá adicionar o colaborador às suas tasks.
 
 ---
 
-## 3. Monitoramento baseado em tasks
+## 3. Monitoramento/categorização baseado em tasks
 
 A **task é a unidade central do monitoramento**.
 
@@ -81,7 +84,7 @@ O colaborador visualiza somente as tasks às quais estiver associado.
 Antes de iniciar uma task, o colaborador deve visualizar:
 
 - a task selecionada;
-- os serviços monitorados;
+- que será monitorado;
 - as informações registradas;
 - como atividade e inatividade são identificadas.
 
@@ -96,8 +99,6 @@ Visualizar condições
 
 O monitoramento somente começa após a confirmação de ciência do colaborador.
 
-Alterações no escopo de uma task ativa devem ser informadas antes de serem aplicadas.
-
 ---
 
 ## 5. Informações registradas
@@ -107,7 +108,7 @@ Durante uma task poderão ser registrados:
 - colaborador;
 - usuário Windows;
 - task;
-- serviço ou aplicação monitorada;
+- serviço ou aplicações utilizadas pelos colaboradores;
 - início;
 - término;
 - duração;
@@ -118,21 +119,8 @@ Mouse e teclado são utilizados somente para verificar se houve interação rece
 ```text
 Interação recente?
       ↓
-   sim / não
-      ↓
 Ativo / Inativo
 ```
-
-O conteúdo das interações não deve ser coletado.
-
-Também não fazem parte do monitoramento:
-
-- teclas digitadas;
-- senhas;
-- screenshots;
-- áudio;
-- câmera;
-- conteúdo de mensagens ou arquivos.
 
 ---
 
@@ -216,7 +204,7 @@ Os relatórios podem apresentar:
 
 - tasks;
 - tempo por task;
-- serviços monitorados;
+- serviços monitorados durante a task;
 - tempo ativo/inativo;
 - jornada;
 - possíveis horas extras.
@@ -247,15 +235,7 @@ Esse histórico apresenta somente as informações que foram efetivamente enviad
 
 ### Transparência
 
-O colaborador deve saber quando e sobre quais atividades está sendo monitorado.
-
-### Escopo limitado
-
-Somente serviços definidos na task devem ser monitorados.
-
-### Minimização
-
-Somente informações necessárias devem ser coletadas.
+O colaborador deve saber que está sendo monitorado, e o que foi enviado durante o uso da aplicação.
 
 ### Segurança
 
@@ -271,8 +251,6 @@ O gestor acessa somente os dados dos colaboradores associados a ele.
 
 O Time Tracker registra atividade, tempo, tasks e jornada.
 
-Esses dados podem auxiliar análises, mas não representam automaticamente produtividade.
-
 ---
 
 ## 12. Fluxo Geral
@@ -282,13 +260,11 @@ GESTOR
   ↓
 cria conta
   ↓
-gera código
+recebe código
   ↓
 COLABORADOR
   ↓
-cria/acessa conta
-  ↓
-associa-se ao gestor
+associa-se ao gestor por codigo
   ↓
 recebe Tasks
   ↓
@@ -300,7 +276,7 @@ confirma ciência
   ↓
 inicia Task
   ↓
-monitoramento
+monitoramento de todas atividades durante a task
   ↓
 registros
   ↓
