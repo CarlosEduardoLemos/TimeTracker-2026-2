@@ -5,18 +5,20 @@
 **Data:** Setembro de 2026
 
 ---
-
 ## CA-01 — Identificação, acesso e associação
 
 **Requisitos relacionados:** RF-01, RF-02, RF-03, RF-04, RF-05.
 
-- O gestor pode criar conta com e-mail e senha e realizar login no Dashboard.
-- O agente identifica automaticamente o usuário Windows e a estação.
-- O gestor pode gerar um código de autorização de 6 dígitos.
-- No primeiro acesso, o colaborador informa o código; se válido, o sistema autoriza o acesso, registra-o quando necessário, associa-o ao gestor e emite a credencial do agente.
-- Um código inválido não autoriza acesso, registro ou associação.
-- Nos acessos seguintes, o agente autentica-se automaticamente enquanto sua credencial estiver válida.
-- O gestor visualiza somente seus colaboradores associados, disponíveis para inclusão nas tasks.
+- **Dado que:** o gestor acessa o Dashboard ou o colaborador inicia o Agente Desktop;
+- **Quando:** ocorre o fluxo de acesso e associação;
+- **Então:**
+  - o gestor pode criar conta com e-mail e senha e realizar login no Dashboard;
+  - o agente identifica automaticamente o usuário Windows e a estação;
+  - o gestor possui um código de associação de 6 dígitos, disponível no Dashboard;
+  - no primeiro acesso, o colaborador informa o código; se válido, o sistema registra-o quando necessário e associa-o ao gestor correspondente;
+  - um código inválido não realiza a associação;
+  - nos acessos seguintes, o agente reconhece automaticamente o colaborador e sua associação, sem solicitar novamente o código;
+  - o gestor visualiza somente seus colaboradores associados, disponíveis para inclusão nas tasks.
 
 - [ ] Critério verificado e atendido.
 
