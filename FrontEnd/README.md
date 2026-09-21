@@ -1,89 +1,273 @@
-# TimeTrack — Frontend
+# TimeTracker — Frontend
 
-Frontend ativo do TimeTrack para o perfil **Gestor**, desenvolvido com React 18, Vite, Tailwind CSS e Recharts. O protótipo em `legacy/blazor/` é histórico e não participa do build Vite.
+Frontend da aplicação **TimeTracker**, desenvolvido em **React 18** com **Vite**, **Tailwind CSS** e **Recharts**.
 
-## Estado atual
+O projeto é responsável pela interface utilizada no gerenciamento e visualização das informações da aplicação, incluindo painel, colaboradores, tarefas, relatórios, configurações, login e cadastro.
 
-O frontend possui navegação por hash entre as áreas previstas no sitemap do projeto:
+---
 
-- `#/painel`
-- `#/colaboradores`
-- `#/tasks`
-- `#/relatorios`
-- `#/configuracoes`
-- `#/login`
-- `#/cadastro`
+## Tecnologias utilizadas
 
-As telas que dependem de contratos ainda inexistentes no backend exibem estados explícitos de integração pendente. O frontend **não cria dados fictícios nem inventa endpoints** para completar essas funcionalidades.
+| Tecnologia           |     Versão | Utilização                                                 |
+| -------------------- | ---------: | ---------------------------------------------------------- |
+| **React**            |     18.2.0 | Construção da interface e componentes da aplicação         |
+| **React DOM**        |     18.2.0 | Renderização da aplicação React no navegador               |
+| **JavaScript / JSX** | ES Modules | Desenvolvimento dos componentes, páginas, hooks e serviços |
+| **Vite**             |      5.0.8 | Servidor de desenvolvimento e build da aplicação           |
+| **Tailwind CSS**     |     3.4.17 | Estilização e responsividade                               |
+| **Recharts**         |     2.10.3 | Construção de gráficos e visualizações                     |
+| **PostCSS**          |     8.4.32 | Processamento dos arquivos CSS                             |
+| **Autoprefixer**     |    10.4.16 | Compatibilidade CSS entre navegadores                      |
 
-## Como executar
+### Testes
 
-Pré-requisitos: Node.js 20+ e npm.
+| Tecnologia                | Versão | Utilização                                |
+| ------------------------- | -----: | ----------------------------------------- |
+| **Vitest**                |  3.2.4 | Execução dos testes automatizados         |
+| **React Testing Library** | 16.3.0 | Testes dos componentes React              |
+| **Jest DOM**              |  6.8.0 | Matchers adicionais para validação do DOM |
+| **User Event**            | 14.6.1 | Simulação de interações do usuário        |
+| **jsdom**                 | 26.1.0 | Simulação do ambiente de navegador        |
+| **V8 Coverage**           |  3.2.4 | Cobertura dos testes                      |
 
-```powershell
-cd FrontEnd
-npm.cmd install
-npm.cmd run dev
-```
+---
 
-Validação de produção:
-
-```powershell
-npm.cmd test
-npm.cmd run build
-npm.cmd run preview
-```
-
-## Configuração
-
-| Variável | Padrão | Descrição |
-| --- | --- | --- |
-| `VITE_API_URL` | `http://localhost:8000` | URL base da API consumida pelo frontend. |
-
-Em produção, a URL deve utilizar HTTPS conforme RNF-03.
-
-## Arquitetura resumida
+## Estrutura do projeto
 
 ```text
-src/
-├── App.jsx                  # Seleção da rota e shell principal
-├── pages/                   # Telas do Dashboard PWA
-├── components/              # Componentes visuais reutilizáveis
-├── hooks/                   # Dados, tema e roteamento por hash
-├── services/api.js          # Cliente HTTP existente
-├── utils/                   # Formatação e utilitários
-├── data/dashboardData.js    # Configuração de navegação
-└── index.css                # Tailwind + estilos compartilhados
+FrontEnd/
+├── src/
+│   ├── components/
+│   ├── constants/
+│   ├── data/
+│   ├── hooks/
+│   ├── pages/
+│   ├── services/
+│   ├── test/
+│   ├── utils/
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── index.css
+│
+├── docs/
+├── legacy/
+├── index.html
+├── package.json
+├── postcss.config.js
+├── tailwind.config.js
+├── vite.config.js
+└── vitest.config.js
 ```
 
-`App.jsx` não concentra mais o domínio do dashboard. O conteúdo do painel está em `src/pages/DashboardPage.jsx`; as demais áreas possuem páginas próprias.
+### Diretórios principais
 
-## Situação funcional
+* `components/`: componentes reutilizáveis da interface.
+* `pages/`: páginas principais da aplicação.
+* `hooks/`: hooks personalizados utilizados pelo frontend.
+* `services/`: comunicação com serviços externos e API.
+* `utils/`: funções auxiliares.
+* `constants/`: constantes compartilhadas.
+* `data/`: dados e configurações internas.
+* `test/`: configuração e utilitários relacionados aos testes.
 
-| Área | Estado |
-| --- | --- |
-| Painel | Parcial: usa os contratos atualmente disponíveis e não inventa indicadores ausentes |
-| Login/Cadastro | Estrutura e validação local prontas; envio depende de contrato de autenticação |
-| Colaboradores | Estrutura pronta; listagem e código de associação dependem de API |
-| Tasks | Formulário e validação local prontos; persistência depende de API |
-| Configurações | Estrutura de jornada/inatividade pronta; persistência depende de API |
-| Relatórios | Filtros e estrutura prontos; CSV/PDF permanecem bloqueados até contrato completo |
+---
 
-O Dashboard não apresenta rankings nem métricas de produtividade. Dados ausentes são apresentados como indisponíveis/estado vazio em vez de mocks operacionais.
+## Rotas
 
-## Documentação
+Atualmente, a aplicação utiliza navegação baseada em **hash routing**.
 
-- [Sumário da documentação](docs/README.md)
-- [Arquitetura](docs/ARQUITETURA.md)
-- [Funcionalidades](docs/FUNCIONALIDADES.md)
-- [Componentes](docs/COMPONENTES.md)
-- [Hooks](docs/HOOKS.md)
-- [Integração frontend–backend](docs/INTEGRACAO-FRONTEND-BACKEND.md)
-- [Testes](docs/TESTES.md)
-- [Estilos](docs/STYLES.md)
-- [Contribuição](docs/CONTRIBUTING.md)
-- [Implementação e dependências](docs/IMPLEMENTACAO-REQUISITOS-FRONTEND.md)
+Rotas existentes:
 
-## Limitações conhecidas
+```text
+#/painel
+#/colaboradores
+#/tasks
+#/relatorios
+#/configuracoes
+#/login
+#/cadastro
+```
 
-Dependem de contrato/API oficial: autenticação e sessão, código de associação, listagem autorizada de colaboradores, CRUD de tasks, jornada/inatividade, filtros completos do RF-27, timeline real, tempo ativo/inativo, possível hora extra e exportação completa CSV/PDF.
+O projeto não utiliza React Router atualmente.
+
+---
+
+## Integração com a API
+
+A comunicação com o backend é centralizada em:
+
+```text
+src/services/
+```
+
+A URL base da API pode ser configurada utilizando a variável de ambiente:
+
+```env
+VITE_API_URL=http://localhost:8000
+```
+
+Existe um arquivo de exemplo:
+
+```text
+.env.example
+```
+
+Para utilização local, crie um arquivo `.env` a partir dele e ajuste a URL da API conforme necessário.
+
+---
+
+## Requisitos
+
+Para executar o frontend localmente:
+
+* Node.js 20 ou superior
+* npm
+
+---
+
+## Instalação
+
+Acesse o diretório do frontend:
+
+```bash
+cd FrontEnd
+```
+
+Instale as dependências:
+
+```bash
+npm install
+```
+
+---
+
+## Executando o projeto
+
+Ambiente de desenvolvimento:
+
+```bash
+npm run dev
+```
+
+O Vite iniciará o servidor local de desenvolvimento.
+
+---
+
+## Build de produção
+
+Para gerar o build:
+
+```bash
+npm run build
+```
+
+Para visualizar o build localmente:
+
+```bash
+npm run preview
+```
+
+---
+
+## Testes
+
+Executar todos os testes:
+
+```bash
+npm test
+```
+
+Executar testes em modo watch:
+
+```bash
+npm run test:watch
+```
+
+Executar testes com cobertura:
+
+```bash
+npm run test:coverage
+```
+
+---
+
+## Arquitetura
+
+A aplicação segue uma organização baseada em separação de responsabilidades:
+
+```text
+Interface
+   │
+   ▼
+Pages
+   │
+   ▼
+Components
+   │
+   ├── Hooks
+   ├── Utils
+   └── Data
+   │
+   ▼
+Services
+   │
+   ▼
+Backend API
+```
+
+Essa organização evita concentrar toda a lógica da aplicação em um único componente e facilita manutenção, testes e evolução do projeto.
+
+---
+
+## Frontend atual
+
+A aplicação ativa utiliza:
+
+```text
+React 18
+   │
+   ├── JavaScript / JSX
+   ├── Tailwind CSS
+   ├── Recharts
+   │
+   ├── Vite
+   │   ├── PostCSS
+   │   └── Autoprefixer
+   │
+   └── Testes
+       ├── Vitest
+       ├── React Testing Library
+       └── jsdom
+```
+
+---
+
+## Legacy
+
+O diretório:
+
+```text
+legacy/
+```
+
+contém implementações e protótipos históricos do projeto.
+
+Esse conteúdo **não faz parte do build atual do frontend**, que utiliza React e Vite.
+
+---
+
+## Status
+
+O frontend possui atualmente estrutura para:
+
+* Dashboard
+* Colaboradores
+* Tasks
+* Relatórios
+* Configurações
+* Login
+* Cadastro
+
+Algumas funcionalidades dependem da disponibilidade dos respectivos contratos e endpoints no backend.
+
+Quando uma funcionalidade ainda não possui integração disponível, o frontend mantém o estado de integração pendente em vez de utilizar endpoints fictícios ou dados operacionais simulados.
