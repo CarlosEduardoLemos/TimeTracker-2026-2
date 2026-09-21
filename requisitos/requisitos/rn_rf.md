@@ -48,7 +48,7 @@ Após a associação, o colaborador poderá ser incluído nas tasks do gestor.
 
 O gestor deve acessar somente seus colaboradores associados e acompanhar quais estão Online ou Offline.
 
-### RF-03 — Gerar código de associação
+### RF-03 — Código de associação
 
 O Dashboard deve definir ao gestor um código numérico de 6 dígitos vinculado à sua equipe.
 
