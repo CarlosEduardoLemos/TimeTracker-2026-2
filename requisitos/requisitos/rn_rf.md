@@ -16,17 +16,22 @@ Cada regra apresenta abaixo as funcionalidades necessárias para atendê-la.
 
 # RN-01 — Identificação e contas de usuário
 
-O **Gestor** deve criar sua própria conta por e-mail e acessar o Dashboard por login.
+O gestor deve possuir conta própria, criada com e-mail e senha, para acessar o Dashboard.
 
-O **Colaborador** não deve criar uma conta nem realizar login manualmente. Ele deve ser identificado e registrado automaticamente pelo Agente Desktop a partir do usuário Windows e da estação corporativa.
+O colaborador deve ser identificado pelo usuário Windows e pela estação corporativa, sem criar uma conta com e-mail e senha.
 
-Após o primeiro registro, o Agente Desktop deve autenticar-se automaticamente perante o backend.
+Seu primeiro acesso depende de um código de autorização de 6 dígitos fornecido pelo gestor, cuja validação autoriza o acesso e a associação à equipe.
+
+Nos acessos seguintes, a autenticação deve ser automática enquanto a credencial do agente permanecer válida. O código inicial não deve ser utilizado como credencial permanente.
 
 ### RF-01 — Identificar e registrar colaborador
 
-O Agente Desktop deve identificar o usuário Windows e a estação corporativa, verificar se o colaborador já está registrado e realizar seu registro automaticamente quando necessário.
+O Agente Desktop deve:
 
-O agente deve autenticar-se automaticamente perante o backend, sem exigir login manual do colaborador.
+- Identificar o usuário Windows e a estação corporativa.
+- Solicitar o código no primeiro acesso e encaminhá-lo ao fluxo de autorização e associação definido no RF-04.
+- Após a autorização, verificar se o colaborador existe e registrá-lo quando necessário.
+- Receber e utilizar uma credencial própria para autenticação automática nos acessos seguintes.
 
 ### RF-02 — Criar e acessar conta do gestor
 
@@ -34,21 +39,25 @@ O Dashboard deve permitir ao gestor criar uma conta utilizando e-mail e senha, r
 
 ---
 
-# RN-02 — Associação entre gestor e colaborador
+# RN-02 — Autorização e associação entre gestor e colaborador
 
-A associação inicial entre gestor e colaborador deve ser realizada através de um **código de 6 dígitos**.
+O código de autorização de 6 dígitos fornecido pelo gestor deve autorizar o primeiro acesso do colaborador e associá-lo à equipe desse gestor.
 
 Após a associação, o colaborador poderá ser incluído nas tasks do gestor.
 
 O gestor deve acessar somente os colaboradores associados a ele.
 
-### RF-03 — Gerar código de associação
+### RF-03 — Gerar código de autorização
 
-O Dashboard deve permitir ao gestor gerar um código numérico de 6 dígitos para associação.
+O Dashboard deve permitir ao gestor gerar um código numérico de 6 dígitos, vinculado à sua equipe, para autorizar o primeiro acesso do colaborador e realizar sua associação.
 
-### RF-04 — Associar colaborador
+### RF-04 — Autorizar e associar colaborador
 
-O Agente Desktop deve permitir ao colaborador informar o código e, quando ele for válido, realizar a associação ao gestor.
+O backend deve validar o código de 6 dígitos informado pelo colaborador no Agente Desktop.
+
+Quando válido, deve autorizar o primeiro acesso, vincular o colaborador ao gestor correspondente e emitir a credencial do agente para os acessos seguintes.
+
+Quando inválido, não deve autorizar o acesso nem realizar a associação.
 
 ### RF-05 — Gerenciar colaboradores associados
 
