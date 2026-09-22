@@ -98,3 +98,33 @@ Mesmo assim, **nenhum arquivo legacy foi removido**, porque o escopo solicitado 
 ## Aplicação do pacote
 
 Este ZIP contém apenas os arquivos frontend modificados/adicionados. Copie-os sobre os caminhos equivalentes do repositório e execute a suíte de testes/build antes do commit.
+
+## Limpeza de arquivos sem uso — 21/09/2026
+
+Esta revisão é posterior à auditoria acima e se refere ao checkout do projeto.
+Foram conferidos os imports e reexports de `src/`, a entrada `index.html`, os scripts
+do `package.json`, as configurações de Vite, Vitest, PostCSS e Tailwind e as
+referências textuais no repositório, incluindo arquivos ocultos e o legado.
+Dependências instaladas, saídas de build e metadados do Git foram excluídos da
+busca de consumidores no código e na documentação.
+
+| Arquivo removido (relativo a `FrontEnd/`) | Evidência |
+| --- | --- |
+| `frontend-alignment-fix.patch` | As duas alterações `control items-center gap-2` já estão em `src/components/Header.jsx`. Nenhum script ou documento referencia o patch. |
+| `README-APLICACAO.md` | Instruções avulsas de extração/sobreposição de um pacote já incorporado ao checkout, sem referências no repositório. Os comandos de instalação e validação continuam documentados em `README.md` e `docs/CONTRIBUTING.md`. |
+| `docs/screenshots/dashboard-dark.png` | Captura da interface anterior, inspecionada visualmente, sem referências em código, CSS, HTML, testes ou documentação. Fora das entradas e dos recursos públicos do Vite. |
+| `docs/screenshots/dashboard-desktop.png` | Mesma verificação: captura antiga sem consumidores ou links no projeto. |
+| `docs/screenshots/file.jpg` | Recorte da interface anterior, também inspecionado e sem consumidores ou links no projeto. |
+
+Nenhum módulo de aplicação ou teste foi removido. Os barrels `components/index.js`
+e `hooks/index.js` são consumidos pelo Dashboard. O protótipo `legacy/blazor/`
+foi preservado porque `docs/BACKEND.md` documenta sua execução para consulta visual.
+Relatórios técnicos foram preservados como registros históricos; ausência de
+imports não torna documentação, configurações ou testes descartáveis.
+`COMO-APLICAR.txt` e `DELETE_FILES.txt`, citados nas abas do editor, já não existiam
+no checkout antes desta limpeza.
+
+Validação após as exclusões: `npm.cmd test` passou (18 arquivos, 57 testes),
+`npm.cmd run build` concluiu com sucesso e `git diff --check` não apontou erros
+de whitespace. Testes/build precisaram executar fora do sandbox após o esbuild
+receber acesso negado ao procurar configuração nos diretórios superiores.
