@@ -7,6 +7,10 @@ export function AuthPage({ mode = "login" }) {
   const [password, setPassword] = useState("");
   const emailInvalid = email.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const passwordInvalid = password.length > 0 && password.length < 8;
+  const emailDescriptionId = emailInvalid ? "auth-email-error" : undefined;
+  const passwordDescriptionId = passwordInvalid
+    ? "auth-password-error password-help"
+    : "password-help";
 
   return (
     <main id="conteudo-principal" className="grid min-h-screen place-items-center bg-page px-4 py-10 dark:bg-slate-950">
@@ -21,11 +25,38 @@ export function AuthPage({ mode = "login" }) {
 
         <form className="mt-6" onSubmit={(event) => event.preventDefault()} noValidate>
           <label htmlFor="auth-email" className="block text-sm font-semibold text-ink dark:text-white">E-mail</label>
-          <input id="auth-email" type="email" autoComplete="email" className="form-field mt-2" value={email} onChange={(event) => setEmail(event.target.value)} aria-invalid={emailInvalid || undefined} />
-          {emailInvalid && <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-300">Informe um e-mail válido.</p>}
+          <input
+            id="auth-email"
+            type="email"
+            autoComplete="email"
+            className="form-field mt-2"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            aria-invalid={emailInvalid || undefined}
+            aria-describedby={emailDescriptionId}
+          />
+          {emailInvalid && (
+            <p id="auth-email-error" className="mt-1 text-xs font-semibold text-red-600 dark:text-red-300" role="alert">
+              Informe um e-mail válido.
+            </p>
+          )}
 
           <label htmlFor="auth-password" className="mt-4 block text-sm font-semibold text-ink dark:text-white">Senha</label>
-          <input id="auth-password" type="password" autoComplete={isRegister ? "new-password" : "current-password"} className="form-field mt-2" value={password} onChange={(event) => setPassword(event.target.value)} aria-invalid={passwordInvalid || undefined} aria-describedby="password-help" />
+          <input
+            id="auth-password"
+            type="password"
+            autoComplete={isRegister ? "new-password" : "current-password"}
+            className="form-field mt-2"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            aria-invalid={passwordInvalid || undefined}
+            aria-describedby={passwordDescriptionId}
+          />
+          {passwordInvalid && (
+            <p id="auth-password-error" className="mt-1 text-xs font-semibold text-red-600 dark:text-red-300" role="alert">
+              A senha deve ter pelo menos 8 caracteres.
+            </p>
+          )}
           <p id="password-help" className="mt-1 text-xs text-muted">Validação frontend mínima: 8 caracteres. A política definitiva de senha deve ser definida pelo backend.</p>
 
           <button type="submit" className="primary-button mt-5 w-full" disabled>{isRegister ? "Criar conta" : "Entrar"}</button>

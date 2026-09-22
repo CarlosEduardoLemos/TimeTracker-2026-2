@@ -26,5 +26,23 @@ describe("Sidebar", () => {
     expect(screen.getByRole("dialog", { name: "Menu principal mobile" })).toBeInTheDocument();
     fireEvent.keyDown(window, { key: "Escape" });
     expect(screen.queryByRole("dialog", { name: "Menu principal mobile" })).not.toBeInTheDocument();
+    expect(openButton).toHaveFocus();
+  });
+
+  it("keeps keyboard focus inside the mobile dialog", () => {
+    render(<Sidebar activeSection="painel" />);
+    fireEvent.click(screen.getByRole("button", { name: "Abrir menu" }));
+
+    const dialog = screen.getByRole("dialog", { name: "Menu principal mobile" });
+    const closeButton = within(dialog).getByRole("button", { name: "Fechar menu" });
+    const registerLink = within(dialog).getByRole("link", { name: "Criar conta" });
+
+    closeButton.focus();
+    fireEvent.keyDown(window, { key: "Tab", shiftKey: true });
+    expect(registerLink).toHaveFocus();
+
+    registerLink.focus();
+    fireEvent.keyDown(window, { key: "Tab" });
+    expect(closeButton).toHaveFocus();
   });
 });

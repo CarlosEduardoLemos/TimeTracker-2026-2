@@ -52,6 +52,8 @@ export function useDashboardData(selectedDate, selectedUsername = "", autoRefres
 
     fetchDashboardData(selectedDate, selectedUsername, controller.signal)
       .then((dashboardData) => {
+        if (controller.signal.aborted) return;
+
         setState({
           data: dashboardData,
           loading: false,
@@ -62,7 +64,7 @@ export function useDashboardData(selectedDate, selectedUsername = "", autoRefres
         });
       })
       .catch((error) => {
-        if (error.name !== "AbortError") {
+        if (error.name !== "AbortError" && !controller.signal.aborted) {
           setState((currentState) => createErrorState(currentState, error));
         }
       });
