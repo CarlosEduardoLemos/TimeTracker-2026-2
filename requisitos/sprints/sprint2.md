@@ -4,122 +4,172 @@
 > **Data:** 21/setembro/2026
 > **Versão:** 1.2 — Sprint 2
 
-# EP-01 (US-01) — US-01 — Criar e acessar conta do gestor
-# EP-01 (US-02) — Identificar e autorizar o colaborador no Agente Desktop
-# EP-04 — Capturar atividade do colaborador
+> EP-01 (US-03) - Disponibilizar dados (falsos) para o Dashboard
+
+> EP-02 (US-05) - Criar e acessar conta do gestor
+
+> EP-02 (US-04) - Criar interface inicial do Agente Desktop
+
+> EP-02 (US-06) - Disponibilizar código de associação do gestor
+
+> EP-03 (US-08) - Associar o colaborador ao gestor
+
+> EP-04 (US-12) - Registrar e sincronizar aplicações utilizadas
+
+*Aqui no EP-04 podemos focar mais sobre o monitoramento  fingindo que estamos em uma task para o agente deixar essa parte de criar tasks(categorias) para proxima sprint*
+
 
 ## User Stories
 
-### US-01 — Criar e acessar conta do gestor
+### US-03 — Disponibilizar dados para o Dashboard
 
 **Prioridade:** P0
 
 **Como** gestor,
-**quero** criar uma conta e realizar login no Dashboard,
-**para que** eu possa acessar as funcionalidades de gestão do sistema.
+
+**quero** que o Dashboard consulte as informações fornecidas pelo backend,
+
+**para que** os dados simulados sejam apresentados na interface modelo.
 
 #### Escopo
 
-- Criar conta utilizando e-mail e senha.
-- Realizar login no Dashboard.
-- Manter uma sessão autenticada.
+* Criar uma API modelo para consulta dos dados simulados.
+* Integrar a interface modelo do Dashboard com o backend.
+* Atualizar os indicadores e as visualizações com os dados recebidos.
 
 #### Referências específicas
 
-- **Requisito funcional:** RF-02 — Criar e acessar conta do gestor.
-- **Critério de aceite:** CA-01 — Identificação, acesso e associação
-  (cadastro e login do gestor).
-- **Critério de aceite:** CA-09 — Privacidade e segurança
-  (proteção da autenticação e da sessão).
+* **Requisito funcional:** RF-27, como referência para os dados apresentados.
+* **Critério de aceite:** CA-10, como orientação para a integração inicial, sem atendimento integral nesta etapa.
+
+# FIM US-03
+
+---
+### US-05 — Criar e acessar conta do gestor
+
+**Prioridade:** P0
+
+**Como** gestor,
+
+**quero** criar minha conta e realizar login com segurança,
+
+**para que** eu possa acessar o Dashboard com minhas credenciais e sessão protegidas.
+
+#### Escopo
+
+* Permitir cadastro com e-mail e senha.
+* Permitir login no Dashboard.
+* Manter uma sessão autenticada.
+* Armazenar senhas por meio de hash apropriado para senhas, nunca em texto puro.
+* Proteger tokens e informações de sessão, evitando exposição indevida no armazenamento e nos logs.
+
+#### Referências específicas
+
+* **Requisito funcional:** RF-02.
+* **Requisito não funcional:** RNF-04.
+* **Critérios de aceite:** CA-01, no cadastro e acesso do gestor, e CA-09, na proteção de senhas e sessões.
+
+# FIM US-05
+
 ---
 
-### US-02 — Identificar e autorizar o colaborador no Agente Desktop
-
-**Prioridade:** P1
-
-**Como** colaborador,  
-**quero** autorizar meu primeiro acesso com um código fornecido pelo gestor,  
-**para que** eu possa utilizar o Agente Desktop vinculado à minha equipe, sem criar uma conta e com autenticação automática nos acessos seguintes.
-
-#### Escopo
-
-- Disponibilizar a versão inicial do Agente Desktop.
-- Identificar localmente o usuário Windows e a estação corporativa.
-- Solicitar o código de autorização de 6 dígitos no primeiro acesso.
-- Validar o código no backend antes de autorizar o acesso.
-- Registrar o colaborador, quando necessário, e associá-lo ao gestor correspondente após a validação.
-- Estabelecer uma credencial própria do agente para autenticação nos acessos seguintes.
-- Autenticar o agente automaticamente enquanto sua credencial permanecer válida, sem solicitar novamente o código.
-- Impedir o acesso autenticado quando o código inicial for inválido.
-
-#### Referências específicas
-
-- **Requisito funcional:** RF-01 — Identificar e registrar colaborador (a atualizar: autorização inicial por código e autenticação automática posterior).
-- **Requisito funcional:** RF-04 — Associar colaborador (a atualizar: autorização do primeiro acesso e associação ao gestor).
-- **Critério de aceite:** CA-01 — Identificação, acesso e associação (a atualizar conforme o novo fluxo).
-- **Critério de aceite:** CA-09 — Privacidade e segurança (proteção das credenciais do agente e comunicação por HTTPS).
-
-
-### US-13 — Monitorar aplicações durante a task
+### US-04 — Criar interface inicial do Agente Desktop
 
 **Prioridade:** P0
 
-**Como** gestor,
-**quero** que as aplicações utilizadas durante uma task sejam registradas,
-**para que** seja possível identificar quais atividades ocorreram durante sua execução e se estavam ou não relacionadas ao seu escopo.
+**Como** colaborador,
+
+**quero** acessar uma interface inicial do Agente Desktop,
+
+**para que** sua apresentação possa ser validada antes da implementação das funcionalidades.
 
 #### Escopo
 
-* Identificar a task ativa e obter os serviços ou aplicações definidos nela.
-* Identificar a aplicação atualmente utilizada enquanto existir uma task ativa.
-* Comparar a aplicação identificada com o escopo da task.
-* Registrar a aplicação utilizada, independentemente de pertencer ou não ao escopo da task.
-* Associar a cada registro a classificação dentro ou fora do escopo da task.
+* Criar a estrutura visual inicial do Agente Desktop.
+* Manter a interface sem associação ou monitoramento nesta etapa.
 
 #### Referências específicas
 
-* **Requisito funcional:** RF-12 — Monitorar serviços da task.
-* **Critério de aceite:** CA-03 — Monitoramento da atividade (Cenário B — registro das aplicações e classificação dentro/fora do escopo da task).
+* **Requisito funcional:** sem atendimento funcional nesta etapa; entrega apenas visual.
+* **Critério de aceite:** sem CA funcional aplicável nesta etapa.
 
-### US-14 — Registrar período de utilização
+# FIM US-04
 
-**Prioridade:** P0
+---
 
-**Como** gestor,
-**quero** que os períodos de utilização das aplicações sejam registrados,
-**para que** seja possível consultar posteriormente as atividades realizadas durante uma task.
-
-#### Escopo
-
-* Identificar o início e o término da utilização da aplicação.
-* Calcular a duração do período de utilização.
-* Montar o registro da atividade com colaborador, usuário Windows, task, serviço ou aplicação, início, término, duração, estado Ativo/Inativo e relação com o escopo da task.
-* Identificar se a atividade pertence ao escopo da task e associar essa informação ao registro.
-
-#### Referências específicas
-
-* **Requisito funcional:** RF-13 — Registrar períodos de utilização.
-* **Critério de aceite:** CA-03 — Monitoramento da atividade (Cenário B — períodos de utilização e informações de cada registro).
-
-### US-15 — Identificar atividade e inatividade
+### US-06 — Disponibilizar código de associação do gestor
 
 **Prioridade:** P1
 
 **Como** gestor,
-**quero** identificar os períodos ativos e inativos do colaborador durante uma task,
-**para que** os registros representem corretamente o estado da atividade naquele período.
+
+**quero** possuir um código de associação disponível no Dashboard,
+
+**para que** ele possa ser utilizado futuramente pelos colaboradores.
 
 #### Escopo
 
-* Obter o limite de inatividade configurado.
-* Identificar o tempo sem interação com mouse ou teclado.
-* Alterar o estado para Inativo ao atingir o limite configurado.
-* Alterar o estado para Ativo quando houver nova interação.
-* Utilizar a interação com mouse e teclado somente para determinar o estado Ativo/Inativo.
-* Garantir que o conteúdo das interações não seja coletado nem armazenado.
+* Gerar um código numérico de 6 dígitos vinculado ao gestor.
+* Exibir o código no Dashboard após o login.
+* Não implementar o uso do código pelo Agente nesta etapa.
 
 #### Referências específicas
 
-* **Requisito funcional:** RF-14 — Controlar atividade e inatividade.
-* **Critério de aceite:** CA-03 — Monitoramento da atividade (Cenário B — identificação do estado Ativo/Inativo sem coleta do conteúdo das interações).
-* **Critério de aceite:** CA-09 — Privacidade e segurança (Cenário B — uso de mouse e teclado somente para identificar atividade/inatividade, sem armazenamento do conteúdo das interações).
+* **Requisito funcional:** RF-03.
+* **Critério de aceite:** CA-01, na parte de disponibilização do código.
+
+# FIM US-06
+
+---
+
+### US-08 — Associar o colaborador ao gestor
+
+**Prioridade:** P0
+**Como** colaborador,
+**quero** informar o código de associação do gestor no Agente,
+**para que** meu acesso seja autorizado e minha associação seja registrada.
+
+#### Escopo
+
+* Permitir informar o código de 6 dígitos.
+* Validar o código no backend.
+* Com código válido, registrar o colaborador quando necessário, associá-lo ao gestor e autorizar o acesso.
+* Com código inválido, não autorizar acesso, registro ou associação.
+
+#### Referências específicas
+
+* **Requisitos funcionais:** RF-01 e RF-04.
+* **Critérios de aceite:** CA-01 e CA-09, nas partes de associação e autorização do acesso.
+
+# FIM US-08
+
+---
+
+### US-12 — Registrar e sincronizar aplicações utilizadas
+
+**Prioridade:** p1
+
+**Como** colaborador,
+
+**quero** que as aplicações utilizadas durante a task sejam registradas e enviadas com segurança,
+
+**para que** meus registros sejam preservados e disponibilizados ao sistema.
+
+#### Escopo
+
+* Identificar as aplicações utilizadas somente durante uma task ativa e classificá-las como dentro ou fora do escopo.
+* Registrar colaborador, usuário Windows, task, aplicação, classificação, início, término e duração, sem atribuir estado Ativo ou Inativo nesta etapa.
+* Armazenar os registros em JSON local com acesso restrito antes da transmissão.
+* Enviar os registros por HTTPS à API autenticada, que deve validar o acesso e persistir os dados antes de confirmar o recebimento.
+* Manter os pendentes e retomar o envio após falhas, sem duplicações.
+* Marcar os registros confirmados como sincronizados e preservá-los conforme a política de retenção.
+
+#### Referências específicas
+
+* **Requisitos funcionais:** RF-12, RF-13, sem o estado Ativo ou Inativo, RF-18 e RF-19.
+* **Critérios de aceite:** CA-03, no registro das aplicações, CA-05 e CA-09, na preservação e sincronização segura.
+
+# FIM US-12
+
+---
+
