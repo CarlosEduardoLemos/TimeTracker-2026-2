@@ -1,5 +1,4 @@
 export { ActivityChart } from "./ActivityChart";
-export { AppsCard } from "./AppsCard";
 export { Card } from "./Card";
 export { EmptyState } from "./EmptyState";
 export { Header } from "./Header";

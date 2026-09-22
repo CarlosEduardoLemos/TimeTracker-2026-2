@@ -1,14 +1,10 @@
 import { safeIsoDate } from "../utils/dashboard";
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
-
-function asArray(value) {
-  return Array.isArray(value) ? value : [];
-}
+const REQUEST_TIMEOUT_MS = 15_000;
 
 function buildDashboardFilterQuery(date, username = "") {
-  const sanitizedDate = safeIsoDate(date);
-  const parameters = [`date=${encodeURIComponent(sanitizedDate)}`];
+  const parameters = [`date=${encodeURIComponent(safeIsoDate(date))}`];
 
   if (username) {
     parameters.push(`username=${encodeURIComponent(username)}`);
@@ -17,15 +13,25 @@ function buildDashboardFilterQuery(date, username = "") {
   return parameters.join("&");
 }
 
-function normalizeSummary(summary) {
-  return {
-    ...summary,
-    users: asArray(summary?.users),
-  };
+// Valida os campos consumidos pela interface; campos adicionais são preservados.
+function validateSummary(summary, expectedDate) {
+  if (
+    summary?.date !== expectedDate ||
+    !Array.isArray(summary.users) ||
+    !summary.users.every((user) =>
+      typeof user?.username === "string" && Number.isSafeInteger(user.total_seconds),
+    )
+  ) {
+    throw new Error("Resumo diário incompatível com o contrato da API.");
+  }
+  return summary;
+}
+
+function unavailableSummary(date) {
+  return { date, users: [], unavailable: true };
 }
 
 export function getPreviousDateKeys(date, count) {
-  // safeIsoDate já garante uma data ISO válida antes do cálculo em UTC.
   const sanitizedDate = safeIsoDate(date);
   const [year, month, day] = sanitizedDate.split("-").map(Number);
   const selectedDate = new Date(Date.UTC(year, month - 1, day));
@@ -38,77 +44,127 @@ export function getPreviousDateKeys(date, count) {
 }
 
 async function requestJson(path, signal) {
-  const response = await fetch(`${API_BASE_URL}${path}`, { signal });
+  const controller = new AbortController();
+  const abort = () => controller.abort(signal.reason);
+  if (signal?.aborted) abort();
+  else signal?.addEventListener("abort", abort, { once: true });
+  const timeoutId = setTimeout(() => {
+    controller.abort(new DOMException("A API excedeu o tempo limite de 15 segundos.", "TimeoutError"));
+  }, REQUEST_TIMEOUT_MS);
 
-  if (!response.ok) {
-    throw new Error(`API respondeu com status ${response.status}`);
+  try {
+    controller.signal.throwIfAborted();
+    const response = await fetch(`${API_BASE_URL}${path}`, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`API respondeu com status ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    if (controller.signal.aborted) throw controller.signal.reason;
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+    signal?.removeEventListener("abort", abort);
   }
-
-  return response.json();
 }
 
-async function requestOptionalJson(path, signal, fallbackValue, warningMessage) {
+async function requestOptionalJson(path, signal, fallbackValue, warningMessage, validate) {
   try {
-    return await requestJson(path, signal);
+    return { data: validate(await requestJson(path, signal)), failed: false };
   } catch (error) {
-    // Cancelamentos fazem parte da troca de filtros e precisam continuar subindo
-    // para impedir que uma consulta antiga atualize a interface.
     if (error.name === "AbortError") throw error;
 
-    console.warn(warningMessage, error);
-    return fallbackValue;
+    console.warn(warningMessage);
+    return { data: fallbackValue, failed: true };
   }
 }
 
-function fetchPreviousSummaries(previousDates, username, signal) {
-  return Promise.all(
-    previousDates.map((day) =>
-      requestOptionalJson(
-        `/dashboard/summary?${buildDashboardFilterQuery(day, username)}`,
-        signal,
-        { date: day, users: [] },
-        `Falha ao consultar resumo do dia ${day}:`,
-      ),
-    ),
+async function requestOptionalArray(path, signal, warningMessage, validateItem) {
+  return requestOptionalJson(path, signal, [], warningMessage, (data) => {
+    if (!Array.isArray(data) || !data.every(validateItem)) {
+      throw new Error("Lista incompatível com o contrato da API.");
+    }
+    return data;
+  });
+}
+
+function findReusableSummary(cachedSummaries, date) {
+  return cachedSummaries.find(
+    (summary) => summary?.date === date && summary.unavailable !== true,
   );
 }
 
-export async function fetchDashboardData(date, username = "", signal) {
+function fetchPreviousSummaries(
+  previousDates,
+  username,
+  signal,
+  cachedSummaries = [],
+) {
+  return Promise.all(
+    previousDates.map((day) => {
+      const cachedSummary = findReusableSummary(cachedSummaries, day);
+      if (cachedSummary) {
+        return Promise.resolve({ data: cachedSummary, failed: false });
+      }
+
+      return requestOptionalJson(
+        `/dashboard/summary?${buildDashboardFilterQuery(day, username)}`,
+        signal,
+        unavailableSummary(day),
+        `Falha ao consultar resumo do dia ${day}:`,
+        (data) => validateSummary(data, day),
+      );
+    }),
+  );
+}
+
+export async function fetchDashboardData(
+  date,
+  username = "",
+  signal,
+  cachedPreviousSummaries = [],
+) {
   const sanitizedDate = safeIsoDate(date);
   const filterQuery = buildDashboardFilterQuery(sanitizedDate, username);
   const previousDates = getPreviousDateKeys(sanitizedDate, 7).slice(0, 6);
 
-  const [summary, realtime, users, previousSummaries] = await Promise.all([
-    requestJson(`/dashboard/summary?${filterQuery}`, signal),
-    requestOptionalJson(
-      "/activities/realtime",
-      signal,
-      [],
-      "Falha ao consultar atividades em tempo real:",
-    ),
-    requestOptionalJson(
-      "/users/",
-      signal,
-      [],
-      "Falha ao consultar lista de colaboradores:",
-    ),
-    fetchPreviousSummaries(previousDates, username, signal),
-  ]);
-
-  const normalizedSummary = normalizeSummary(summary);
+  const [summary, realtimeResult, usersResult, previousSummaryResults] =
+    await Promise.all([
+      requestJson(`/dashboard/summary?${filterQuery}`, signal)
+        .then((data) => validateSummary(data, sanitizedDate)),
+      requestOptionalArray(
+        "/activities/realtime",
+        signal,
+        "Falha ao consultar atividades em tempo real:",
+        (person) => typeof person?.username === "string" &&
+          typeof person.process_name === "string" &&
+          ["online", "ausente"].includes(person.status) &&
+          Number.isSafeInteger(person.seconds_since_last_activity),
+      ),
+      requestOptionalArray(
+        "/users/",
+        signal,
+        "Falha ao consultar lista de colaboradores:",
+        (user) => typeof user?.username === "string" &&
+          (user.full_name == null || typeof user.full_name === "string"),
+      ),
+      fetchPreviousSummaries(
+        previousDates,
+        username,
+        signal,
+        cachedPreviousSummaries,
+      ),
+    ]);
 
   return {
-    summary: normalizedSummary,
-    realtime: asArray(realtime),
-    users: asArray(users),
-    // Reutiliza o resumo principal para completar o sétimo dia sem nova chamada.
-    weeklySummaries: [
-      ...previousSummaries.map(normalizeSummary),
-      normalizedSummary,
-    ],
+    summary,
+    realtime: realtimeResult.data,
+    users: usersResult.data,
+    weeklySummaries: [...previousSummaryResults.map(({ data }) => data), summary],
+    availability: {
+      realtime: !realtimeResult.failed,
+      users: !usersResult.failed,
+      history: previousSummaryResults.every(({ failed }) => !failed),
+    },
   };
-}
-
-export function getReportUrl(format, date, username = "") {
-  return `${API_BASE_URL}/dashboard/export/${format}?${buildDashboardFilterQuery(date, username)}`;
 }

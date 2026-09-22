@@ -1,21 +1,62 @@
 import { useEffect, useRef, useState } from "react";
 import { navItems as defaultNavItems } from "../data/dashboardData";
 
+const FOCUSABLE_ELEMENTS = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  "[tabindex]:not([tabindex='-1'])",
+].join(",");
+
 export function Sidebar({ activeSection, items = defaultNavItems }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const openButtonRef = useRef(null);
   const closeButtonRef = useRef(null);
+  const mobilePanelRef = useRef(null);
+
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = () => {
+      if (desktop.matches) setMobileOpen(false);
+    };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
 
   useEffect(() => {
     if (!mobileOpen) return undefined;
 
     closeButtonRef.current?.focus();
+
     const onKeyDown = (event) => {
       if (event.key === "Escape") {
         setMobileOpen(false);
         openButtonRef.current?.focus();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const focusableElements = Array.from(
+        mobilePanelRef.current?.querySelectorAll(FOCUSABLE_ELEMENTS) ?? [],
+      );
+
+      if (!focusableElements.length) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements.at(-1);
+
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
       }
     };
+
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [mobileOpen]);
@@ -67,7 +108,7 @@ export function Sidebar({ activeSection, items = defaultNavItems }) {
       {mobileOpen && (
         <div className="fixed inset-0 z-40 lg:hidden" role="presentation">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeMobile} aria-hidden="true" />
-          <aside id="mobile-navigation" className="absolute inset-y-0 left-0 z-50 flex w-[min(18rem,88vw)] flex-col border-r border-line bg-white px-4 py-7 shadow-xl animate-slide-in dark:border-slate-700 dark:bg-slate-900" aria-label="Menu principal mobile" aria-modal="true" role="dialog">
+          <aside ref={mobilePanelRef} id="mobile-navigation" className="absolute inset-y-0 left-0 z-50 flex w-[min(18rem,88vw)] flex-col overflow-y-auto border-r border-line bg-white px-4 py-7 shadow-xl animate-slide-in dark:border-slate-700 dark:bg-slate-900" aria-label="Menu principal mobile" aria-modal="true" role="dialog">
             <button ref={closeButtonRef} type="button" className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-lg text-slate-400 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 hover:bg-slate-100 dark:hover:bg-slate-800" onClick={closeMobile} aria-label="Fechar menu" title="Fechar menu"><span aria-hidden="true">✕</span></button>
             {sidebarContent}
           </aside>

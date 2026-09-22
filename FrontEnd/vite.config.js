@@ -12,9 +12,6 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     minify: 'esbuild',
-    esbuild: {
-      drop: ['console'],
-    },
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -23,8 +20,5 @@ export default defineConfig({
         },
       },
     },
-  },
-  define: {
-    __APP_VERSION__: JSON.stringify('1.0.0'),
   },
 });

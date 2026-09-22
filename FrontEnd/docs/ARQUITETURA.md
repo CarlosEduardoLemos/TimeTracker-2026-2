@@ -17,49 +17,21 @@ flowchart TB
 | Camada | Local | Responsabilidade |
 | --- | --- | --- |
 | Entrada | `src/main.jsx` | Monta `App` em `StrictMode`. |
-| Roteamento | `src/hooks/useHashRoute.js` | Resolve rotas por hash e aplica fallback seguro para `painel`. |
-| Composição | `src/App.jsx` | Seleciona a página e aplica Sidebar/layout nas áreas autenticadas futuramente. |
-| Páginas | `src/pages/` | Painel, autenticação, colaboradores, tasks, relatórios e configurações. |
-| Componentes | `src/components/` | Elementos visuais reutilizáveis e componentes do dashboard. |
-| Estado/efeitos | `src/hooks/` | Ciclo de dados do dashboard, auto-refresh/visibilidade, tema e navegação. |
-| HTTP | `src/services/api.js` | Centraliza os contratos atualmente consumidos. |
-| Utilitários | `src/utils/` | Formatação e funções auxiliares. |
-| Navegação | `src/data/dashboardData.js` | Itens da Sidebar previstos no sitemap. |
-
-## Navegação
-
-O frontend utiliza hash routing sem dependência externa de roteador. Rotas reconhecidas:
-
-```text
-#/painel
-#/colaboradores
-#/tasks
-#/relatorios
-#/configuracoes
-#/login
-#/cadastro
-```
-
-Rotas desconhecidas retornam para `painel`. Login e cadastro são renderizados fora do shell com Sidebar. As demais telas usam o layout principal.
+| Roteamento | `src/hooks/useHashRoute.js` | Resolve rotas por hash e fallback para `painel`. |
+| Composição | `src/App.jsx` | Seleciona a página e aplica Sidebar/layout. |
+| Páginas | `src/pages/` | Painel e telas administrativas. |
+| Componentes | `src/components/` | Elementos visuais reutilizáveis. |
+| Estado/efeitos | `src/hooks/` | Ciclo de dados, auto-refresh/visibilidade e tema. |
+| HTTP | `src/services/api.js` | Centraliza os contratos consumidos e a degradação de chamadas opcionais. |
+| Utilitários | `src/utils/` | Formatação e transformações puras. |
+| Navegação | `src/data/dashboardData.js` | Itens da Sidebar. |
 
 ## Dashboard
 
-`DashboardPage.jsx` compõe a interface e delega transformações puras para `utils/dashboard.js`. `useDashboardData` cuida do ciclo das requisições; `useAutoRefresh` cuida separadamente do intervalo de 30 segundos e da Visibility API.
+`useDashboardData` mantém o ciclo de rede e reutiliza somente os seis resumos históricos já carregados com sucesso no polling quando o filtro permanece igual. A atualização manual revalida também o histórico, pois o agente pode enviar registros atrasados. `useAutoRefresh` continua responsável apenas pelo intervalo/Visibility API. O resumo do dia selecionado, realtime e usuários permanecem atualizados em cada refresh.
 
-Indicadores exigidos por RF-27 que ainda não existem no contrato permanecem explicitamente indisponíveis; não são inferidos nem preenchidos com mocks.
+O serviço diferencia falha principal de falhas opcionais. Se o resumo principal falhar, o hook entra em erro. Se realtime, usuários ou parte do histórico falharem, os dados válidos permanecem visíveis e o frontend marca a API como parcialmente disponível.
 
-## Formulários administrativos
+## Segurança e dados
 
-`AuthPage`, `TasksPage`, `SettingsPage`, `CollaboratorsPage` e `ReportsPage` implementam apenas responsabilidade frontend: layout, labels, validação local, feedback e estados. Ações que exigem persistência permanecem bloqueadas até contrato oficial.
-
-## Segurança de frontend
-
-- Credenciais não são persistidas pelo frontend atual.
-- Não existe token fictício ou sessão simulada.
-- Permissões definitivas devem ser validadas no backend.
-- Em produção, a API deve ser acessada por HTTPS.
-- Dados não necessários ao Dashboard, como `window_title`, não são exibidos na visão gerencial.
-
-## Testes
-
-Vitest + React Testing Library cobrem componentes, hooks, serviços, utilitários e novas páginas. Consulte `TESTES.md`.
+Credenciais não são persistidas; não existe sessão simulada. Dados não necessários ao painel, como `window_title`, continuam fora da interface gerencial. Autorização definitiva, HTTPS e contratos de sessão pertencem ao backend/deploy.

@@ -28,6 +28,30 @@ describe("PeopleCard", () => {
     expect(screen.queryByText("Desenvolvimento")).not.toBeInTheDocument();
   });
 
+  it("maps the backend ausente status explicitly", () => {
+    render(
+      <PeopleCard
+        realtimePeople={[
+          {
+            username: "ana",
+            process_name: "Excel.exe",
+            status: "ausente",
+            seconds_since_last_activity: 300,
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Ausente")).toBeInTheDocument();
+  });
+
+  it("provides table semantics for assistive technologies", () => {
+    render(<PeopleCard realtimePeople={[]} />);
+
+    expect(screen.getByRole("table", { name: "Status atual da equipe" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Colaborador" })).toHaveAttribute("scope", "col");
+  });
+
   it("renders an empty state without falling back to demo users", () => {
     render(<PeopleCard realtimePeople={[]} />);
 
