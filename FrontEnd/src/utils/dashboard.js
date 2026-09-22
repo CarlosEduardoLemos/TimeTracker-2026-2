@@ -1,3 +1,9 @@
+const DASHBOARD_DATE_FORMATTER = new Intl.DateTimeFormat("pt-BR", {
+  weekday: "long",
+  day: "2-digit",
+  month: "long",
+});
+
 export function formatDuration(totalSeconds) {
   const seconds = Math.max(0, Number(totalSeconds) || 0);
   const hours = Math.floor(seconds / 3600);
@@ -13,9 +19,6 @@ export function getSummaryTotalSeconds(summary) {
   );
 }
 
-/**
- * Formata os segundos desde a última atividade em uma string relativa legível.
- */
 export function formatRelativeActivityTime(totalSeconds) {
   const seconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
   if (seconds < 60) return `há ${seconds}s`;
@@ -55,16 +58,11 @@ export function safeIsoDate(dateString) {
   return `${now.getFullYear()}-${month}-${day}`;
 }
 
-export function getLocalIsoDate() {
-  return safeIsoDate();
-}
-
 export function filterRealtimePeople(realtimePeople, selectedUsername = "") {
   const people = Array.isArray(realtimePeople) ? realtimePeople : [];
-
-  if (!selectedUsername) return people;
-
-  return people.filter((person) => person.username === selectedUsername);
+  return selectedUsername
+    ? people.filter((person) => person.username === selectedUsername)
+    : people;
 }
 
 export function countPeopleByStatus(people, status) {
@@ -74,12 +72,5 @@ export function countPeopleByStatus(people, status) {
 
 export function formatDashboardReferenceDate(dateString) {
   const date = safeIsoDate(dateString);
-
-  return new Intl.DateTimeFormat("pt-BR", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-  })
-    .format(new Date(`${date}T12:00:00`))
-    .toUpperCase();
+  return DASHBOARD_DATE_FORMATTER.format(new Date(`${date}T12:00:00`)).toUpperCase();
 }

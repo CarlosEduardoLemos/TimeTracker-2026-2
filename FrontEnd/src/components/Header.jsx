@@ -1,6 +1,12 @@
 import { API_STATUS_LABELS } from "../constants/ui";
 import { safeIsoDate } from "../utils/dashboard";
 
+function getStatusTone(apiStatus) {
+  if (apiStatus === "online") return "text-emerald-600";
+  if (apiStatus === "offline") return "text-red-600 dark:text-red-300";
+  return "text-amber-600";
+}
+
 export function Header({
   formattedDate,
   dark,
@@ -54,7 +60,7 @@ export function Header({
           </span>
         </button>
 
-        <label className="control gap-2" title="Selecionar data de referência">
+        <label className="control items-center gap-2" title="Selecionar data de referência">
           <span className="sr-only">Data de referência</span>
           <span aria-hidden="true">▣</span>
           <input
@@ -67,7 +73,7 @@ export function Header({
           />
         </label>
 
-        <label className="control gap-2" title="Filtrar colaborador">
+        <label className="control items-center gap-2" title="Filtrar colaborador">
           <span className="sr-only">Colaborador</span>
           <span aria-hidden="true">♙</span>
           <select
@@ -79,6 +85,9 @@ export function Header({
             <option value="" className="dark:bg-slate-900 dark:text-slate-200">
               Toda a equipe
             </option>
+            {selectedUsername && !users.some((user) => user.username === selectedUsername) && (
+              <option value={selectedUsername}>{selectedUsername}</option>
+            )}
             {users.map((user) => (
               <option
                 key={user.username}
@@ -92,9 +101,7 @@ export function Header({
         </label>
 
         <span
-          className={`flex items-center gap-1.5 text-xs font-semibold ${
-            apiStatus === "online" ? "text-emerald-600" : "text-amber-600"
-          }`}
+          className={`flex items-center gap-1.5 text-xs font-semibold ${getStatusTone(apiStatus)}`}
           role="status"
           aria-live="polite"
         >

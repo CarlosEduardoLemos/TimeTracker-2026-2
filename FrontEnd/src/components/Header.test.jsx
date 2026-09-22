@@ -41,6 +41,12 @@ describe("Header", () => {
     expect(toggleTheme).toHaveBeenCalledTimes(1);
   });
 
+  it("keeps the selected filter visible when the users source is unavailable", () => {
+    render(<Header {...defaultProps} selectedUsername="ana" users={[]} />);
+    expect(screen.getByRole("combobox")).toHaveValue("ana");
+    expect(screen.getByRole("option", { name: "ana" })).toBeInTheDocument();
+  });
+
   it("calls onRefresh when refresh button is clicked", () => {
     const onRefresh = vi.fn();
     render(<Header {...defaultProps} onRefresh={onRefresh} />);
@@ -74,9 +80,12 @@ describe("Header", () => {
     expect(setSelectedUsername).toHaveBeenCalledWith("ana");
   });
 
-  it("displays correct API status text", () => {
+  it("displays online, degraded, offline and loading API states", () => {
     const { rerender } = render(<Header {...defaultProps} apiStatus="online" />);
     expect(screen.getByText("API online")).toBeInTheDocument();
+
+    rerender(<Header {...defaultProps} apiStatus="degraded" />);
+    expect(screen.getByText("API parcialmente disponível")).toBeInTheDocument();
 
     rerender(<Header {...defaultProps} apiStatus="offline" />);
     expect(screen.getByText("API offline")).toBeInTheDocument();

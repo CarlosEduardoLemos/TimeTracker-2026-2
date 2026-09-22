@@ -1,10 +1,5 @@
 /**
- * Constantes de Interface (UI) do TimeTracker
- * Centraliza valores visuais repetidos, paletas e mapeamentos de status.
- */
-
-/**
- * Paleta de cores para avatares de colaboradores na equipe
+ * Constantes de interface compartilhadas pelo frontend.
  */
 export const AVATAR_COLOR_PALETTE = [
   "bg-rose-300",
@@ -15,21 +10,15 @@ export const AVATAR_COLOR_PALETTE = [
   "bg-cyan-300",
 ];
 
-/**
- * Rótulos legíveis para o status de conexão com a API
- */
 export const API_STATUS_LABELS = {
   loading: "Conectando à API",
   offline: "API offline",
+  degraded: "API parcialmente disponível",
   online: "API online",
 };
 
-/**
- * Mapeamento de status de presença de colaboradores
- */
 export const USER_STATUS_LABELS = {
   online: "Online",
-  idle: "Ausente",
+  ausente: "Ausente",
   offline: "Offline",
 };
-

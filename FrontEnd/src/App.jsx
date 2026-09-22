@@ -26,7 +26,10 @@ function App() {
 
   return (
     <div className="min-h-screen bg-page text-ink dark:bg-slate-950">
-      <a className="skip-link" href="#conteudo-principal">Pular para o conteúdo principal</a>
+      <a className="skip-link" href="#conteudo-principal" onClick={(event) => {
+        event.preventDefault();
+        document.getElementById("conteudo-principal")?.focus();
+      }}>Pular para o conteúdo principal</a>
       <Sidebar activeSection={route} />
       <main id="conteudo-principal" tabIndex="-1" className="mx-auto w-full max-w-[1610px] px-5 pb-10 pt-20 sm:px-8 lg:ml-64 lg:w-[calc(100%_-_16rem)] lg:px-12 lg:py-10">
         <CurrentPage />

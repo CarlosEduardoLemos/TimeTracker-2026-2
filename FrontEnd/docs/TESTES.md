@@ -8,6 +8,9 @@
 - jsdom 26.x
 - coverage-v8
 
+A cobertura inclui somente `src/**/*.{js,jsx}`. Build, configurações e protótipo
+Blazor não são contabilizados como código da aplicação React.
+
 ## Execução
 
 ```powershell
@@ -18,50 +21,42 @@ npm.cmd run test:coverage
 npm.cmd run build
 ```
 
-## Cobertura atual relevante
+## Cobertura relevante
 
-### Componentes existentes
+### Componentes
 
 - `Card.test.jsx`
-- `Header.test.jsx`
-- `MetricCard.test.jsx`
-- `PeopleCard.test.jsx`
+- `Header.test.jsx`: inclui estado parcial/degradado e preservação do filtro sem lista de usuários.
+- `MetricCard.test.jsx`: inclui semântica do ícone decorativo.
+- `PeopleCard.test.jsx`: inclui status `ausente` e semântica da tabela.
+- `ActivityChart.test.jsx`: diferencia dia indisponível de zero real.
 - `ReportsAndAgent.test.jsx`
 - `SectionHeading.test.jsx`
-- `Sidebar.test.jsx`
+- `Sidebar.test.jsx`: teclado, Escape e fechamento ao atingir o breakpoint desktop.
 
 ### Hooks
 
 - `useTheme.test.js`
 - `useHashRoute.test.js`
-- `useAutoRefresh.test.js`: valida intervalo, modo desabilitado e retorno à aba visível.
+- `useAutoRefresh.test.js`
+- `useDashboardData.test.js`: loading, refresh, erro, resposta obsoleta, cache no polling e invalidação manual.
 
 ### Páginas
 
-- `AuthPage.test.jsx`: valida bloqueio de envio sem API e erro de e-mail.
-- `TasksPage.test.jsx`: valida descrição curta, botão de salvar bloqueado e limpeza do formulário.
-- `ReportsPage.test.jsx`: valida exportações CSV/PDF desabilitadas enquanto o contrato é incompleto.
+- `App.test.jsx`: link de salto preserva a rota e move o foco ao conteúdo.
+
+- `DashboardPage.test.jsx`: garante que falha do realtime não seja exibida como zero usuários online.
+- `AuthPage.test.jsx`
+- `TasksPage.test.jsx`
+- `ReportsPage.test.jsx`
 
 ### Serviços/utilitários
 
-- `api.test.js`: datas, URLs e degradação segura de chamadas opcionais.
-- `dashboard.test.js`: formatação, totais, filtro de realtime, contagem por status e data do cabeçalho.
-- `report.test.js`
+- `api.test.js`: datas, degradação parcial, contratos inválidos, timeout inclusive no corpo, cancelamento, erro HTTP e histórico reutilizado.
+- `dashboard.test.js`: formatação, totais, filtros e contagem por status.
 
-## Padrões
+Os testes de `utils/report.js` foram removidos junto com o módulo, que não possuía consumidores no fluxo atual.
 
-Priorize seletores acessíveis (`getByRole`, `getByLabelText`) e teste comportamento observado pelo usuário.
+## Pendências
 
-Casos importantes:
-
-- loading, erro e empty state;
-- ações desabilitadas quando dependem de contrato inexistente;
-- navegação por hash e rota inválida;
-- fechamento do menu mobile por `Escape`;
-- ausência de dados fictícios em erro de API;
-- validações de formulário;
-- dark mode e preferências persistidas.
-
-## Pendências de teste
-
-Quando a API estiver disponível, adicionar testes de integração/E2E para login, sessão, autorização 401/403, associação, CRUD de tasks, jornada, filtros completos do RF-27 e exportação real.
+Quando os contratos backend estiverem disponíveis, adicionar testes de integração/E2E para login, autorização, associação, CRUD de tasks, jornada, filtros completos do RF-27 e exportação real.
