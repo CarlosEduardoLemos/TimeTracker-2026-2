@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchDashboardData, getPreviousDateKeys, getReportUrl } from "./api";
+import { fetchDashboardData, getPreviousDateKeys } from "./api";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -25,16 +25,7 @@ describe("api service", () => {
     ]);
   });
 
-  it("builds clean report URLs with and without username filter", () => {
-    const urlAll = getReportUrl("csv", "2026-09-11", "");
-    expect(urlAll).toContain("/dashboard/export/csv?date=2026-09-11");
-    expect(urlAll).not.toContain("&username=");
-
-    const urlUser = getReportUrl("pdf", "2026-09-11", "ana clara");
-    expect(urlUser).toContain("/dashboard/export/pdf?date=2026-09-11&username=ana%20clara");
-  });
-
-  it("keeps the main summary and degrades optional requests safely", async () => {
+  it("keeps the main summary and reports optional request degradation", async () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const fetchMock = vi.fn(async (url) => {
       if (String(url).includes("/activities/realtime")) {
@@ -60,7 +51,67 @@ describe("api service", () => {
     expect(result.users).toEqual([]);
     expect(result.weeklySummaries).toHaveLength(7);
     expect(result.weeklySummaries.at(-1).date).toBe("2026-09-11");
+    expect(result.availability).toEqual({
+      realtime: false,
+      users: false,
+      history: true,
+    });
     expect(fetchMock).toHaveBeenCalledTimes(9);
-    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it("marks an unavailable historical day instead of converting it to zero", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const fetchMock = vi.fn(async (url) => {
+      const stringUrl = String(url);
+      if (stringUrl.includes("date=2026-09-08")) {
+        throw new Error("histórico indisponível");
+      }
+      if (stringUrl.includes("/activities/realtime") || stringUrl.endsWith("/users/")) {
+        return { ok: true, json: async () => [] };
+      }
+
+      const queryDate = new URL(stringUrl).searchParams.get("date");
+      return { ok: true, json: async () => ({ date: queryDate, users: [] }) };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await fetchDashboardData("2026-09-11");
+    const unavailableDay = result.weeklySummaries.find(
+      (summary) => summary.date === "2026-09-08",
+    );
+
+    expect(unavailableDay).toMatchObject({ unavailable: true, users: [] });
+    expect(result.availability.history).toBe(false);
+  });
+
+  it("reuses successful historical summaries on refresh and keeps live sources fresh", async () => {
+    const cachedPreviousSummaries = getPreviousDateKeys("2026-09-11", 7)
+      .slice(0, 6)
+      .map((date) => ({ date, users: [] }));
+
+    const fetchMock = vi.fn(async (url) => {
+      const stringUrl = String(url);
+      if (stringUrl.includes("/activities/realtime") || stringUrl.endsWith("/users/")) {
+        return { ok: true, json: async () => [] };
+      }
+
+      return {
+        ok: true,
+        json: async () => ({ date: "2026-09-11", users: [] }),
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await fetchDashboardData(
+      "2026-09-11",
+      "",
+      undefined,
+      cachedPreviousSummaries,
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(result.weeklySummaries.slice(0, 6)).toEqual(cachedPreviousSummaries);
+    expect(result.weeklySummaries.at(-1).date).toBe("2026-09-11");
   });
 });

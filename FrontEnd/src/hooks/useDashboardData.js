@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchDashboardData } from "../services/api";
 import { useAutoRefresh } from "./useAutoRefresh";
 
@@ -8,11 +8,11 @@ const INITIAL_DASHBOARD_STATE = {
   refreshing: false,
   error: null,
   updatedAt: null,
-  dataDate: null,
+  filterKey: null,
 };
 
 function createLoadingState(currentState, filterKey) {
-  const isSameFilter = currentState.dataDate === filterKey;
+  const isSameFilter = currentState.filterKey === filterKey;
 
   return {
     data: isSameFilter ? currentState.data : null,
@@ -20,7 +20,7 @@ function createLoadingState(currentState, filterKey) {
     refreshing: isSameFilter && Boolean(currentState.data),
     error: null,
     updatedAt: isSameFilter ? currentState.updatedAt : null,
-    dataDate: isSameFilter ? currentState.dataDate : null,
+    filterKey: isSameFilter ? currentState.filterKey : null,
   };
 }
 
@@ -34,12 +34,14 @@ function createErrorState(currentState, error) {
 }
 
 /**
- * Orquestra somente o ciclo de consulta e o estado dos dados do Dashboard.
- * O agendamento periódico e a Visibility API ficam isolados em useAutoRefresh.
+ * Orquestra o ciclo de consulta e o estado dos dados do Dashboard.
+ * Resumos históricos carregados com sucesso são reutilizados enquanto o filtro
+ * não muda; dados atuais e lista de usuários continuam sendo reconsultados.
  */
 export function useDashboardData(selectedDate, selectedUsername = "", autoRefresh = true) {
   const [state, setState] = useState(INITIAL_DASHBOARD_STATE);
   const [refreshKey, setRefreshKey] = useState(0);
+  const historyCacheRef = useRef({ filterKey: null, summaries: [] });
   const refresh = useCallback(() => setRefreshKey((current) => current + 1), []);
 
   useAutoRefresh(refresh, autoRefresh);
@@ -47,12 +49,26 @@ export function useDashboardData(selectedDate, selectedUsername = "", autoRefres
   useEffect(() => {
     const controller = new AbortController();
     const filterKey = `${selectedDate}:${selectedUsername}`;
+    const cachedPreviousSummaries =
+      historyCacheRef.current.filterKey === filterKey
+        ? historyCacheRef.current.summaries
+        : [];
 
     setState((currentState) => createLoadingState(currentState, filterKey));
 
-    fetchDashboardData(selectedDate, selectedUsername, controller.signal)
+    fetchDashboardData(
+      selectedDate,
+      selectedUsername,
+      controller.signal,
+      cachedPreviousSummaries,
+    )
       .then((dashboardData) => {
         if (controller.signal.aborted) return;
+
+        historyCacheRef.current = {
+          filterKey,
+          summaries: dashboardData.weeklySummaries.slice(0, -1),
+        };
 
         setState({
           data: dashboardData,
@@ -60,7 +76,7 @@ export function useDashboardData(selectedDate, selectedUsername = "", autoRefres
           refreshing: false,
           error: null,
           updatedAt: new Date(),
-          dataDate: filterKey,
+          filterKey,
         });
       })
       .catch((error) => {

@@ -74,9 +74,12 @@ describe("Header", () => {
     expect(setSelectedUsername).toHaveBeenCalledWith("ana");
   });
 
-  it("displays correct API status text", () => {
+  it("displays online, degraded, offline and loading API states", () => {
     const { rerender } = render(<Header {...defaultProps} apiStatus="online" />);
     expect(screen.getByText("API online")).toBeInTheDocument();
+
+    rerender(<Header {...defaultProps} apiStatus="degraded" />);
+    expect(screen.getByText("API parcialmente disponível")).toBeInTheDocument();
 
     rerender(<Header {...defaultProps} apiStatus="offline" />);
     expect(screen.getByText("API offline")).toBeInTheDocument();

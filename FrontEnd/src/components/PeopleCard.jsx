@@ -4,32 +4,27 @@ import { Card } from "./Card";
 import { SectionHeading } from "./SectionHeading";
 
 function buildPeopleRows(realtimePeople) {
-  return realtimePeople.map((person, index) => {
+  const people = Array.isArray(realtimePeople) ? realtimePeople : [];
+
+  return people.map((person, index) => {
     const username = String(person.username || "Desconhecido");
-    const secondsSinceLastActivity = Math.max(
-      0,
-      Number(person.seconds_since_last_activity) || 0,
-    );
 
     return {
       username,
       initials: username.slice(0, 2).toUpperCase(),
-      statusLabel:
-        USER_STATUS_LABELS[person.status] ||
-        (person.status === "online" ? "Online" : "Ausente"),
+      statusLabel: USER_STATUS_LABELS[person.status] || "Ausente",
+      isOnline: person.status === "online",
       applicationName: person.process_name || "—",
-      lastActivityLabel: formatRelativeActivityTime(secondsSinceLastActivity),
+      lastActivityLabel: formatRelativeActivityTime(
+        person.seconds_since_last_activity,
+      ),
       avatarColor: AVATAR_COLOR_PALETTE[index % AVATAR_COLOR_PALETTE.length],
     };
   });
 }
 
 /**
- * Visão resumida da equipe.
- *
- * A API atual ainda não fornece task ativa, início e tempo acumulado da task.
- * Esses campos permanecem visíveis como indisponíveis para refletir o contrato
- * necessário sem inferir dados inexistentes.
+ * Visão resumida da equipe usando somente os campos necessários ao painel.
  */
 export function PeopleCard({ realtimePeople = [] }) {
   const peopleRows = buildPeopleRows(realtimePeople);
@@ -46,13 +41,14 @@ export function PeopleCard({ realtimePeople = [] }) {
         aria-label="Tabela de status da equipe com rolagem horizontal"
       >
         <table className="w-full min-w-[720px] border-collapse text-left">
+          <caption className="sr-only">Status atual da equipe</caption>
           <thead>
             <tr className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-400 dark:bg-slate-800">
-              <th className="px-5 py-2.5">Colaborador</th>
-              <th className="px-5 py-2.5">Status</th>
-              <th className="px-5 py-2.5">Task ativa</th>
-              <th className="px-5 py-2.5">Aplicação atual</th>
-              <th className="px-5 py-2.5">Última leitura</th>
+              <th scope="col" className="px-5 py-2.5">Colaborador</th>
+              <th scope="col" className="px-5 py-2.5">Status</th>
+              <th scope="col" className="px-5 py-2.5">Task ativa</th>
+              <th scope="col" className="px-5 py-2.5">Aplicação atual</th>
+              <th scope="col" className="px-5 py-2.5">Última leitura</th>
             </tr>
           </thead>
           <tbody>
@@ -75,9 +71,7 @@ export function PeopleCard({ realtimePeople = [] }) {
                   <td className="px-5 py-3">
                     <span
                       className={`flex items-center gap-1.5 font-bold ${
-                        person.statusLabel === "Online"
-                          ? "text-emerald-600"
-                          : "text-amber-600"
+                        person.isOnline ? "text-emerald-600" : "text-amber-600"
                       }`}
                     >
                       <i className="status-dot" aria-hidden="true" />

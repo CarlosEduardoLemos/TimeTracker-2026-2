@@ -7,8 +7,7 @@ function asArray(value) {
 }
 
 function buildDashboardFilterQuery(date, username = "") {
-  const sanitizedDate = safeIsoDate(date);
-  const parameters = [`date=${encodeURIComponent(sanitizedDate)}`];
+  const parameters = [`date=${encodeURIComponent(safeIsoDate(date))}`];
 
   if (username) {
     parameters.push(`username=${encodeURIComponent(username)}`);
@@ -17,15 +16,19 @@ function buildDashboardFilterQuery(date, username = "") {
   return parameters.join("&");
 }
 
-function normalizeSummary(summary) {
+function normalizeSummary(summary, fallbackDate) {
   return {
     ...summary,
+    date: summary?.date || fallbackDate,
     users: asArray(summary?.users),
   };
 }
 
+function unavailableSummary(date) {
+  return { date, users: [], unavailable: true };
+}
+
 export function getPreviousDateKeys(date, count) {
-  // safeIsoDate já garante uma data ISO válida antes do cálculo em UTC.
   const sanitizedDate = safeIsoDate(date);
   const [year, month, day] = sanitizedDate.split("-").map(Number);
   const selectedDate = new Date(Date.UTC(year, month - 1, day));
@@ -49,66 +52,104 @@ async function requestJson(path, signal) {
 
 async function requestOptionalJson(path, signal, fallbackValue, warningMessage) {
   try {
-    return await requestJson(path, signal);
+    return { data: await requestJson(path, signal), failed: false };
   } catch (error) {
-    // Cancelamentos fazem parte da troca de filtros e precisam continuar subindo
-    // para impedir que uma consulta antiga atualize a interface.
     if (error.name === "AbortError") throw error;
 
     console.warn(warningMessage, error);
-    return fallbackValue;
+    return { data: fallbackValue, failed: true };
   }
 }
 
-function fetchPreviousSummaries(previousDates, username, signal) {
-  return Promise.all(
-    previousDates.map((day) =>
-      requestOptionalJson(
-        `/dashboard/summary?${buildDashboardFilterQuery(day, username)}`,
-        signal,
-        { date: day, users: [] },
-        `Falha ao consultar resumo do dia ${day}:`,
-      ),
-    ),
+async function requestOptionalArray(path, signal, warningMessage) {
+  const result = await requestOptionalJson(path, signal, [], warningMessage);
+
+  if (result.failed || Array.isArray(result.data)) {
+    return result;
+  }
+
+  console.warn(`${warningMessage} Resposta inválida: era esperado um array.`);
+  return { data: [], failed: true };
+}
+
+function findReusableSummary(cachedSummaries, date) {
+  return cachedSummaries.find(
+    (summary) => summary?.date === date && summary.unavailable !== true,
   );
 }
 
-export async function fetchDashboardData(date, username = "", signal) {
+function fetchPreviousSummaries(
+  previousDates,
+  username,
+  signal,
+  cachedSummaries = [],
+) {
+  return Promise.all(
+    previousDates.map((day) => {
+      const cachedSummary = findReusableSummary(cachedSummaries, day);
+      if (cachedSummary) {
+        return Promise.resolve({ data: cachedSummary, failed: false });
+      }
+
+      return requestOptionalJson(
+        `/dashboard/summary?${buildDashboardFilterQuery(day, username)}`,
+        signal,
+        unavailableSummary(day),
+        `Falha ao consultar resumo do dia ${day}:`,
+      );
+    }),
+  );
+}
+
+export async function fetchDashboardData(
+  date,
+  username = "",
+  signal,
+  cachedPreviousSummaries = [],
+) {
   const sanitizedDate = safeIsoDate(date);
   const filterQuery = buildDashboardFilterQuery(sanitizedDate, username);
   const previousDates = getPreviousDateKeys(sanitizedDate, 7).slice(0, 6);
 
-  const [summary, realtime, users, previousSummaries] = await Promise.all([
-    requestJson(`/dashboard/summary?${filterQuery}`, signal),
-    requestOptionalJson(
-      "/activities/realtime",
-      signal,
-      [],
-      "Falha ao consultar atividades em tempo real:",
-    ),
-    requestOptionalJson(
-      "/users/",
-      signal,
-      [],
-      "Falha ao consultar lista de colaboradores:",
-    ),
-    fetchPreviousSummaries(previousDates, username, signal),
-  ]);
+  const [summary, realtimeResult, usersResult, previousSummaryResults] =
+    await Promise.all([
+      requestJson(`/dashboard/summary?${filterQuery}`, signal),
+      requestOptionalArray(
+        "/activities/realtime",
+        signal,
+        "Falha ao consultar atividades em tempo real:",
+      ),
+      requestOptionalArray(
+        "/users/",
+        signal,
+        "Falha ao consultar lista de colaboradores:",
+      ),
+      fetchPreviousSummaries(
+        previousDates,
+        username,
+        signal,
+        cachedPreviousSummaries,
+      ),
+    ]);
 
-  const normalizedSummary = normalizeSummary(summary);
+  const normalizedPreviousSummaries = previousSummaryResults.map(
+    ({ data: previousSummary, failed }, index) =>
+      failed
+        ? unavailableSummary(previousDates[index])
+        : normalizeSummary(previousSummary, previousDates[index]),
+  );
+
+  const normalizedSummary = normalizeSummary(summary, sanitizedDate);
 
   return {
     summary: normalizedSummary,
-    realtime: asArray(realtime),
-    users: asArray(users),
-    // Reutiliza o resumo principal para completar o sétimo dia sem nova chamada.
-    weeklySummaries: [
-      ...previousSummaries.map(normalizeSummary),
-      normalizedSummary,
-    ],
+    realtime: asArray(realtimeResult.data),
+    users: asArray(usersResult.data),
+    weeklySummaries: [...normalizedPreviousSummaries, normalizedSummary],
+    availability: {
+      realtime: !realtimeResult.failed,
+      users: !usersResult.failed,
+      history: previousSummaryResults.every(({ failed }) => !failed),
+    },
   };
-}
-
-export function getReportUrl(format, date, username = "") {
-  return `${API_BASE_URL}/dashboard/export/${format}?${buildDashboardFilterQuery(date, username)}`;
 }

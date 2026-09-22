@@ -11,23 +11,32 @@ import { getSummaryTotalSeconds } from "../utils/dashboard";
 import { Card } from "./Card";
 import { SectionHeading } from "./SectionHeading";
 
+const WEEKDAY_FORMATTER = new Intl.DateTimeFormat("pt-BR", { weekday: "short" });
+
 function buildRegisteredTimeChartData(weeklySummaries) {
   return weeklySummaries.map((summary) => ({
-    day: new Intl.DateTimeFormat("pt-BR", { weekday: "short" })
+    day: WEEKDAY_FORMATTER
       .format(new Date(`${summary.date}T12:00:00`))
       .replace(".", ""),
-    // Décimos de hora preservam uma casa decimal sem acumular erro visual.
-    registered: Math.round((getSummaryTotalSeconds(summary) / 3600) * 10),
+    registeredHours:
+      summary.unavailable === true
+        ? null
+        : Math.round((getSummaryTotalSeconds(summary) / 3600) * 10) / 10,
+    unavailable: summary.unavailable === true,
   }));
 }
 
 function getChartMaximum(chartData) {
-  return Math.max(10, ...chartData.map(({ registered }) => registered));
+  const values = chartData
+    .map(({ registeredHours }) => registeredHours)
+    .filter(Number.isFinite);
+
+  return Math.max(1, ...values);
 }
 
 /**
- * Exibe o tempo total registrado por dia usando apenas dados atualmente
- * disponíveis na API. Não calcula ou apresenta métricas de produtividade.
+ * Exibe o tempo total registrado por dia usando apenas dados confirmados pela
+ * API. Dias indisponíveis são identificados como tal, em vez de virarem zero.
  */
 export function ActivityChart({ weeklySummaries = [] }) {
   const chartData = buildRegisteredTimeChartData(weeklySummaries);
@@ -60,23 +69,25 @@ export function ActivityChart({ weeklySummaries = [] }) {
                   tickLine={false}
                   tick={{ fill: "#8d91a1", fontSize: 11 }}
                 />
-                <YAxis hide domain={[0, Math.ceil(chartMaximum / 10) * 10]} />
+                <YAxis hide domain={[0, Math.ceil(chartMaximum)]} />
                 <Tooltip
                   cursor={{ fill: "rgba(100, 116, 139, 0.08)" }}
                   content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
                     const chartItem = payload[0].payload;
+                    if (chartItem.unavailable) return null;
+
                     return (
                       <div className="chart-tooltip flex flex-col gap-1 text-[11px]">
                         <span className="font-bold text-white">{chartItem.day}</span>
                         <span className="text-violet-200">
-                          Registrado: {(chartItem.registered / 10).toFixed(1)}h
+                          Registrado: {chartItem.registeredHours.toFixed(1)}h
                         </span>
                       </div>
                     );
                   }}
                 />
-                <Bar dataKey="registered" fill="#6350df" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="registeredHours" fill="#6350df" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -90,10 +101,14 @@ export function ActivityChart({ weeklySummaries = [] }) {
               </tr>
             </thead>
             <tbody>
-              {chartData.map(({ day, registered }) => (
+              {chartData.map(({ day, registeredHours, unavailable }) => (
                 <tr key={day}>
                   <th scope="row">{day}</th>
-                  <td>{(registered / 10).toFixed(1)} horas</td>
+                  <td>
+                    {unavailable
+                      ? "Indisponível"
+                      : `${registeredHours.toFixed(1)} horas`}
+                  </td>
                 </tr>
               ))}
             </tbody>

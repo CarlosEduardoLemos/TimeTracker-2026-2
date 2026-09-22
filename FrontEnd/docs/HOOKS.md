@@ -11,17 +11,18 @@ Comportamentos relevantes:
 - cancela requisições anteriores com `AbortController`;
 - mantém o último resultado durante refresh do mesmo filtro;
 - não transforma falha de API em dados fictícios;
-- delega o agendamento periódico ao `useAutoRefresh`, evitando misturar timer/Visibility API com estado de rede.
+- reutiliza os seis resumos históricos já carregados com sucesso enquanto data/colaborador não mudam;
+- não reutiliza dias históricos que falharam: eles são tentados novamente no refresh seguinte;
+- mantém resumo atual, realtime e lista de usuários sendo consultados a cada atualização;
+- delega o agendamento periódico ao `useAutoRefresh`.
+
+A reutilização do histórico reduz o polling normal do mesmo filtro de 9 para 3 requisições quando os seis dias anteriores já foram carregados com sucesso.
 
 ## `useAutoRefresh`
 
 **Arquivo:** `src/hooks/useAutoRefresh.js`
 
 Responsável exclusivamente pelo agendamento periódico. Enquanto habilitado e a aba está visível, dispara `onRefresh` a cada 30 segundos por padrão. Ao ocultar a aba, interrompe o timer; ao retornar, solicita uma atualização imediata e reinicia o intervalo.
-
-Esse hook não conhece a API nem o formato do Dashboard. Ele apenas coordena tempo e visibilidade do documento.
-
-Possui testes em `useAutoRefresh.test.js` para intervalo, modo desabilitado e retorno à aba visível.
 
 ## `useTheme`
 
@@ -47,14 +48,4 @@ login
 cadastro
 ```
 
-Possui teste dedicado em `useHashRoute.test.js`.
-
-## `useActiveSection`
-
-**Arquivo:** `src/hooks/useActiveSection.js`
-
-Permanece no código por compatibilidade/histórico, mas **não é o mecanismo principal de navegação da aplicação atual**. A Sidebar atual usa rotas por hash. Não deve ser apresentado em nova documentação como responsável pelo menu principal.
-
-## `useDashboard.js`
-
-Arquivo de compatibilidade para consumidores antigos. Novas implementações devem preferir os hooks modulares diretamente.
+`useActiveSection` e o barrel legado `useDashboard.js` foram removidos porque não possuíam consumidores no frontend ativo após a migração para navegação por hash.

@@ -1,6 +1,12 @@
 import { API_STATUS_LABELS } from "../constants/ui";
 import { safeIsoDate } from "../utils/dashboard";
 
+function getStatusTone(apiStatus) {
+  if (apiStatus === "online") return "text-emerald-600";
+  if (apiStatus === "offline") return "text-red-600 dark:text-red-300";
+  return "text-amber-600";
+}
+
 export function Header({
   formattedDate,
   dark,
@@ -92,9 +98,7 @@ export function Header({
         </label>
 
         <span
-          className={`flex items-center gap-1.5 text-xs font-semibold ${
-            apiStatus === "online" ? "text-emerald-600" : "text-amber-600"
-          }`}
+          className={`flex items-center gap-1.5 text-xs font-semibold ${getStatusTone(apiStatus)}`}
           role="status"
           aria-live="polite"
         >

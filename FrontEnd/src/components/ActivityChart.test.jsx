@@ -29,6 +29,20 @@ describe("ActivityChart", () => {
     expect(screen.getByText("1.5 horas")).toBeInTheDocument();
   });
 
+  it("distinguishes an unavailable day from a real zero value", () => {
+    render(
+      <ActivityChart
+        weeklySummaries={[
+          { date: "2026-09-20", users: [], unavailable: true },
+          { date: "2026-09-21", users: [] },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Indisponível")).toBeInTheDocument();
+    expect(screen.getByText("0.0 horas")).toBeInTheDocument();
+  });
+
   it("renders an explicit empty state when there are no summaries", () => {
     render(<ActivityChart weeklySummaries={[]} />);
     expect(screen.getByText(/Nenhum tempo registrado foi retornado/i)).toBeInTheDocument();

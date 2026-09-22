@@ -11,11 +11,17 @@ vi.mock("./useAutoRefresh", () => ({
   useAutoRefresh: vi.fn(),
 }));
 
+const weeklySummaries = Array.from({ length: 7 }, (_, index) => ({
+  date: `2026-09-${String(15 + index).padStart(2, "0")}`,
+  users: [],
+}));
+
 const dashboardData = {
   summary: { users: [] },
   realtime: [],
   users: [],
-  weeklySummaries: [],
+  weeklySummaries,
+  availability: { realtime: true, users: true, history: true },
 };
 
 describe("useDashboardData", () => {
@@ -41,6 +47,7 @@ describe("useDashboardData", () => {
       "2026-09-21",
       "ana",
       expect.any(AbortSignal),
+      [],
     );
   });
 
@@ -67,6 +74,20 @@ describe("useDashboardData", () => {
     await waitFor(() => expect(result.current.refreshing).toBe(false));
   });
 
+  it("reuses only previous summaries after a successful refresh of the same filter", async () => {
+    fetchDashboardData.mockResolvedValue(dashboardData);
+
+    const { result } = renderHook(() =>
+      useDashboardData("2026-09-21", "ana", false),
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => result.current.refresh());
+    await waitFor(() => expect(fetchDashboardData).toHaveBeenCalledTimes(2));
+
+    expect(fetchDashboardData.mock.calls[1][3]).toEqual(weeklySummaries.slice(0, 6));
+  });
+
   it("exposes request failures without replacing them with fictitious data", async () => {
     const requestError = new Error("API indisponível");
     fetchDashboardData.mockRejectedValueOnce(requestError);
@@ -87,7 +108,10 @@ describe("useDashboardData", () => {
       .mockImplementationOnce(
         () => new Promise((resolve) => { resolveFirstRequest = resolve; }),
       )
-      .mockResolvedValueOnce({ ...dashboardData, summary: { users: [{ username: "bruno" }] } });
+      .mockResolvedValueOnce({
+        ...dashboardData,
+        summary: { users: [{ username: "bruno" }] },
+      });
 
     const { result, rerender } = renderHook(
       ({ username }) => useDashboardData("2026-09-21", username, false),
@@ -99,7 +123,10 @@ describe("useDashboardData", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.data.summary.users[0].username).toBe("bruno");
 
-    act(() => resolveFirstRequest({ ...dashboardData, summary: { users: [{ username: "ana" }] } }));
+    act(() => resolveFirstRequest({
+      ...dashboardData,
+      summary: { users: [{ username: "ana" }] },
+    }));
 
     await act(async () => Promise.resolve());
     expect(result.current.data.summary.users[0].username).toBe("bruno");

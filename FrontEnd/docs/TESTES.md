@@ -18,14 +18,15 @@ npm.cmd run test:coverage
 npm.cmd run build
 ```
 
-## Cobertura atual relevante
+## Cobertura relevante
 
-### Componentes existentes
+### Componentes
 
 - `Card.test.jsx`
-- `Header.test.jsx`
-- `MetricCard.test.jsx`
-- `PeopleCard.test.jsx`
+- `Header.test.jsx`: inclui estado parcial/degradado da API.
+- `MetricCard.test.jsx`: inclui semântica do ícone decorativo.
+- `PeopleCard.test.jsx`: inclui status `ausente` e semântica da tabela.
+- `ActivityChart.test.jsx`: diferencia dia indisponível de zero real.
 - `ReportsAndAgent.test.jsx`
 - `SectionHeading.test.jsx`
 - `Sidebar.test.jsx`
@@ -34,34 +35,23 @@ npm.cmd run build
 
 - `useTheme.test.js`
 - `useHashRoute.test.js`
-- `useAutoRefresh.test.js`: valida intervalo, modo desabilitado e retorno à aba visível.
+- `useAutoRefresh.test.js`
+- `useDashboardData.test.js`: loading, refresh, erro, resposta obsoleta e reutilização do histórico.
 
 ### Páginas
 
-- `AuthPage.test.jsx`: valida bloqueio de envio sem API e erro de e-mail.
-- `TasksPage.test.jsx`: valida descrição curta, botão de salvar bloqueado e limpeza do formulário.
-- `ReportsPage.test.jsx`: valida exportações CSV/PDF desabilitadas enquanto o contrato é incompleto.
+- `DashboardPage.test.jsx`: garante que falha do realtime não seja exibida como zero usuários online.
+- `AuthPage.test.jsx`
+- `TasksPage.test.jsx`
+- `ReportsPage.test.jsx`
 
 ### Serviços/utilitários
 
-- `api.test.js`: datas, URLs e degradação segura de chamadas opcionais.
-- `dashboard.test.js`: formatação, totais, filtro de realtime, contagem por status e data do cabeçalho.
-- `report.test.js`
+- `api.test.js`: datas, degradação parcial, histórico indisponível e redução de chamadas com histórico reutilizado.
+- `dashboard.test.js`: formatação, totais, filtros e contagem por status.
 
-## Padrões
+Os testes de `utils/report.js` foram removidos junto com o módulo, que não possuía consumidores no fluxo atual.
 
-Priorize seletores acessíveis (`getByRole`, `getByLabelText`) e teste comportamento observado pelo usuário.
+## Pendências
 
-Casos importantes:
-
-- loading, erro e empty state;
-- ações desabilitadas quando dependem de contrato inexistente;
-- navegação por hash e rota inválida;
-- fechamento do menu mobile por `Escape`;
-- ausência de dados fictícios em erro de API;
-- validações de formulário;
-- dark mode e preferências persistidas.
-
-## Pendências de teste
-
-Quando a API estiver disponível, adicionar testes de integração/E2E para login, sessão, autorização 401/403, associação, CRUD de tasks, jornada, filtros completos do RF-27 e exportação real.
+Quando os contratos backend estiverem disponíveis, adicionar testes de integração/E2E para login, autorização, associação, CRUD de tasks, jornada, filtros completos do RF-27 e exportação real.
