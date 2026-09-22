@@ -41,6 +41,12 @@ describe("Header", () => {
     expect(toggleTheme).toHaveBeenCalledTimes(1);
   });
 
+  it("keeps the selected filter visible when the users source is unavailable", () => {
+    render(<Header {...defaultProps} selectedUsername="ana" users={[]} />);
+    expect(screen.getByRole("combobox")).toHaveValue("ana");
+    expect(screen.getByRole("option", { name: "ana" })).toBeInTheDocument();
+  });
+
   it("calls onRefresh when refresh button is clicked", () => {
     const onRefresh = vi.fn();
     render(<Header {...defaultProps} onRefresh={onRefresh} />);

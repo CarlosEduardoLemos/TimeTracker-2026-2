@@ -13,22 +13,22 @@ O projeto é responsável pela interface utilizada no gerenciamento e visualiza�
 | **React**            |     18.2.0 | Construção da interface e componentes da aplicação         |
 | **React DOM**        |     18.2.0 | Renderização da aplicação React no navegador               |
 | **JavaScript / JSX** | ES Modules | Desenvolvimento dos componentes, páginas, hooks e serviços |
-| **Vite**             |      5.0.8 | Servidor de desenvolvimento e build da aplicação           |
+| **Vite**             |     5.4.21 | Servidor de desenvolvimento e build da aplicação           |
 | **Tailwind CSS**     |     3.4.17 | Estilização e responsividade                               |
 | **Recharts**         |     2.10.3 | Construção de gráficos e visualizações                     |
-| **PostCSS**          |     8.4.32 | Processamento dos arquivos CSS                             |
+| **PostCSS**          |     8.5.28 | Processamento dos arquivos CSS                             |
 | **Autoprefixer**     |    10.4.16 | Compatibilidade CSS entre navegadores                      |
 
 ### Testes
 
 | Tecnologia                | Versão | Utilização                                |
 | ------------------------- | -----: | ----------------------------------------- |
-| **Vitest**                |  3.2.4 | Execução dos testes automatizados         |
+| **Vitest**                |  3.2.7 | Execução dos testes automatizados         |
 | **React Testing Library** | 16.3.0 | Testes dos componentes React              |
 | **Jest DOM**              |  6.8.0 | Matchers adicionais para validação do DOM |
 | **User Event**            | 14.6.1 | Simulação de interações do usuário        |
 | **jsdom**                 | 26.1.0 | Simulação do ambiente de navegador        |
-| **V8 Coverage**           |  3.2.4 | Cobertura dos testes                      |
+| **V8 Coverage**           |  3.2.7 | Cobertura dos testes                      |
 
 ---
 
@@ -114,6 +114,15 @@ Existe um arquivo de exemplo:
 
 Para utilização local, crie um arquivo `.env` a partir dele e ajuste a URL da API conforme necessário.
 
+Em produção, configure `VITE_API_URL` com a URL HTTPS da API antes do build. Variáveis
+`VITE_*` são públicas no bundle: não coloque senhas ou tokens nelas. O padrão
+`http://localhost:8000` serve para desenvolvimento local.
+
+Cada consulta tem limite de 15 segundos, incluindo leitura do JSON. Respostas
+incompatíveis com os campos consumidos são tratadas como falha, não como zero
+atividade. A atualização automática reutiliza o histórico; o botão de atualização
+manual reconsulta os sete dias para recuperar registros sincronizados com atraso.
+
 ---
 
 ## Requisitos
@@ -136,7 +145,7 @@ cd FrontEnd
 Instale as dependências:
 
 ```bash
-npm install
+npm ci
 ```
 
 ---
@@ -271,3 +280,10 @@ O frontend possui atualmente estrutura para:
 Algumas funcionalidades dependem da disponibilidade dos respectivos contratos e endpoints no backend.
 
 Quando uma funcionalidade ainda não possui integração disponível, o frontend mantém o estado de integração pendente em vez de utilizar endpoints fictícios ou dados operacionais simulados.
+
+## Auditoria técnica
+
+Consulte [a auditoria técnica de 21/09/2026](docs/AUDITORIA-TECNICA-2026-09-21.md)
+para contratos, correções, validações e problemas externos. O lockfile do frontend
+é versionado para reproduzir a instalação. Não existem scripts de lint ou
+type-check neste projeto JavaScript; build e testes não substituem essas análises.

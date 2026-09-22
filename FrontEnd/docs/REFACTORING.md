@@ -14,7 +14,7 @@
 - chamadas opcionais da API agora informam degradação parcial em vez de falharem silenciosamente;
 - falha de realtime não é convertida em `0` colaboradores online;
 - dias históricos indisponíveis não são convertidos em `0h`;
-- resumos históricos carregados com sucesso são reutilizados nos refreshes do mesmo filtro, reduzindo o polling normal de 9 para 3 requisições;
+- resumos históricos carregados com sucesso são reutilizados no polling do mesmo filtro, reduzindo-o de 9 para 3 requisições; a atualização manual revalida todos os dias;
 - dias históricos que falharam continuam sendo reconsultados;
 - status `ausente` foi alinhado explicitamente ao contrato atual do backend;
 - `ActivityChart` passou a trabalhar diretamente em horas, removendo a representação intermediária em décimos de hora;

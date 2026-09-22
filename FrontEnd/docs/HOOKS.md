@@ -11,7 +11,8 @@ Comportamentos relevantes:
 - cancela requisições anteriores com `AbortController`;
 - mantém o último resultado durante refresh do mesmo filtro;
 - não transforma falha de API em dados fictícios;
-- reutiliza os seis resumos históricos já carregados com sucesso enquanto data/colaborador não mudam;
+- reutiliza os seis resumos históricos já carregados com sucesso no polling enquanto data/colaborador não mudam;
+- a atualização manual invalida o cache e reconsulta os sete dias, inclusive registros sincronizados com atraso;
 - não reutiliza dias históricos que falharam: eles são tentados novamente no refresh seguinte;
 - mantém resumo atual, realtime e lista de usuários sendo consultados a cada atualização;
 - delega o agendamento periódico ao `useAutoRefresh`.

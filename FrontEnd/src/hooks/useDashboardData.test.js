@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchDashboardData } from "../services/api";
 import { useDashboardData } from "./useDashboardData";
+import { useAutoRefresh } from "./useAutoRefresh";
 
 vi.mock("../services/api", () => ({
   fetchDashboardData: vi.fn(),
@@ -74,7 +75,7 @@ describe("useDashboardData", () => {
     await waitFor(() => expect(result.current.refreshing).toBe(false));
   });
 
-  it("reuses only previous summaries after a successful refresh of the same filter", async () => {
+  it("reuses history during polling but revalidates it on manual refresh", async () => {
     fetchDashboardData.mockResolvedValue(dashboardData);
 
     const { result } = renderHook(() =>
@@ -82,10 +83,14 @@ describe("useDashboardData", () => {
     );
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    act(() => result.current.refresh());
+    act(() => useAutoRefresh.mock.calls.at(-1)[0]());
     await waitFor(() => expect(fetchDashboardData).toHaveBeenCalledTimes(2));
 
     expect(fetchDashboardData.mock.calls[1][3]).toEqual(weeklySummaries.slice(0, 6));
+    await waitFor(() => expect(result.current.refreshing).toBe(false));
+    act(() => result.current.refresh());
+    await waitFor(() => expect(fetchDashboardData).toHaveBeenCalledTimes(3));
+    expect(fetchDashboardData.mock.calls[2][3]).toEqual([]);
   });
 
   it("exposes request failures without replacing them with fictitious data", async () => {

@@ -17,6 +17,15 @@ export function Sidebar({ activeSection, items = defaultNavItems }) {
   const mobilePanelRef = useRef(null);
 
   useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = () => {
+      if (desktop.matches) setMobileOpen(false);
+    };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
+
+  useEffect(() => {
     if (!mobileOpen) return undefined;
 
     closeButtonRef.current?.focus();
@@ -99,7 +108,7 @@ export function Sidebar({ activeSection, items = defaultNavItems }) {
       {mobileOpen && (
         <div className="fixed inset-0 z-40 lg:hidden" role="presentation">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeMobile} aria-hidden="true" />
-          <aside ref={mobilePanelRef} id="mobile-navigation" className="absolute inset-y-0 left-0 z-50 flex w-[min(18rem,88vw)] flex-col border-r border-line bg-white px-4 py-7 shadow-xl animate-slide-in dark:border-slate-700 dark:bg-slate-900" aria-label="Menu principal mobile" aria-modal="true" role="dialog">
+          <aside ref={mobilePanelRef} id="mobile-navigation" className="absolute inset-y-0 left-0 z-50 flex w-[min(18rem,88vw)] flex-col overflow-y-auto border-r border-line bg-white px-4 py-7 shadow-xl animate-slide-in dark:border-slate-700 dark:bg-slate-900" aria-label="Menu principal mobile" aria-modal="true" role="dialog">
             <button ref={closeButtonRef} type="button" className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-lg text-slate-400 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 hover:bg-slate-100 dark:hover:bg-slate-800" onClick={closeMobile} aria-label="Fechar menu" title="Fechar menu"><span aria-hidden="true">✕</span></button>
             {sidebarContent}
           </aside>

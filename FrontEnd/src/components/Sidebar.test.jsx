@@ -1,8 +1,25 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Sidebar } from "./Sidebar";
 
 describe("Sidebar", () => {
+  let desktop;
+  beforeEach(() => {
+    desktop = { matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() };
+    vi.stubGlobal("matchMedia", vi.fn(() => desktop));
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("releases the hidden mobile dialog when resizing to desktop", () => {
+    const { unmount } = render(<Sidebar activeSection="painel" />);
+    fireEvent.click(screen.getByRole("button", { name: "Abrir menu" }));
+    desktop.matches = true;
+    act(() => desktop.addEventListener.mock.calls[0][1]());
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Abrir menu" })).toHaveAttribute("aria-expanded", "false");
+    unmount();
+    expect(desktop.removeEventListener).toHaveBeenCalledWith("change", expect.any(Function));
+  });
   it("renders sitemap navigation and highlights the active route", () => {
     render(<Sidebar activeSection="tasks" />);
     const desktopNav = screen.getAllByRole("navigation", { name: "Menu principal" })[0];

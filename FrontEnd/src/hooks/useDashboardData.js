@@ -36,15 +36,20 @@ function createErrorState(currentState, error) {
 /**
  * Orquestra o ciclo de consulta e o estado dos dados do Dashboard.
  * Resumos históricos carregados com sucesso são reutilizados enquanto o filtro
- * não muda; dados atuais e lista de usuários continuam sendo reconsultados.
+ * não muda durante polling; a atualização manual também revalida o histórico.
+ * Dados atuais e lista de usuários continuam sendo reconsultados.
  */
 export function useDashboardData(selectedDate, selectedUsername = "", autoRefresh = true) {
   const [state, setState] = useState(INITIAL_DASHBOARD_STATE);
   const [refreshKey, setRefreshKey] = useState(0);
   const historyCacheRef = useRef({ filterKey: null, summaries: [] });
-  const refresh = useCallback(() => setRefreshKey((current) => current + 1), []);
+  const refreshCurrent = useCallback(() => setRefreshKey((current) => current + 1), []);
+  const refresh = useCallback(() => {
+    historyCacheRef.current = { filterKey: null, summaries: [] };
+    refreshCurrent();
+  }, [refreshCurrent]);
 
-  useAutoRefresh(refresh, autoRefresh);
+  useAutoRefresh(refreshCurrent, autoRefresh);
 
   useEffect(() => {
     const controller = new AbortController();

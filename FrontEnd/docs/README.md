@@ -4,6 +4,7 @@ Documentação técnica da aplicação React em `FrontEnd/src/`.
 
 | Documento | Conteúdo |
 | --- | --- |
+| [AUDITORIA-TECNICA-2026-09-21.md](AUDITORIA-TECNICA-2026-09-21.md) | Auditoria atual, contratos, correções, validações e pendências externas |
 | [FUNCIONALIDADES.md](FUNCIONALIDADES.md) | Telas, rotas, estados e limitações funcionais |
 | [COMPONENTES.md](COMPONENTES.md) | Componentes compartilhados e páginas |
 | [HOOKS.md](HOOKS.md) | `useDashboardData`, `useTheme`, `useHashRoute` e legado compatível |
@@ -20,7 +21,7 @@ Documentação técnica da aplicação React em `FrontEnd/src/`.
 
 ```powershell
 cd FrontEnd
-npm.cmd install
+npm.cmd ci
 npm.cmd run dev
 ```
 

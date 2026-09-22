@@ -85,6 +85,9 @@ export function Header({
             <option value="" className="dark:bg-slate-900 dark:text-slate-200">
               Toda a equipe
             </option>
+            {selectedUsername && !users.some((user) => user.username === selectedUsername) && (
+              <option value={selectedUsername}>{selectedUsername}</option>
+            )}
             {users.map((user) => (
               <option
                 key={user.username}

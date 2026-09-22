@@ -1,10 +1,7 @@
 import { safeIsoDate } from "../utils/dashboard";
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
-
-function asArray(value) {
-  return Array.isArray(value) ? value : [];
-}
+const REQUEST_TIMEOUT_MS = 15_000;
 
 function buildDashboardFilterQuery(date, username = "") {
   const parameters = [`date=${encodeURIComponent(safeIsoDate(date))}`];
@@ -16,12 +13,18 @@ function buildDashboardFilterQuery(date, username = "") {
   return parameters.join("&");
 }
 
-function normalizeSummary(summary, fallbackDate) {
-  return {
-    ...summary,
-    date: summary?.date || fallbackDate,
-    users: asArray(summary?.users),
-  };
+// Valida os campos consumidos pela interface; campos adicionais são preservados.
+function validateSummary(summary, expectedDate) {
+  if (
+    summary?.date !== expectedDate ||
+    !Array.isArray(summary.users) ||
+    !summary.users.every((user) =>
+      typeof user?.username === "string" && Number.isSafeInteger(user.total_seconds),
+    )
+  ) {
+    throw new Error("Resumo diário incompatível com o contrato da API.");
+  }
+  return summary;
 }
 
 function unavailableSummary(date) {
@@ -41,35 +44,48 @@ export function getPreviousDateKeys(date, count) {
 }
 
 async function requestJson(path, signal) {
-  const response = await fetch(`${API_BASE_URL}${path}`, { signal });
+  const controller = new AbortController();
+  const abort = () => controller.abort(signal.reason);
+  if (signal?.aborted) abort();
+  else signal?.addEventListener("abort", abort, { once: true });
+  const timeoutId = setTimeout(() => {
+    controller.abort(new DOMException("A API excedeu o tempo limite de 15 segundos.", "TimeoutError"));
+  }, REQUEST_TIMEOUT_MS);
 
-  if (!response.ok) {
-    throw new Error(`API respondeu com status ${response.status}`);
+  try {
+    controller.signal.throwIfAborted();
+    const response = await fetch(`${API_BASE_URL}${path}`, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`API respondeu com status ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    if (controller.signal.aborted) throw controller.signal.reason;
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+    signal?.removeEventListener("abort", abort);
   }
-
-  return response.json();
 }
 
-async function requestOptionalJson(path, signal, fallbackValue, warningMessage) {
+async function requestOptionalJson(path, signal, fallbackValue, warningMessage, validate) {
   try {
-    return { data: await requestJson(path, signal), failed: false };
+    return { data: validate(await requestJson(path, signal)), failed: false };
   } catch (error) {
     if (error.name === "AbortError") throw error;
 
-    console.warn(warningMessage, error);
+    console.warn(warningMessage);
     return { data: fallbackValue, failed: true };
   }
 }
 
-async function requestOptionalArray(path, signal, warningMessage) {
-  const result = await requestOptionalJson(path, signal, [], warningMessage);
-
-  if (result.failed || Array.isArray(result.data)) {
-    return result;
-  }
-
-  console.warn(`${warningMessage} Resposta inválida: era esperado um array.`);
-  return { data: [], failed: true };
+async function requestOptionalArray(path, signal, warningMessage, validateItem) {
+  return requestOptionalJson(path, signal, [], warningMessage, (data) => {
+    if (!Array.isArray(data) || !data.every(validateItem)) {
+      throw new Error("Lista incompatível com o contrato da API.");
+    }
+    return data;
+  });
 }
 
 function findReusableSummary(cachedSummaries, date) {
@@ -96,6 +112,7 @@ function fetchPreviousSummaries(
         signal,
         unavailableSummary(day),
         `Falha ao consultar resumo do dia ${day}:`,
+        (data) => validateSummary(data, day),
       );
     }),
   );
@@ -113,16 +130,23 @@ export async function fetchDashboardData(
 
   const [summary, realtimeResult, usersResult, previousSummaryResults] =
     await Promise.all([
-      requestJson(`/dashboard/summary?${filterQuery}`, signal),
+      requestJson(`/dashboard/summary?${filterQuery}`, signal)
+        .then((data) => validateSummary(data, sanitizedDate)),
       requestOptionalArray(
         "/activities/realtime",
         signal,
         "Falha ao consultar atividades em tempo real:",
+        (person) => typeof person?.username === "string" &&
+          typeof person.process_name === "string" &&
+          ["online", "ausente"].includes(person.status) &&
+          Number.isSafeInteger(person.seconds_since_last_activity),
       ),
       requestOptionalArray(
         "/users/",
         signal,
         "Falha ao consultar lista de colaboradores:",
+        (user) => typeof user?.username === "string" &&
+          (user.full_name == null || typeof user.full_name === "string"),
       ),
       fetchPreviousSummaries(
         previousDates,
@@ -132,20 +156,11 @@ export async function fetchDashboardData(
       ),
     ]);
 
-  const normalizedPreviousSummaries = previousSummaryResults.map(
-    ({ data: previousSummary, failed }, index) =>
-      failed
-        ? unavailableSummary(previousDates[index])
-        : normalizeSummary(previousSummary, previousDates[index]),
-  );
-
-  const normalizedSummary = normalizeSummary(summary, sanitizedDate);
-
   return {
-    summary: normalizedSummary,
-    realtime: asArray(realtimeResult.data),
-    users: asArray(usersResult.data),
-    weeklySummaries: [...normalizedPreviousSummaries, normalizedSummary],
+    summary,
+    realtime: realtimeResult.data,
+    users: usersResult.data,
+    weeklySummaries: [...previousSummaryResults.map(({ data }) => data), summary],
     availability: {
       realtime: !realtimeResult.failed,
       users: !usersResult.failed,

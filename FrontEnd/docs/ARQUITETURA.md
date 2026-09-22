@@ -28,7 +28,7 @@ flowchart TB
 
 ## Dashboard
 
-`useDashboardData` mantém o ciclo de rede e reutiliza somente os seis resumos históricos já carregados com sucesso quando o filtro permanece igual. `useAutoRefresh` continua responsável apenas pelo intervalo/Visibility API. O resumo do dia selecionado, realtime e usuários permanecem atualizados em cada refresh.
+`useDashboardData` mantém o ciclo de rede e reutiliza somente os seis resumos históricos já carregados com sucesso no polling quando o filtro permanece igual. A atualização manual revalida também o histórico, pois o agente pode enviar registros atrasados. `useAutoRefresh` continua responsável apenas pelo intervalo/Visibility API. O resumo do dia selecionado, realtime e usuários permanecem atualizados em cada refresh.
 
 O serviço diferencia falha principal de falhas opcionais. Se o resumo principal falhar, o hook entra em erro. Se realtime, usuários ou parte do histórico falharem, os dados válidos permanecem visíveis e o frontend marca a API como parcialmente disponível.
 
