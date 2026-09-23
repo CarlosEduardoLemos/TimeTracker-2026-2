@@ -16,11 +16,19 @@ it.each(["tasks", "login", "configuracoes"])("restores the theme on direct entry
   expect(document.documentElement.dataset.theme).toBe("dark");
 });
 
-it("skips to content without replacing the current hash route", () => {
+it("shows an accessible loading state while a route chunk is loading", () => {
+  window.location.hash = "#/tasks";
+  render(<App />);
+  expect(screen.getByRole("status")).toHaveTextContent("Carregando interface");
+});
+
+it("skips to content without replacing the current hash route", async () => {
   window.location.hash = "#/tasks";
   render(<App />);
   fireEvent.click(screen.getByRole("link", { name: "Pular para o conteúdo principal" }));
   expect(window.location.hash).toBe("#/tasks");
   expect(screen.getByRole("main")).toHaveFocus();
-  expect(screen.getByRole("heading", { level: 1, name: "Tasks" })).toBeInTheDocument();
+  expect(
+    await screen.findByRole("heading", { level: 1, name: "Tasks" }),
+  ).toBeInTheDocument();
 });
