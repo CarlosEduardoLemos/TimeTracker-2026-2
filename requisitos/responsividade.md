@@ -142,11 +142,25 @@ A interface responsiva deve garantir:
 
 O Dashboard utiliza:
 
-- React;
-- Vite;
-- Tailwind CSS;
-- Recharts.
+React 18.2.0 — framework principal de interface.
 
+JavaScript + JSX; 
+
+Vite 5.0.8 — servidor de desenvolvimento e processo de build.
+
+Tailwind CSS 3.4.17 — estilização principal.
+
+CSS tradicional — também existe src/index.css para estilos compartilhados.
+
+Recharts 2.10.3 — gráficos e visualizações do dashboard.
+
+PostCSS 8.4.32 + Autoprefixer 10.4.16 — processamento e compatibilidade de CSS.
+
+Vitest 3.2.4 — testes automatizados.
+
+React Testing Library (@testing-library/react, jest-dom, user-event) — testes de componentes e interação.
+
+jsdom 26.1.0 — simulação de navegador durante os testes.
 A estratégia de responsividade deverá utilizar os recursos disponíveis no frontend definido pelo projeto.
 
 ---

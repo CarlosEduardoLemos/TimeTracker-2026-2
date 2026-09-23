@@ -10,77 +10,105 @@
 
 Este documento organiza as **Regras de Negócio (RN)** e os **Requisitos Funcionais (RF)** do Time Tracker.
 
-Cada regra apresenta abaixo as funcionalidades necessárias para atendê-la.
+Cada regra apresenta as funcionalidades necessárias para atendê-la. Os identificadores existentes foram preservados para manter a rastreabilidade com épicos, histórias de usuário e critérios de aceitação.
 
 ---
 
-# RN-01 — Identificação e contas de usuário
+## RN-01 — Identificação e contas de usuário
 
-O **Gestor** deve criar sua própria conta por e-mail e acessar o Dashboard por login.
+O gestor deve possuir uma conta criada com e-mail e senha para acessar o Dashboard.
 
-O **Colaborador** não deve criar uma conta nem realizar login manualmente. Ele deve ser identificado e registrado automaticamente pelo Agente Desktop a partir do usuário Windows e da estação corporativa.
+O colaborador deve ser identificado pelo usuário Windows e pelo nome da máquina, sem criar uma conta com e-mail e senha.
 
-Após o primeiro registro, o Agente Desktop deve autenticar-se automaticamente perante o backend.
+Após o primeiro acesso e a associação ao gestor, o Agente Desktop deve reconhecer o colaborador automaticamente nos acessos seguintes.
 
 ### RF-01 — Identificar e registrar colaborador
 
-O Agente Desktop deve identificar o usuário Windows e a estação corporativa, verificar se o colaborador já está registrado e realizar seu registro automaticamente quando necessário.
+O Agente Desktop deve:
 
-O agente deve autenticar-se automaticamente perante o backend, sem exigir login manual do colaborador.
+- identificar o usuário Windows e o nome da máquina;
+- reconhecer o colaborador quando já estiver registrado;
+- registrar o colaborador quando necessário durante a associação prevista no RF-04;
+- autenticar automaticamente o colaborador e recuperar sua associação nos acessos seguintes.
 
 ### RF-02 — Criar e acessar conta do gestor
 
-O Dashboard deve permitir ao gestor criar uma conta utilizando e-mail e senha, realizar login e manter uma sessão autenticada.
+O Dashboard deve permitir ao gestor:
+
+- criar uma conta com e-mail e senha;
+- realizar login;
+- manter uma sessão autenticada.
 
 ---
 
-# RN-02 — Associação entre gestor e colaborador
+## RN-02 — Associação entre gestor e colaborador
 
-A associação inicial entre gestor e colaborador deve ser realizada através de um **código de 6 dígitos**.
+O gestor deve possuir um código numérico de associação de 6 dígitos vinculado à sua equipe.
 
-Após a associação, o colaborador poderá ser incluído nas tasks do gestor.
+No primeiro acesso, o colaborador deve informar esse código no Agente Desktop. Um código válido autoriza o acesso e registra a associação; um código inválido não deve autorizar o acesso nem realizar o registro ou a associação.
 
-O gestor deve acessar somente os colaboradores associados a ele.
+A associação deve permanecer registrada, sem exigir que o colaborador informe novamente o código nos acessos seguintes. O acesso do Agente deve depender de autenticação válida.
 
-### RF-03 — Gerar código de associação
+Após a associação, o colaborador poderá ser incluído nas tasks do gestor. O gestor deve acessar somente seus colaboradores associados.\
 
-O Dashboard deve permitir ao gestor gerar um código numérico de 6 dígitos para associação.
+### RF-03 — Disponibilizar código de associação
+
+O Dashboard deve disponibilizar ao gestor seu código numérico de associação de 6 dígitos.
 
 ### RF-04 — Associar colaborador
 
-O Agente Desktop deve permitir ao colaborador informar o código e, quando ele for válido, realizar a associação ao gestor.
+O Agente Desktop deve permitir que o colaborador informe o código do gestor.
+
+O backend deve validar o código e, quando válido:
+
+* registrar o colaborador, se necessário;
+* associá-lo ao gestor correspondente;
+* autorizar o acesso do Agente.
+
+Um código inválido não deve realizar nenhuma dessas ações.
 
 ### RF-05 — Gerenciar colaboradores associados
 
-O Dashboard deve permitir ao gestor consultar os colaboradores associados a ele e disponibilizá-los para utilização nas tasks.
+O Dashboard deve permitir ao gestor:
+
+* consultar seus colaboradores associados;
+* acompanhar o estado Online ou Offline;
+* disponibilizá-los para associação às tasks.
 
 ---
 
-# RN-03 — Configuração da task
+## RN-03 — Configuração da task
 
 Toda task deve ser criada pelo gestor e definir:
 
 - descrição;
 - colaboradores associados;
-- serviços ou aplicações monitorados.
+- aplicações pertencentes ao seu escopo.
+
+As aplicações definidas na task são classificadas como pertencentes ao seu escopo (**hora produtiva**) e podem ser contabilizadas como tempo produtivo.
 
 ### RF-06 — Criar e editar tasks
 
-O Dashboard deve permitir ao gestor criar e editar tasks e definir seus colaboradores e serviços monitorados.
+O Dashboard deve permitir ao gestor:
+
+- criar e editar tasks;
+- definir sua descrição;
+- associar colaboradores;
+- definir as aplicações pertencentes ao seu escopo.
 
 ---
 
-# RN-04 — Acesso às tasks
+## RN-04 — Acesso às tasks
 
 O colaborador deve visualizar e iniciar somente as tasks às quais estiver associado.
 
 ### RF-07 — Listar tasks do colaborador
 
-O agente deve apresentar somente as tasks disponíveis para o colaborador identificado.
+O Agente Desktop deve apresentar somente as tasks associadas ao colaborador identificado.
 
 ---
 
-# RN-05 — Monitoramento vinculado à task
+## RN-05 — Monitoramento vinculado à task
 
 Todo monitoramento deve estar associado a uma **task ativa**.
 
@@ -88,132 +116,182 @@ Não deve existir monitoramento sem uma task em execução.
 
 ### RF-08 — Iniciar task
 
-O agente deve permitir o início de uma task somente após o cumprimento das condições necessárias para o monitoramento.
+O Agente Desktop deve permitir o início de uma task somente quando:
+
+- a task estiver associada ao colaborador;
+- não existir outra task ativa;
+- as condições de monitoramento tiverem sido apresentadas;
+- a ciência do colaborador tiver sido confirmada.
+
+Ao iniciar a task, o Agente deve iniciar o monitoramento correspondente.
 
 ---
 
-# RN-06 — Transparência e ciência
+## RN-06 — Transparência e ciência
 
 Antes de iniciar uma task, o colaborador deve conhecer:
 
 - a task selecionada;
-- os serviços monitorados;
-- as informações registradas;
-- o uso de mouse e teclado para atividade/inatividade.
+- as aplicações pertencentes ao seu escopo;
+- o registro das aplicações utilizadas dentro e fora do escopo;
+- as informações que serão registradas;
+- o uso de mouse e teclado para identificar atividade e inatividade.
 
-O colaborador deve confirmar sua ciência antes do início.
+O colaborador deve confirmar sua ciência antes do início do monitoramento.
 
 ### RF-09 — Exibir condições da task
 
-O agente deve apresentar as condições de monitoramento antes do início da task.
+O Agente Desktop deve apresentar as condições do monitoramento antes do início da task.
 
 ### RF-10 — Registrar ciência
 
-O agente deve solicitar e registrar a confirmação de ciência do colaborador antes de iniciar o monitoramento.
+O Agente Desktop deve solicitar e registrar a confirmação de ciência do colaborador antes de iniciar o monitoramento.
+
+Sem essa confirmação, a task e o monitoramento não devem ser iniciados.
 
 ---
 
-# RN-07 — Alteração do monitoramento
+## RN-07 — Alteração do escopo da task
 
-Alterações nos serviços monitorados de uma task em execução devem ser informadas ao colaborador antes de serem aplicadas.
+Alterações nas aplicações pertencentes ao escopo de uma task ativa devem ser informadas ao colaborador antes de serem aplicadas ao monitoramento.
 
-### RF-11 — Alterar serviços monitorados
+### RF-11 — Alterar o escopo da task
 
-O Dashboard deve permitir ao gestor alterar os serviços da task e o agente deve informar o colaborador quando o escopo da task ativa for alterado.
+O Dashboard deve permitir ao gestor alterar as aplicações pertencentes ao escopo da task.
 
----
-
-# RN-08 — Serviços monitorados
-
-O agente deve monitorar os serviços ou aplicações definidos.
-
-### RF-12 — Monitorar serviços da task
-
-O agente deve identificar a aplicação utilizada, comparar com os serviços definidos na task e registrar quando houver correspondência e quando não houver.
+Quando o escopo de uma task ativa for alterado, o Agente Desktop deve informar o colaborador antes de aplicar a nova configuração.
 
 ---
 
-# RN-09 — Informações registradas
+## RN-08 — Registro e classificação das aplicações
 
-Durante o monitoramento devem ser registrados:
+Todas as aplicações utilizadas durante o monitoramento devem ser registradas.
+
+As aplicações definidas na task devem ser classificadas como pertencentes ao seu escopo (**hora produtiva**) e podem ser contabilizadas como tempo produtivo.
+
+As demais aplicações devem ser classificadas como fora do escopo e não devem ser contabilizadas como tempo produtivo.
+
+### RF-12 — Identificar e classificar aplicações
+
+Durante uma task ativa, o Agente Desktop deve:
+
+- identificar cada aplicação utilizada;
+- comparar a aplicação com o escopo definido na task;
+- classificá-la como dentro ou fora do escopo;
+- encaminhar essa classificação junto ao registro.
+
+---
+
+## RN-09 — Informações registradas
+
+Durante o monitoramento, cada período de utilização deve registrar:
 
 - colaborador;
 - usuário Windows;
 - task;
-- serviço ou aplicação;
+- aplicação utilizada;
+- classificação dentro ou fora do escopo;
 - início;
 - término;
 - duração;
-- estado Ativo/Inativo.
+- estado Ativo ou Inativo.
 
 ### RF-13 — Registrar períodos de utilização
 
-O agente deve registrar os períodos de utilização das aplicações identificadas, estejam elas dentro ou fora do escopo da task, com as informações definidas nesta regra.
+O Agente Desktop deve registrar os períodos de utilização de todas as aplicações identificadas durante uma task ativa, estejam elas dentro ou fora do escopo.
+
+Cada registro deve conter as informações definidas na RN-09.
 
 ---
 
-# RN-10 — Atividade e inatividade
+## RN-10 — Atividade e inatividade
 
-Mouse e teclado devem ser utilizados somente para determinar o estado **Ativo/Inativo**.
+Mouse e teclado devem ser utilizados somente para determinar se houve interação recente.
 
 O conteúdo das interações não deve ser coletado.
 
+O estado deve ser definido como:
+
+- **Ativo:** quando houver interação dentro do limite configurado;
+- **Inativo:** quando o tempo sem interação ultrapassar o limite configurado pelo gestor.
+
 ### RF-14 — Controlar atividade e inatividade
 
-O agente deve alterar o estado entre Ativo e Inativo conforme o tempo sem interação e o limite configurado pelo gestor.
+O Agente Desktop deve:
+
+- detectar a existência de interação recente sem coletar seu conteúdo;
+- calcular o tempo sem interação;
+- alternar o estado entre Ativo e Inativo conforme o limite configurado;
+- incluir o estado nos períodos registrados.
 
 ---
 
-# RN-11 — Estado e execução da task
+## RN-11 — Estado e execução da task
 
-O colaborador será considerado **Online** enquanto o Agente Desktop estiver autenticado e conectado ao sistema.
+O colaborador deve ser considerado **Online** enquanto o Agente Desktop estiver autenticado e conectado ao sistema.
 
 O colaborador não pode possuir duas tasks ativas simultaneamente.
 
+Ao trocar ou encerrar uma task, o monitoramento atual deve ser finalizado antes do início de outro.
+
 ### RF-15 — Exibir estado do monitoramento
 
-O agente deve apresentar ao colaborador:
+O Agente Desktop deve apresentar ao colaborador:
 
 - task ativa;
-- serviços monitorados;
-- estado Online/Offline;
-- estado Ativo/Inativo.
+- aplicação atual;
+- aplicações pertencentes ao escopo;
+- tempo registrado;
+- tempo produtivo;
+- estado Online ou Offline;
+- estado Ativo ou Inativo.
 
 ### RF-16 — Acompanhar colaboradores Online
 
-O Dashboard deve permitir ao gestor visualizar o estado dos colaboradores associados.
+O Dashboard deve permitir ao gestor visualizar o estado Online ou Offline dos colaboradores associados.
 
 ### RF-17 — Encerrar ou trocar task
 
-O agente deve permitir encerrar ou trocar a task ativa, finalizando o monitoramento anterior antes de iniciar uma nova task.
+O Agente Desktop deve permitir ao colaborador:
+
+- encerrar a task ativa;
+- trocar para outra task disponível;
+- finalizar o monitoramento anterior antes de iniciar uma nova task.
 
 ---
 
-# RN-12 — Continuidade dos registros
+## RN-12 — Continuidade dos registros
 
-Falhas de comunicação não devem causar perda dos registros produzidos durante uma task.
+Falhas de comunicação não devem causar a perda dos registros produzidos durante uma task.
+
+Os registros devem permanecer armazenados localmente até que o backend confirme seu recebimento.
 
 ### RF-18 — Armazenar registros localmente
 
-O agente deve manter localmente os registros até que sejam confirmados pelo servidor.
+O Agente Desktop deve armazenar localmente, em formato JSON, os registros ainda não confirmados pelo servidor.
 
 ### RF-19 — Sincronizar registros
 
-O agente deve enviar os registros pendentes ao backend e retomar a sincronização após o restabelecimento da comunicação.
+O Agente Desktop deve:
+
+- enviar os registros ao backend;
+- identificar quais registros foram confirmados;
+- manter localmente os registros pendentes;
+- retomar a sincronização após o restabelecimento da comunicação.
 
 ---
 
-# RN-13 — Configurações do gestor
+## RN-13 — Configurações do gestor
 
-A **jornada de trabalho** e o **limite de inatividade** devem ser configurados pelo gestor para cada colaborador associado.
+A jornada de trabalho e o limite de inatividade devem ser configurados pelo gestor para cada colaborador associado.
 
 ### RF-20 — Configurar jornada
 
 O Dashboard deve permitir ao gestor selecionar um colaborador associado e definir:
 
 - dias de trabalho;
-- entrada;
-- saída;
+- horário de entrada;
+- horário de saída;
 - intervalo;
 - carga horária.
 
@@ -223,141 +301,132 @@ O Dashboard deve permitir ao gestor definir, para cada colaborador associado, o 
 
 ---
 
-# RN-14 — Possível hora extra
+## RN-14 — Possível hora extra
 
-Atividades realizadas após o término previsto da jornada poderão ser identificadas como **possível hora extra**.
+Períodos de task ativa após o término previsto da jornada podem ser identificados como **possível hora extra**.
 
 ### RF-22 — Identificar possível hora extra
 
-O sistema deve identificar períodos de task ativa após o horário previsto de término da jornada.
+O sistema deve comparar os períodos de task ativa com a jornada configurada e sinalizar aqueles ocorridos após o horário previsto de saída.
 
 ---
 
-# RN-15 — Acesso aos dados
+## RN-15 — Controle de acesso aos dados
 
-O colaborador deve acessar somente seus próprios dados.
+O colaborador deve acessar somente seus próprios registros.
 
-O gestor deve acessar somente dados dos colaboradores associados a ele.
+O gestor deve acessar somente os dados dos colaboradores associados a ele.
 
 ### RF-23 — Consultar registros
 
 O sistema deve permitir:
 
-- ao colaborador consultar seus próprios registros;
-- ao gestor consultar registros dos colaboradores associados.
+- ao colaborador consultar somente seus próprios registros;
+- ao gestor consultar somente os registros de seus colaboradores associados.
 
 ---
 
-# RN-16 — Relatórios e exportação
+## RN-16 — Relatórios e exportação
 
-O gestor poderá consultar e exportar informações referentes aos colaboradores sob sua responsabilidade.
+O gestor deve poder consultar e exportar informações referentes aos colaboradores associados a ele.
 
 ### RF-24 — Gerar relatórios
 
-O Dashboard deve permitir consultar relatórios contendo:
+O Dashboard deve permitir filtrar os relatórios por:
 
-- tasks;
-- tempo por task;
-- serviços monitorados;
-- atividade/inatividade;
+- período;
+- colaborador;
+- task.
+
+Os relatórios devem poder apresentar:
+
+- tasks executadas;
+- aplicações registradas;
+- classificação dentro ou fora do escopo;
+- tempo registrado por task;
+- tempo contabilizado como produtivo;
+- tempo ativo e inativo;
 - jornada;
 - possíveis horas extras.
 
 ### RF-25 — Exportar relatórios
 
-A área de relatórios deve possuir um **botão de exportação** permitindo escolher entre:
+A área de relatórios deve possuir um botão de exportação que permita escolher entre os formatos:
 
 - CSV;
 - PDF.
 
 ---
 
-# RN-17 — Histórico do colaborador
+## RN-17 — Histórico do colaborador
 
-O colaborador deve poder consultar um histórico contendo somente as informações que foram efetivamente enviadas ao sistema.
+O colaborador deve poder consultar um histórico contendo somente os registros efetivamente enviados e confirmados pelo backend.
 
-Os registros confirmados pelo backend devem ser marcados localmente como sincronizados e mantidos disponíveis conforme a política de retenção aplicável.
+Os registros confirmados devem ser marcados localmente como sincronizados e mantidos disponíveis conforme a política de retenção aplicável.
 
 ### RF-26 — Consultar histórico TXT
 
-A System Tray deve permitir ao colaborador visualizar seu histórico em formato **TXT**, utilizando os registros locais marcados como sincronizados.
+A System Tray deve permitir ao colaborador consultar seu histórico em formato TXT, utilizando somente os registros locais marcados como sincronizados.
 
 ---
 
-# RN-18 — Finalidade e minimização
+## RN-18 — Finalidade e minimização
 
-O monitoramento deve ser limitado às informações necessárias para:
+O monitoramento deve ocorrer somente durante uma task ativa e ser limitado às informações necessárias para:
 
-- acompanhamento de tasks;
-- serviços utilizados;
-- atividade e inatividade;
-- jornada;
-- relatórios.
+- acompanhamento das tasks;
+- registro e classificação das aplicações utilizadas;
+- identificação de atividade e inatividade;
+- acompanhamento da jornada;
+- geração de relatórios.
 
-Dados que não atendam a essas finalidades não devem fazer parte do monitoramento.
+Dados que não atendam a essas finalidades não devem ser coletados.
 
 ### RFs relacionados
 
 Esta regra deve ser respeitada principalmente por:
 
-- **RF-12 — Monitorar serviços da task**;
+- **RF-12 — Identificar e classificar aplicações**;
 - **RF-13 — Registrar períodos de utilização**;
 - **RF-14 — Controlar atividade e inatividade**.
 
 ---
 
-# RN-19 — Visão gerencial do Dashboard
+## RN-19 — Visão gerencial do Dashboard
 
-O gestor deve possuir uma visão consolidada das informações dos colaboradores associados a ele.
+O gestor deve possuir uma visão consolidada somente das informações dos colaboradores associados a ele.
 
-As informações apresentadas no Dashboard devem permitir acompanhar:
-
-- estado Online/Offline dos colaboradores;
-- tasks em andamento;
-- tempo ativo e inativo;
-- tempo registrado por task;
-- possíveis horas extras;
-- sequência das atividades registradas.
-
-O Dashboard não deve apresentar rankings ou métricas de produtividade dos colaboradores.
-
-As informações devem respeitar os filtros selecionados e as regras de acesso aos dados.
-
-### RF-27 — Exibir Dashboard analítico
-
-O Dashboard deve permitir ao gestor visualizar informações consolidadas dos colaboradores associados, incluindo:
+O Dashboard deve permitir acompanhar:
 
 - quantidade de colaboradores Online e Offline;
 - quantidade de tasks ativas;
-- tempo total ativo;
-- tempo total inativo;
+- task e aplicação atuais;
+- tempo ativo e inativo;
 - tempo registrado por task;
+- tempo contabilizado como produtivo;
+- possíveis horas extras;
+- sequência das atividades registradas;
+- classificação das aplicações como dentro ou fora do escopo.
+
+O Dashboard não deve apresentar rankings, notas ou comparações de desempenho entre colaboradores.
+
+A classificação das aplicações e a contabilização do tempo produtivo devem considerar exclusivamente o escopo definido na task.
+
+### RF-27 — Exibir Dashboard analítico
+
+O Dashboard deve apresentar informações consolidadas dos colaboradores associados ao gestor, incluindo:
+
+- colaboradores Online e Offline;
+- tasks ativas;
+- tempo total ativo e inativo;
+- tempo registrado e produtivo;
 - possíveis horas extras;
 - status dos colaboradores;
-- Activity Timeline das tasks;
-- classificação das aplicações utilizadas como dentro ou fora do escopo da task.
+- linha do tempo das atividades;
+- classificação das aplicações utilizadas.
 
-O Dashboard deve permitir filtrar as informações por:
+O Dashboard deve permitir filtrar as informações por período, colaborador e task.
 
-- período;
-- colaborador;
-- task.
+Ao alterar um filtro, os indicadores e as visualizações relacionados devem ser atualizados de acordo com a seleção.
 
-Ao alterar um filtro, os indicadores e visualizações relacionados devem ser atualizados de acordo com a seleção.
 
-O Dashboard deve apresentar somente informações que o gestor possui permissão para consultar.
-
-O Dashboard não deve apresentar rankings ou métricas de produtividade.
-
----
-
-## Pontos pendentes
-
-Devem ser definidos antes da implementação da associação:
-
-- validade e expiração do código de 6 dígitos;
-- possibilidade de reutilização ou uso único do código;
-- comportamento de regeneração do código;
-- possibilidade de um colaborador estar associado a mais de um gestor.
-
----

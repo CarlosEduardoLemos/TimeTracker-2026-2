@@ -5,23 +5,20 @@
 **Data:** Setembro de 2026
 
 ---
-
 ## CA-01 — Identificação, acesso e associação
 
 **Requisitos relacionados:** RF-01, RF-02, RF-03, RF-04, RF-05.
 
-- **Dado que:** o gestor acessa o Dashboard ou o Agente Desktop é iniciado em uma estação corporativa;
-- **Quando:** ocorre o fluxo inicial de acesso;
+- **Dado que:** o gestor acessa o Dashboard ou o colaborador inicia o Agente Desktop;
+- **Quando:** ocorre o fluxo de acesso e associação;
 - **Então:**
-  - o gestor pode criar uma conta por e-mail e realizar login no Dashboard;
-  - o Agente Desktop identifica automaticamente o usuário Windows e a estação corporativa;
-  - o colaborador é registrado automaticamente quando ainda não existir no sistema;
-  - o Agente Desktop autentica-se automaticamente no backend, sem exigir conta ou login manual do colaborador;
-  - o gestor pode gerar um código de associação de 6 dígitos;
-  - o colaborador pode informar esse código;
-  - após a associação, o colaborador passa a pertencer à equipe do gestor;
-  - o gestor visualiza somente os colaboradores associados a ele;
-  - o colaborador associado fica disponível para inclusão nas tasks do gestor.
+  - o gestor pode criar conta com e-mail e senha e realizar login no Dashboard;
+  - o agente identifica automaticamente o usuário Windows e a estação;
+  - o gestor possui um código de associação de 6 dígitos, disponível no Dashboard;
+  - no primeiro acesso, o colaborador informa o código; se válido, o sistema registra-o quando necessário e associa-o ao gestor correspondente;
+  - um código inválido não realiza a associação;
+  - nos acessos seguintes, o agente reconhece automaticamente o colaborador e sua associação, sem solicitar novamente o código;
+  - o gestor visualiza somente seus colaboradores associados, disponíveis para inclusão nas tasks.
 
 - [ ] Critério verificado e atendido.
 
@@ -211,34 +208,25 @@
 
 **Requisitos relacionados:** RF-13, RF-22, RF-27.
 
-- **Dado que:** o gestor possui colaboradores associados e existem registros disponíveis;
+* **Dado que:** o gestor possui colaboradores associados e existem registros disponíveis;
 
-- **Quando:** acessa o Dashboard e aplica os filtros disponíveis;
+* **Quando:** acessa o Dashboard e aplica os filtros disponíveis;
 
-- **Então:**
+* **Então:**
 
-  - são exibidos somente dados dos colaboradores associados ao gestor;
+  * são exibidos somente dados dos colaboradores associados ao gestor;
+  * o Dashboard apresenta a quantidade de colaboradores Online e Offline;
+  * o Dashboard apresenta a quantidade de tasks ativas;
+  * são apresentados o tempo total Ativo e o tempo total Inativo;
+  * são apresentados o tempo registrado e o tempo produtivo por task;
+  * o tempo produtivo considera exclusivamente as aplicações pertencentes ao escopo definido na task;
+  * o estado Ativo ou Inativo não determina, por si só, a classificação de produtividade;
+  * possíveis horas extras são apresentadas como indicação, sem confirmação automática;
+  * o gestor pode visualizar a Activity Timeline dos colaboradores;
+  * a Activity Timeline apresenta os períodos de utilização das aplicações registradas e os períodos de inatividade;
+  * o gestor pode filtrar as informações por período, colaborador e task;
+  * ao alterar um filtro, os indicadores e visualizações relacionados são atualizados;
+  * aplicações dentro e fora do escopo da task são apresentadas e identificadas pela respectiva classificação;
+  * o Dashboard não apresenta rankings, notas ou comparações de desempenho entre colaboradores.
 
-  - o Dashboard apresenta a quantidade de colaboradores Online e Offline;
-
-  - o Dashboard apresenta a quantidade de tasks ativas;
-
-  - são apresentados o tempo total Ativo e o tempo total Inativo;
-
-  - é apresentado o tempo registrado por task;
-
-  - possíveis horas extras são apresentadas como indicação;
-
-  - o gestor pode visualizar a Activity Timeline dos colaboradores;
-
-  - a Activity Timeline apresenta os períodos de utilização das aplicações monitoradas e os períodos de inatividade;
-
-  - o gestor pode filtrar as informações por período, colaborador e task;
-
-  - ao alterar um filtro, os indicadores e visualizações relacionados são atualizados;
-
-  - aplicações dentro e fora do escopo da task são apresentadas e identificadas pela respectiva classificação;
-
-  - o Dashboard não apresenta métricas ou rankings de produtividade.
-
-- [ ] Critério verificado e atendido.
+* [ ] Critério verificado e atendido.
