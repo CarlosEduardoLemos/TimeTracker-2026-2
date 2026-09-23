@@ -55,8 +55,8 @@ Consulte [DATA-FLOW.md](DATA-FLOW.md) para transições e cache.
 | `vite.config.js`, `vitest.config.js` | Scripts npm | Entradas de build e testes independentes; não executam o legado |
 
 Não há context, Redux, React Router, TypeScript ou carregamento de páginas por
-convenção. Imports são estáticos; barrels são usados pelo painel. O legado Blazor
-é executável separadamente e foi preservado como referência documentada.
+convenção. Imports são estáticos; barrels são usados pelo painel. O protótipo
+Blazor foi removido; permanece disponível somente no histórico do Git.
 
 ## Backend e persistência
 

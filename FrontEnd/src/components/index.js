@@ -1,12 +1,6 @@
 export { ActivityChart } from "./ActivityChart";
-export { Card } from "./Card";
-export { EmptyState } from "./EmptyState";
 export { Header } from "./Header";
-export { IntegrationNotice } from "./IntegrationNotice";
 export { MetricCard } from "./MetricCard";
-export { PageHeader } from "./PageHeader";
 export { PeopleCard } from "./PeopleCard";
 export { ReportsAndAgent } from "./ReportsAndAgent";
-export { SectionHeading } from "./SectionHeading";
-export { Sidebar } from "./Sidebar";
 export { TimelineCard } from "./TimelineCard";

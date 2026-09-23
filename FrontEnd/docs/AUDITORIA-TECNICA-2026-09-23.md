@@ -1,5 +1,8 @@
 # Auditoria técnica e refatoração — 23/09/2026
 
+> Este relatório descreve a auditoria antes da limpeza posterior autorizada pelo
+> usuário. O legado foi removido depois; veja [registro da limpeza](REFACTORING.md).
+
 Escrita exclusivamente em `FrontEnd/`. Checkout inicialmente limpo. Esta revisão
 complementa a auditoria de 21/09 e não atribui a si alterações anteriores.
 

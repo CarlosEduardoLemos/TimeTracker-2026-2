@@ -7,22 +7,12 @@ está em `backend/`, fora desta pasta: FastAPI, schemas Pydantic, SQLAlchemy e
 PostgreSQL. Nesta auditoria, essa implementação foi consultada somente para leitura.
 O contrato usado pelo frontend está em [Integração frontend–backend](INTEGRACAO-FRONTEND-BACKEND.md).
 
-## Implementação Blazor legada
+## Protótipo Blazor removido
 
-`FrontEnd/legacy/blazor/` é um protótipo anterior, separado do build atual. Ele contém um projeto .NET 10 com uma única página e dados visuais estáticos.
+A antiga pasta `FrontEnd/legacy/blazor/` continha um protótipo .NET com dados
+visuais estáticos. Foi removida por solicitação do usuário após verificar que
+não era importada pela aplicação, incluída nas rotas ou utilizada pelos scripts
+de desenvolvimento, build e testes. Os artefatos locais bin/obj também foram removidos.
 
-- `Program.cs` registra Razor Components e renderização interativa no servidor.
-- `Components/Pages/Home.razor` contém o dashboard de demonstração.
-- `Components/Layout/MainLayout.razor` contém a navegação lateral.
-- `wwwroot/` contém CSS e JavaScript próprios.
-
-Ele não fornece os endpoints que o dashboard React consome, não participa de `npm.cmd run dev` e não deve ser tratado como backend da aplicação atual.
-
-Se for necessário executar o protótipo apenas para consulta visual:
-
-```powershell
-cd FrontEnd/legacy/blazor
-dotnet run
-```
-
-Mudanças no legado só devem ser feitas quando houver uma decisão explícita de mantê-lo ou migrá-lo; novas funcionalidades pertencem ao React ativo.
+O protótipo nunca forneceu os endpoints consumidos pelo React. Para consulta
+histórica, utilize o histórico do Git; a aplicação atual não depende de .NET.

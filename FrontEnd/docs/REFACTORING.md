@@ -1,5 +1,28 @@
 # Organização atual e histórico de refatoração
 
+## Limpeza posterior à auditoria — código sem uso
+
+- Removida a pasta `legacy/blazor` por solicitação do usuário: nove arquivos
+  versionados (Razor, C#, csproj, CSS e JS) e artefatos locais bin/obj.
+- Conferidos entrada HTML, imports/reexports, rotas, scripts npm, Vite, Vitest,
+  Tailwind e referências no repositório. Nenhum consumidor ativo do legado.
+- Removidos seis reexports sem consumidores de `components/index.js`: Card,
+  EmptyState, IntegrationNotice, PageHeader, SectionHeading e Sidebar. Os
+  componentes continuam usados por imports diretos e foram preservados.
+- Removidas opções Tailwind sem referências: font-mono/Fira Code, fade-in e
+  seus keyframes, shadow-soft e shadow-medium. Estilos usados foram mantidos.
+- Os 30 módulos de aplicação em src continuam alcançáveis pela entrada React.
+  Testes, documentação e telas com integração pendente continuam necessários.
+- README, arquitetura e guia do backend atualizados. As decisões abaixo sobre
+  preservação do legado descrevem o estado anterior a esta limpeza.
+
+Benefício: elimina um projeto independente sem uso e declarações mortas, sem
+alterar funcionalidades. Risco limitado à resolução de imports/configuração,
+verificado por testes e build. O legado pode ser recuperado pelo histórico Git.
+
+Validação da limpeza: 82 testes aprovados em 19 arquivos, build Vite concluído
+e `git diff --check` sem erros. Nenhuma alteração fora de `FrontEnd/`.
+
 ## Revisão de 23/09/2026 — ciclo de tema
 
 - **Problema:** `useTheme` era iniciado apenas em DashboardPage; abrir outra rota
@@ -52,7 +75,7 @@ validação atual estão em [AUDITORIA-TECNICA-2026-09-23.md](AUDITORIA-TECNICA-
 
 ## Decisões em vigor
 
-- React/Vite é o frontend ativo; Blazor permanece apenas como referência em `legacy/`.
+- React/Vite é o frontend ativo; o protótipo Blazor foi removido.
 - A aplicação possui páginas em `src/pages/` e navegação por hash via `useHashRoute`.
 - `App.jsx` funciona como bootstrap/layout; `DashboardPage.jsx` compõe o dashboard.
 - O cliente HTTP permanece centralizado em `src/services/api.js`; não foi criada uma camada de repositories sem necessidade.
@@ -74,7 +97,7 @@ validação atual estão em [AUDITORIA-TECNICA-2026-09-23.md](AUDITORIA-TECNICA-
 
 ## Preservado conscientemente
 
-- `legacy/blazor`: histórico fora do build ativo; remoção não é necessária para a qualidade do runtime atual;
+- `legacy/blazor` foi preservado nas auditorias anteriores e removido na limpeza posterior descrita acima;
 - hash routing: suficiente para as rotas existentes e não justifica adicionar dependência agora;
 - `useAutoRefresh`, `useTheme`, `useHashRoute`, Sidebar e páginas administrativas: responsabilidades já estavam claras;
 - dependências do projeto: nenhuma biblioteca nova foi adicionada;

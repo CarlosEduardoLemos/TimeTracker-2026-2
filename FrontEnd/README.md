@@ -50,7 +50,6 @@ FrontEnd/
 │   └── index.css
 │
 ├── docs/
-├── legacy/
 ├── index.html
 ├── package.json
 ├── postcss.config.js
@@ -251,17 +250,10 @@ React 18
 
 ---
 
-## Legacy
+## Histórico do protótipo
 
-O diretório:
-
-```text
-legacy/
-```
-
-contém implementações e protótipos históricos do projeto.
-
-Esse conteúdo **não faz parte do build atual do frontend**, que utiliza React e Vite.
+O protótipo Blazor da antiga pasta `legacy/` foi removido por não participar da
+aplicação React/Vite. Seu código permanece no histórico do Git.
 
 ---
 
