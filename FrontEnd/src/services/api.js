@@ -72,7 +72,7 @@ async function requestOptionalJson(path, signal, fallbackValue, warningMessage, 
   try {
     return { data: validate(await requestJson(path, signal)), failed: false };
   } catch (error) {
-    if (error.name === "AbortError") throw error;
+    if (signal?.aborted || error?.name === "AbortError") throw error;
 
     console.warn(warningMessage);
     return { data: fallbackValue, failed: true };
@@ -121,50 +121,62 @@ function fetchPreviousSummaries(
 export async function fetchDashboardData(
   date,
   username = "",
-  signal,
+  externalSignal,
   cachedPreviousSummaries = [],
 ) {
-  const sanitizedDate = safeIsoDate(date);
-  const filterQuery = buildDashboardFilterQuery(sanitizedDate, username);
-  const previousDates = getPreviousDateKeys(sanitizedDate, 7).slice(0, 6);
+  const controller = new AbortController();
+  const signal = controller.signal;
+  const abort = () => controller.abort(externalSignal.reason);
+  if (externalSignal?.aborted) abort();
+  else externalSignal?.addEventListener("abort", abort, { once: true });
 
-  const [summary, realtimeResult, usersResult, previousSummaryResults] =
-    await Promise.all([
-      requestJson(`/dashboard/summary?${filterQuery}`, signal)
-        .then((data) => validateSummary(data, sanitizedDate)),
-      requestOptionalArray(
-        "/activities/realtime",
-        signal,
-        "Falha ao consultar atividades em tempo real:",
-        (person) => typeof person?.username === "string" &&
-          typeof person.process_name === "string" &&
-          ["online", "ausente"].includes(person.status) &&
-          Number.isSafeInteger(person.seconds_since_last_activity),
-      ),
-      requestOptionalArray(
-        "/users/",
-        signal,
-        "Falha ao consultar lista de colaboradores:",
-        (user) => typeof user?.username === "string" &&
-          (user.full_name == null || typeof user.full_name === "string"),
-      ),
-      fetchPreviousSummaries(
-        previousDates,
-        username,
-        signal,
-        cachedPreviousSummaries,
-      ),
-    ]);
+  try {
+    const sanitizedDate = safeIsoDate(date);
+    const filterQuery = buildDashboardFilterQuery(sanitizedDate, username);
+    const previousDates = getPreviousDateKeys(sanitizedDate, 7).slice(0, 6);
 
-  return {
-    summary,
-    realtime: realtimeResult.data,
-    users: usersResult.data,
-    weeklySummaries: [...previousSummaryResults.map(({ data }) => data), summary],
-    availability: {
-      realtime: !realtimeResult.failed,
-      users: !usersResult.failed,
-      history: previousSummaryResults.every(({ failed }) => !failed),
-    },
-  };
+    const [summary, realtimeResult, usersResult, previousSummaryResults] =
+      await Promise.all([
+        requestJson(`/dashboard/summary?${filterQuery}`, signal)
+          .then((data) => validateSummary(data, sanitizedDate)),
+        requestOptionalArray(
+          "/activities/realtime",
+          signal,
+          "Falha ao consultar atividades em tempo real:",
+          (person) => typeof person?.username === "string" &&
+            typeof person.process_name === "string" &&
+            ["online", "ausente"].includes(person.status) &&
+            Number.isSafeInteger(person.seconds_since_last_activity),
+        ),
+        requestOptionalArray(
+          "/users/",
+          signal,
+          "Falha ao consultar lista de colaboradores:",
+          (user) => typeof user?.username === "string" &&
+            (user.full_name == null || typeof user.full_name === "string"),
+        ),
+        fetchPreviousSummaries(
+          previousDates,
+          username,
+          signal,
+          cachedPreviousSummaries,
+        ),
+      ]);
+
+    return {
+      summary,
+      realtime: realtimeResult.data,
+      users: usersResult.data,
+      weeklySummaries: [...previousSummaryResults.map(({ data }) => data), summary],
+      availability: {
+        realtime: !realtimeResult.failed,
+        users: !usersResult.failed,
+        history: previousSummaryResults.every(({ failed }) => !failed),
+      },
+    };
+  } finally {
+    // O lote deixa de ser útil quando o resumo obrigatório falha.
+    controller.abort();
+    externalSignal?.removeEventListener("abort", abort);
+  }
 }

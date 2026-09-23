@@ -3,6 +3,15 @@ import { describe, expect, it } from "vitest";
 import { PeopleCard } from "./PeopleCard";
 
 describe("PeopleCard", () => {
+  it.each([
+    [{ loading: true }, "Consultando status da equipe…"],
+    [{ unavailable: true }, "Status da equipe temporariamente indisponível."],
+  ])("does not report an empty team for %j", (props, message) => {
+    render(<PeopleCard {...props} />);
+    expect(screen.getByText(message)).toBeInTheDocument();
+    expect(screen.queryByText(/Nenhum colaborador foi retornado/)).not.toBeInTheDocument();
+  });
+
   it("renders only requirement-aligned real-time fields", () => {
     const realtimePeople = [
       {

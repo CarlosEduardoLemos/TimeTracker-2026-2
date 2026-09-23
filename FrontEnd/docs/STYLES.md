@@ -15,7 +15,7 @@ Tailwind CSS é a base visual. `src/index.css` contém variáveis, classes reuti
 | `control`, `icon-control` | Controles compactos do Dashboard |
 | `primary-button`, `secondary-button` | Ações principais/secundárias |
 | `form-field` | Inputs, selects e textareas das novas páginas, incluindo focus/disabled/dark |
-| `avatar`, `pill`, `status-dot` | Elementos auxiliares existentes |
+| `avatar`, `status-dot` | Avatar e indicador de estado |
 | `skip-link` | Atalho de teclado para o conteúdo principal |
 
 ## Responsividade

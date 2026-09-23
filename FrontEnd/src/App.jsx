@@ -1,5 +1,6 @@
 import { Sidebar } from "./components/Sidebar";
 import { useHashRoute } from "./hooks/useHashRoute";
+import { useTheme } from "./hooks/useTheme";
 import { AuthPage } from "./pages/AuthPage";
 import { CollaboratorsPage } from "./pages/CollaboratorsPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -17,6 +18,7 @@ const pageByRoute = {
 
 function App() {
   const route = useHashRoute();
+  const [dark, toggleTheme] = useTheme();
 
   if (route === "login" || route === "cadastro") {
     return <AuthPage mode={route} />;
@@ -32,7 +34,7 @@ function App() {
       }}>Pular para o conteúdo principal</a>
       <Sidebar activeSection={route} />
       <main id="conteudo-principal" tabIndex="-1" className="mx-auto w-full max-w-[1610px] px-5 pb-10 pt-20 sm:px-8 lg:ml-64 lg:w-[calc(100%_-_16rem)] lg:px-12 lg:py-10">
-        <CurrentPage />
+        <CurrentPage dark={dark} toggleTheme={toggleTheme} />
       </main>
     </div>
   );

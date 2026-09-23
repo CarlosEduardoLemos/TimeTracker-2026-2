@@ -4,10 +4,13 @@ Documentação técnica da aplicação React em `FrontEnd/src/`.
 
 | Documento | Conteúdo |
 | --- | --- |
-| [AUDITORIA-TECNICA-2026-09-21.md](AUDITORIA-TECNICA-2026-09-21.md) | Auditoria atual, contratos, correções, validações e pendências externas |
+| [AUDITORIA-TECNICA-2026-09-23.md](AUDITORIA-TECNICA-2026-09-23.md) | Auditoria atual, riscos, alterações e validações |
+| [DATA-FLOW.md](DATA-FLOW.md) | Consultas, cache, filtros, estados e cancelamento |
+| [EXTERNAL-ISSUES.md](EXTERNAL-ISSUES.md) | Problemas comprovados no backend e contratos pendentes |
+| [AUDITORIA-TECNICA-2026-09-21.md](AUDITORIA-TECNICA-2026-09-21.md) | Registro histórico da revisão anterior |
 | [FUNCIONALIDADES.md](FUNCIONALIDADES.md) | Telas, rotas, estados e limitações funcionais |
 | [COMPONENTES.md](COMPONENTES.md) | Componentes compartilhados e páginas |
-| [HOOKS.md](HOOKS.md) | `useDashboardData`, `useTheme`, `useHashRoute` e legado compatível |
+| [HOOKS.md](HOOKS.md) | Contratos dos quatro hooks ativos |
 | [ARQUITETURA.md](ARQUITETURA.md) | Estrutura, fluxo de dados, páginas e navegação |
 | [TESTES.md](TESTES.md) | Ferramentas, cobertura e padrões de teste |
 | [INTEGRACAO-FRONTEND-BACKEND.md](INTEGRACAO-FRONTEND-BACKEND.md) | Contratos atuais e dependências externas |

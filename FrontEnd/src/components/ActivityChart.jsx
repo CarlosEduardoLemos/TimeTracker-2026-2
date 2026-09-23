@@ -38,7 +38,7 @@ function getChartMaximum(chartData) {
  * Exibe o tempo total registrado por dia usando apenas dados confirmados pela
  * API. Dias indisponíveis são identificados como tal, em vez de virarem zero.
  */
-export function ActivityChart({ weeklySummaries = [] }) {
+export function ActivityChart({ weeklySummaries = [], loading = false, unavailable = false }) {
   const chartData = buildRegisteredTimeChartData(weeklySummaries);
   const chartMaximum = getChartMaximum(chartData);
 
@@ -116,7 +116,11 @@ export function ActivityChart({ weeklySummaries = [] }) {
         </>
       ) : (
         <div className="mt-5 grid h-[190px] place-items-center rounded-lg bg-slate-50 px-4 text-center text-xs text-muted dark:bg-slate-800/60">
-          Nenhum tempo registrado foi retornado para o período disponível.
+          {loading
+            ? "Consultando tempo registrado…"
+            : unavailable
+              ? "Tempo registrado temporariamente indisponível."
+              : "Nenhum tempo registrado foi retornado para o período disponível."}
         </div>
       )}
 

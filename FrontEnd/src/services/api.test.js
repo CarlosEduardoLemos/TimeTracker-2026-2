@@ -8,6 +8,39 @@ afterEach(() => {
 });
 
 describe("api service", () => {
+  it("cancels pending siblings when the required summary fails", async () => {
+    vi.useFakeTimers();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const signals = [];
+    vi.stubGlobal("fetch", vi.fn((url, { signal }) => {
+      signals.push(signal);
+      if (String(url).includes("date=2026-09-11")) {
+        return Promise.resolve({ ok: false, status: 503 });
+      }
+      return new Promise((_resolve, reject) => {
+        signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+      });
+    }));
+    await expect(fetchDashboardData("2026-09-11")).rejects.toThrow("status 503");
+    expect(signals).toHaveLength(9);
+    expect(signals.slice(1).every((signal) => signal.aborted)).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("propagates custom cancellation reasons without optional failure warnings", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubGlobal("fetch", vi.fn((_url, { signal }) => new Promise((_resolve, reject) => {
+      signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+    })));
+    const controller = new AbortController();
+    const reason = new Error("Consulta substituída");
+    const pending = expect(fetchDashboardData("2026-09-11", "", controller.signal)).rejects.toBe(reason);
+    controller.abort(reason);
+    await pending;
+    expect(warn).not.toHaveBeenCalled();
+  });
+
   it("generates correct previous date keys without offset errors", () => {
     const dates = getPreviousDateKeys("2026-09-11", 7);
     expect(dates).toHaveLength(7);

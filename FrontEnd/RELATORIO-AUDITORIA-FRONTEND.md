@@ -1,6 +1,6 @@
 # Auditoria e Melhoria do Frontend — TimeTracker
 
-> Revisão atual: [Auditoria técnica completa de 21/09/2026](docs/AUDITORIA-TECNICA-2026-09-21.md).
+> Revisão atual: [Auditoria técnica de 23/09/2026](docs/AUDITORIA-TECNICA-2026-09-23.md).
 > O conteúdo abaixo preserva entregas anteriores; resultados e limitações de execução
 > históricos não descrevem a validação da revisão atual.
 

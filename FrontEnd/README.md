@@ -283,7 +283,18 @@ Quando uma funcionalidade ainda não possui integração disponível, o frontend
 
 ## Auditoria técnica
 
-Consulte [a auditoria técnica de 21/09/2026](docs/AUDITORIA-TECNICA-2026-09-21.md)
-para contratos, correções, validações e problemas externos. O lockfile do frontend
+Consulte [a auditoria técnica de 23/09/2026](docs/AUDITORIA-TECNICA-2026-09-23.md)
+para correções, validações e limites desta revisão; o [índice técnico](docs/README.md)
+reúne arquitetura, componentes, contratos e manutenção. O lockfile do frontend
 é versionado para reproduzir a instalação. Não existem scripts de lint ou
 type-check neste projeto JavaScript; build e testes não substituem essas análises.
+
+O painel é a única tela com consultas HTTP ativas. Login/cadastro, associação,
+tasks, jornada e exportação completa continuam pendentes de contratos; os botões
+de envio permanecem bloqueados. Não existe autenticação nem proteção de rotas.
+O tema é inicializado em `App`, inclusive no acesso direto a essas telas.
+
+O Vite usa a porta 5173 e pode escolher outra se estiver ocupada (`strictPort: false`).
+Não há proxy de API: o navegador chama `VITE_API_URL` diretamente. O build gera
+`dist/`, sem sourcemaps, com chunks de gráficos e React. O projeto não configura
+service worker, manifest PWA, lint, formatter executável ou pipeline CI/CD.

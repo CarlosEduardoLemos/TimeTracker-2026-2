@@ -1,5 +1,55 @@
 # Organização atual e histórico de refatoração
 
+## Revisão de 23/09/2026 — ciclo de tema
+
+- **Problema:** `useTheme` era iniciado apenas em DashboardPage; abrir outra rota
+  diretamente não aplicava a preferência persistida.
+- **Solução:** App mantém uma única instância do hook e fornece dark/toggleTheme
+  ao painel. Removido o reexport sem consumidor em `hooks/index.js` após conferir
+  referências, imports, rotas e configurações; o módulo useTheme foi preservado.
+- **Arquivos:** App.jsx, pages/DashboardPage.jsx, hooks/index.js e testes de App/painel.
+- **Motivo:** preferência do documento pertence ao ciclo de vida da aplicação.
+- **Impacto:** todas as rotas restauram tema; botão existente continua no Header.
+- **Risco:** baixo, sem nova persistência; testes de entrada direta em três rotas.
+
+## Revisão de 23/09/2026 — estados de dados
+
+- **Problema:** tabela/gráfico sem dados exibiam texto de resultado vazio durante
+  carregamento/falha; refresh mal sucedido mantinha dados sem explicá-lo no alerta.
+- **Solução:** props loading/unavailable nos dois cards, fornecidas pelo painel;
+  alerta identifica dados da última consulta concluída. Detalhe do indicador online
+  agora diz “status informado pela API”, pois não comprova conexão autenticada.
+- **Arquivos:** DashboardPage, PeopleCard, ActivityChart e respectivos testes.
+- **Motivo:** separar ausência confirmada de registros, consulta e indisponibilidade.
+- **Impacto:** dados/contratos e retenção durante refresh preservados.
+- **Risco:** baixo; regressões cobrem estados e transmissão das props.
+
+## Revisão de 23/09/2026 — encerramento do lote HTTP
+
+- **Problema:** Promise.all rejeitava o resumo obrigatório, mas requisições irmãs
+  continuavam até timeout. Cancelamento com motivo customizado gerava warnings
+  como se fontes opcionais tivessem falhado.
+- **Solução:** controller do lote vinculado ao signal externo, abort/cleanup em
+  finally e reconhecimento de signal.aborted nas consultas opcionais.
+- **Arquivos:** services/api.js e api.test.js.
+- **Motivo:** liberar trabalho sem consumidor e preservar motivo de cancelamento.
+- **Impacto:** mesmas queries, payloads e fallback de falhas opcionais; elimina
+  requests pendentes ao falhar a consulta obrigatória.
+- **Risco:** médio por envolver concorrência. Testes verificam nove requests,
+  cancelamento dos pendentes, timers zerados e ausência de warnings de cancelamento.
+
+## Documentação e decisões desta revisão
+
+Atualizados guias existentes; criados DATA-FLOW, EXTERNAL-ISSUES e auditoria datada.
+Corrigidas referências ativas a PWA implementado, classe pill e localização do backend.
+Não houve remoção de arquivos, bibliotecas novas ou upgrades. O legado Blazor e
+documentos históricos possuem uso documental e foram preservados. Repetições
+curtas de formulário/layout não justificaram componentes genéricos; cliente HTTP
+permanece em um arquivo, sem nova camada de services/repositories.
+
+As seções seguintes registram decisões das revisões anteriores. Resultados da
+validação atual estão em [AUDITORIA-TECNICA-2026-09-23.md](AUDITORIA-TECNICA-2026-09-23.md).
+
 ## Decisões em vigor
 
 - React/Vite é o frontend ativo; Blazor permanece apenas como referência em `legacy/`.

@@ -31,6 +31,12 @@ Responsável exclusivamente pelo agendamento periódico. Enquanto habilitado e a
 
 Gerencia tema claro/escuro, persiste `timetracker-theme` em `localStorage` e sincroniza `data-theme` no elemento raiz.
 
+É chamado uma única vez por `App`, antes da seleção de rota. Retorna
+`[dark, toggleTheme]`; o painel recebe esses valores por props e os encaminha ao
+`Header`. Assim, acesso direto a login, tasks e configurações também restaura o tema.
+Preferência salva prevalece sobre `prefers-color-scheme`; falha no armazenamento
+não impede a renderização. Não acompanha mudanças posteriores do tema do sistema.
+
 ## `useHashRoute`
 
 **Arquivo:** `src/hooks/useHashRoute.js`

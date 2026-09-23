@@ -7,7 +7,7 @@ import {
   ReportsAndAgent,
   TimelineCard,
 } from "../components";
-import { useDashboardData, useTheme } from "../hooks";
+import { useDashboardData } from "../hooks";
 import {
   countPeopleByStatus,
   filterRealtimePeople,
@@ -15,8 +15,7 @@ import {
   safeIsoDate,
 } from "../utils/dashboard";
 
-export function DashboardPage() {
-  const [dark, toggleTheme] = useTheme();
+export function DashboardPage({ dark, toggleTheme } = {}) {
   const [selectedDate, setSelectedDate] = useState(() => safeIsoDate());
   const [selectedUsername, setSelectedUsername] = useState("");
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -66,7 +65,9 @@ export function DashboardPage() {
           <div>
             <strong className="block font-bold">Não foi possível carregar o Dashboard</strong>
             <span>
-              Nenhum dado fictício foi aplicado. Verifique a conexão com a API e tente novamente.
+              {data
+                ? "Os dados exibidos são da última consulta concluída. Tente atualizar novamente."
+                : "Verifique a conexão com a API e tente novamente."}
             </span>
           </div>
           <button type="button" className="secondary-button" onClick={refresh}>
@@ -99,7 +100,7 @@ export function DashboardPage() {
           value={hasRealtimeData ? onlinePeople : "—"}
           detail={
             hasRealtimeData
-              ? "conectados ao agente"
+              ? "status informado pela API"
               : "dados em tempo real indisponíveis"
           }
         />
@@ -111,9 +112,9 @@ export function DashboardPage() {
       </section>
 
       <section className="grid gap-5 lg:grid-cols-2" aria-label="Indicadores e atividade">
-        <ActivityChart weeklySummaries={data?.weeklySummaries ?? []} />
+        <ActivityChart weeklySummaries={data?.weeklySummaries ?? []} loading={loading} unavailable={!data && Boolean(error)} />
         <TimelineCard activities={[]} />
-        <PeopleCard realtimePeople={realtimePeople} />
+        <PeopleCard realtimePeople={realtimePeople} loading={loading} unavailable={!loading && !hasRealtimeData} />
       </section>
 
       {loading && (

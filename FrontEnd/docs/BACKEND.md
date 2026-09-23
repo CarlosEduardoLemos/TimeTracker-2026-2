@@ -2,7 +2,10 @@
 
 ## Limite de responsabilidade
 
-O frontend ativo é React/Vite e está em `FrontEnd/src/`. A API de produção é um serviço externo consumido por HTTP; este repositório não contém sua implementação ativa nesta pasta. O contrato usado pelo frontend está em [Integração frontend–backend](INTEGRACAO-FRONTEND-BACKEND.md).
+O frontend ativo é React/Vite e está em `FrontEnd/src/`. A implementação da API
+está em `backend/`, fora desta pasta: FastAPI, schemas Pydantic, SQLAlchemy e
+PostgreSQL. Nesta auditoria, essa implementação foi consultada somente para leitura.
+O contrato usado pelo frontend está em [Integração frontend–backend](INTEGRACAO-FRONTEND-BACKEND.md).
 
 ## Implementação Blazor legada
 

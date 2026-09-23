@@ -57,6 +57,26 @@ npm.cmd run build
 
 Os testes de `utils/report.js` foram removidos junto com o módulo, que não possuía consumidores no fluxo atual.
 
-## Pendências
+## Execução em 23/09/2026
+
+- Baseline: `npm.cmd test`, 19 arquivos e 70 testes aprovados.
+- Após mudanças: `npm.cmd run test:coverage`, 19 arquivos e 82 testes aprovados.
+- Cobertura V8 de src: linhas/statements 92,46%; branches 91,77%; funções 82,89%.
+- `npm.cmd run build`: aprovado, 866 módulos transformados.
+- Análise AST dos 50 módulos JS/JSX: imports resolvidos e nenhum import não usado.
+- Não há scripts lint/typecheck; não foram tratados como checks aprovados.
+
+Novas regressões: tema salvo em entrada direta nas rotas, cards em loading/falha,
+propagação desses estados pelo painel, aviso de dados retidos após falha de refresh,
+cancelamento do lote e cancelamento com motivo customizado. Os mocks existentes
+de Recharts e rede continuam limitando o alcance: isto não valida layout real ou
+backend/banco. A cobertura geral não implica cobertura completa de TimelineCard,
+CollaboratorsPage ou bootstrap de main.jsx.
+
+Ambiente: Node 24.18.0, npm 11.16.0. O primeiro teste no sandbox falhou porque
+esbuild não podia ler diretórios superiores ao carregar configuração. Testes e
+build passaram com a execução autorizada fora do sandbox, sem alterar configuração.
+
+### Integração real pendente
 
 Quando os contratos backend estiverem disponíveis, adicionar testes de integração/E2E para login, autorização, associação, CRUD de tasks, jornada, filtros completos do RF-27 e exportação real.

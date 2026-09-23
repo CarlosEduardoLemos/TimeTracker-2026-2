@@ -50,3 +50,36 @@ Mantém preferência de atualização automática e informação de exportação
 ## Páginas
 
 `AuthPage`, `CollaboratorsPage`, `TasksPage`, `SettingsPage`, `ReportsPage` e `DashboardPage` permanecem as páginas atuais. Ações que dependem de contratos ainda inexistentes continuam explicitamente desabilitadas, sem mocks operacionais.
+
+## Contratos e dependências para manutenção
+
+Componentes abaixo ficam em `src/components/<Nome>.jsx`, salvo páginas em
+`src/pages/`. Props opcionais possuem defaults no código. Não há acesso HTTP
+direto em componentes visuais.
+
+| Componente | Props / dados / eventos | Consumidores e dependências |
+| --- | --- | --- |
+| Card | children, className, id; article sem evento próprio | MetricCard, ActivityChart, TimelineCard, PeopleCard; estilos Tailwind |
+| SectionHeading | title, description, action | ActivityChart, TimelineCard, PeopleCard |
+| PageHeader | eyebrow, title, description, actions | CollaboratorsPage, TasksPage, ReportsPage, SettingsPage |
+| EmptyState | title, description, action | CollaboratorsPage e TasksPage |
+| IntegrationNotice | title, children; role status | AuthPage, CollaboratorsPage, TasksPage, ReportsPage, SettingsPage |
+| Sidebar | activeSection, items (default navItems); cliques mudam hash; estado mobileOpen | App; dashboardData, matchMedia, refs e listener de teclado; Escape/Tab controlam foco |
+| Header | formattedDate, dark, toggleTheme, selectedDate/setSelectedDate, selectedUsername/setSelectedUsername, users, apiStatus, refreshing, onRefresh, updatedAt | DashboardPage; API_STATUS_LABELS e safeIsoDate; controla filtros, tema e refresh |
+| MetricCard | icon, tone, label, value, detail | DashboardPage; Card; seis indicadores, cinco ainda sem dados de contrato |
+| ActivityChart | weeklySummaries, loading, unavailable; totais por data | DashboardPage; Recharts, Card, SectionHeading, getSummaryTotalSeconds; tabela acessível equivalente |
+| PeopleCard | realtimePeople, loading, unavailable; usuário/processo/status/tempo | DashboardPage; Card, SectionHeading, constantes e formatRelativeActivityTime |
+| TimelineCard | activities (default []); id, application, startedAt, endedAt, durationSeconds, state, task, inScope são props locais propostas, não DTO da API | DashboardPage sempre passa []; Card, SectionHeading, formatDuration |
+| ReportsAndAgent | autoRefresh, setAutoRefresh; checkbox altera polling, CSV/PDF disabled | DashboardPage; não controla nem instala agente desktop |
+| DashboardPage | dark, toggleTheme vindos de App; data/usuário/autoRefresh em useState | App; useDashboardData, utils e componentes do painel |
+| AuthPage | mode: login/cadastro; e-mail/senha em memória, validação local | App; IntegrationNotice; submit preventDefault e botão disabled |
+| TasksPage | Sem props; description/services em memória; Limpar reseta ambos | App; PageHeader, IntegrationNotice, EmptyState; nenhum POST |
+| CollaboratorsPage | Sem props; associação e listagem bloqueadas | App; PageHeader, IntegrationNotice, EmptyState |
+| ReportsPage | Sem props; filtros e exportações desabilitados | App; PageHeader e IntegrationNotice |
+| SettingsPage | Sem props; jornada/inatividade desabilitadas | App; PageHeader e IntegrationNotice |
+
+`loading` e `unavailable` distinguem consulta pendente e falha de uma resposta
+vazia em PeopleCard/ActivityChart. Dados anteriores do mesmo filtro são mantidos
+durante refresh; o alerta do painel identifica dados retidos após falha.
+Alterações nos componentes base afetam todos os consumidores da tabela; alterações
+no cliente HTTP devem ser verificadas também no hook, painel e testes dos cards.

@@ -1,5 +1,8 @@
 # Revisão técnica e refatoração Clean Code — Frontend
 
+> Registro histórico, incluindo candidatos posteriormente removidos.
+> Estado atual: [auditoria de 23/09/2026](AUDITORIA-TECNICA-2026-09-23.md).
+
 **Escopo:** somente `FrontEnd/`  
 **Base:** frontend após as entregas de adequação aos requisitos e auditoria documental.  
 **Objetivo:** melhorar legibilidade, separação de responsabilidades, testabilidade e manutenção sem alterar contratos de API ou funcionalidades do produto.

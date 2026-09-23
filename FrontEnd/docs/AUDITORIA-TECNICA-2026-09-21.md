@@ -1,5 +1,8 @@
 # Auditoria técnica completa — alterações restritas ao FrontEnd
 
+> Registro histórico. Revisão atual: [23/09/2026](AUDITORIA-TECNICA-2026-09-23.md).
+> Resultados e advisories abaixo pertencem à data original.
+
 Data local: 21/09/2026. Escopo de escrita: exclusivamente `FrontEnd/`.
 O checkout estava sem alterações no início. Backend, banco, requisitos e
 configurações externas foram consultados somente para leitura. Esta revisão

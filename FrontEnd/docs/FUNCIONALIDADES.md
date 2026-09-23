@@ -2,7 +2,9 @@
 
 ## Perfis
 
-O frontend React documentado nesta pasta corresponde ao **Dashboard PWA do Gestor**. O colaborador utiliza o Agente Desktop e não deve receber fluxo manual de login neste frontend.
+O frontend React documentado nesta pasta corresponde ao **Dashboard do Gestor**.
+PWA é uma intenção dos requisitos; não há manifest ou service worker implementado.
+O colaborador utiliza o Agente Desktop e não deve receber fluxo manual de login neste frontend.
 
 ## Navegação
 

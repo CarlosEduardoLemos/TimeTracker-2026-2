@@ -26,7 +26,7 @@ function buildPeopleRows(realtimePeople) {
 /**
  * Visão resumida da equipe usando somente os campos necessários ao painel.
  */
-export function PeopleCard({ realtimePeople = [] }) {
+export function PeopleCard({ realtimePeople = [], loading = false, unavailable = false }) {
   const peopleRows = buildPeopleRows(realtimePeople);
 
   return (
@@ -90,7 +90,11 @@ export function PeopleCard({ realtimePeople = [] }) {
             ) : (
               <tr>
                 <td colSpan="5" className="px-5 py-8 text-center text-xs text-muted">
-                  Nenhum colaborador foi retornado para o filtro atual.
+                  {loading
+                    ? "Consultando status da equipe…"
+                    : unavailable
+                      ? "Status da equipe temporariamente indisponível."
+                      : "Nenhum colaborador foi retornado para o filtro atual."}
                 </td>
               </tr>
             )}

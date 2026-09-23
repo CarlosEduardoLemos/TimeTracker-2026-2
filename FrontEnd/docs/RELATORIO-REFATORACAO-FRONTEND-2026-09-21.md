@@ -1,5 +1,7 @@
 # Relatório — Refatoração completa do frontend
 
+> Registro histórico. Validação atual: [23/09/2026](AUDITORIA-TECNICA-2026-09-23.md).
+
 **Escopo:** exclusivamente `FrontEnd/`  
 **Data:** 21/09/2026  
 **Backend alterado:** não

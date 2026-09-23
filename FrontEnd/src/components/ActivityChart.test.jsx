@@ -13,6 +13,15 @@ vi.mock("recharts", () => ({
 }));
 
 describe("ActivityChart", () => {
+  it.each([
+    [{ loading: true }, "Consultando tempo registrado…"],
+    [{ unavailable: true }, "Tempo registrado temporariamente indisponível."],
+  ])("does not report empty history for %j", (props, message) => {
+    render(<ActivityChart {...props} />);
+    expect(screen.getByText(message)).toBeInTheDocument();
+    expect(screen.queryByText(/Nenhum tempo registrado foi retornado/)).not.toBeInTheDocument();
+  });
+
   it("provides a screen-reader table equivalent to the visual chart", () => {
     render(
       <ActivityChart
