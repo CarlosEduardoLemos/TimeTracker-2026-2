@@ -28,6 +28,8 @@ export function Sidebar({ activeSection, items = defaultNavItems }) {
   useEffect(() => {
     if (!mobileOpen) return undefined;
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     closeButtonRef.current?.focus();
 
     const onKeyDown = (event) => {
@@ -58,17 +60,21 @@ export function Sidebar({ activeSection, items = defaultNavItems }) {
     };
 
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
   }, [mobileOpen]);
 
   const closeMobile = () => {
+    if (!mobileOpen) return;
+    openButtonRef.current?.focus();
     setMobileOpen(false);
-    window.requestAnimationFrame(() => openButtonRef.current?.focus());
   };
 
   const sidebarContent = (
     <>
-      <a href="#/painel" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-lg font-display text-[21px] font-extrabold text-ink focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 dark:text-white" aria-label="TimeTrack — ir para o Painel">
+      <a href="#/painel" onClick={closeMobile} className="flex items-center gap-2 rounded-lg font-display text-[21px] font-extrabold text-ink focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 dark:text-white" aria-label="TimeTrack — ir para o Painel">
         <span aria-hidden="true" className="grid h-8 w-8 place-items-center rounded-[10px] bg-brand text-white">T</span>
         <span>time<span className="text-brand">track</span></span>
       </a>
@@ -77,7 +83,7 @@ export function Sidebar({ activeSection, items = defaultNavItems }) {
         {items.map(([id, icon, label]) => {
           const isActive = activeSection === id;
           return (
-            <a key={id} href={`#/${id}`} onClick={() => setMobileOpen(false)} aria-current={isActive ? "page" : undefined} className={`flex items-center gap-3 rounded-lg px-3.5 py-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${isActive ? "bg-indigo-50 text-brand dark:bg-indigo-950/50" : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>
+            <a key={id} href={`#/${id}`} onClick={closeMobile} aria-current={isActive ? "page" : undefined} className={`flex items-center gap-3 rounded-lg px-3.5 py-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${isActive ? "bg-indigo-50 text-brand dark:bg-indigo-950/50" : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>
               <span aria-hidden="true" className="w-5 text-center text-lg">{icon}</span>{label}
             </a>
           );
@@ -90,8 +96,8 @@ export function Sidebar({ activeSection, items = defaultNavItems }) {
           A identificação do usuário será exibida após integração de RF-02.
         </div>
         <div className="mt-3 flex gap-2">
-          <a href="#/login" className="secondary-button flex-1 text-center" onClick={() => setMobileOpen(false)}>Login</a>
-          <a href="#/cadastro" className="secondary-button flex-1 text-center" onClick={() => setMobileOpen(false)}>Criar conta</a>
+          <a href="#/login" className="secondary-button flex-1 text-center" onClick={closeMobile}>Login</a>
+          <a href="#/cadastro" className="secondary-button flex-1 text-center" onClick={closeMobile}>Criar conta</a>
         </div>
       </div>
     </>

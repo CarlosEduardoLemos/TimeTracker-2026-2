@@ -1,6 +1,130 @@
 # Auditoria e Melhoria do Frontend — TimeTracker
 
-> Revisão atual: [Auditoria técnica de 23/09/2026](docs/AUDITORIA-TECNICA-2026-09-23.md).
+## Organização e auditoria — 25/09/2026
+
+Escopo de escrita: exclusivamente `FrontEnd/` (nome real da pasta no checkout).
+O repositório estava limpo antes desta revisão. Backend foi consultado apenas
+para conferir contratos; nenhuma API, banco ou infraestrutura foi alterada.
+
+### Estrutura anterior e atual
+
+```text
+Antes                              Depois
+FrontEnd/                          FrontEnd/
+  README.md                          README.md
+  RELATORIO.md                       docs/
+  RELATORIO-AUDITORIA-FRONTEND.md        README.md
+  docs/                                RELATORIO.md
+    README.md                          RELATORIO-AUDITORIA-FRONTEND.md
+    README-FRONTEND.md                  demais guias e históricos
+    demais guias e históricos        src/ (mesma organização)
+  src/                               index.html e configurações
+  index.html e configurações
+```
+
+`src/` mantém components, pages, hooks, services, utils, constants, data e test.
+Os testes seguem ao lado dos módulos. A divisão já tem responsabilidades claras;
+movê-los não resolveria um problema técnico. Nenhuma arquitetura, biblioteca,
+rota ou contrato HTTP foi substituído.
+
+### Documentação organizada
+
+| Arquivo | Destino/decisão | Justificativa |
+| --- | --- | --- |
+| README.md | Único Markdown na raiz | Entrada, instalação, comandos, estado real das integrações e links técnicos |
+| RELATORIO.md | docs/RELATORIO.md | Registro histórico específico de alinhamento; conteúdo preservado e link relativo corrigido |
+| RELATORIO-AUDITORIA-FRONTEND.md | docs/RELATORIO-AUDITORIA-FRONTEND.md | Relatório consolidado; esta revisão foi acrescentada sem apagar entregas anteriores |
+| docs/README-FRONTEND.md | Removido/consolidado em docs/README.md | Continha somente links já presentes no índice principal, sem informação exclusiva |
+| Demais documentos | Preservados em docs/ | Guias temáticos e registros datados têm finalidades distintas, apesar da sobreposição histórica |
+
+O README principal e os guias de arquitetura/componentes passaram a descrever
+o ErrorBoundary e os imports dinâmicos já existentes. O guia de testes inclui
+a barreira de erro e as regressões do menu. O índice agora aponta também para
+os relatórios antes fora da raiz documental e para os históricos sem entrada.
+Referências internas afetadas foram atualizadas; caminhos em relatos históricos
+continuam identificando os arquivos existentes à época quando pertinente.
+
+### Auditoria do código e alterações
+
+Revisados entrada HTML/React, todas as páginas e componentes, hooks, serviço HTTP,
+utilitários, constantes/menu, CSS e configurações. Conferidos imports/reexports
+estáticos e dinâmicos, dependências diretas/lockfile, duplicação exata de arquivos,
+rotas, artefatos versionados, links e cobertura funcional da suíte existente.
+
+| Local | Problema | Alteração e motivo | Benefício |
+| --- | --- | --- | --- |
+| src/components/Sidebar.jsx | Links fechavam o drawer removendo o elemento focado sem devolver o foco | Links, logo e ações de sessão reutilizam closeMobile; retorno síncrono ao botão somente quando o menu está aberto | Evita perda de foco no menu e elimina callbacks repetidos de fechamento; navegação desktop não move foco para botão oculto |
+| src/components/Sidebar.jsx | Fundo permanecia rolável enquanto o diálogo mobile estava aberto | Efeito guarda overflow anterior do body, bloqueia rolagem e restaura no cleanup | Mantém a interação no menu e restaura a página ao fechar, mudar para desktop ou desmontar |
+| src/components/Sidebar.test.jsx | Faltavam regressões para navegação e ciclo da rolagem | Dois casos verificam foco após link, destino preservado, fechamento e desmontagem | Protege os comportamentos corrigidos sem testes artificiais de estrutura |
+
+O cliente HTTP já centraliza validação, timeout e cancelamento de lote; os hooks
+separam consulta, polling, tema e rota. Cache histórico e proteção contra respostas
+obsoletas possuem testes. Repetições curtas de layout/formulário não justificaram
+componentes genéricos. CSS já possui breakpoints, foco visível, reduced-motion e
+rolagem horizontal da tabela. Essas partes foram preservadas.
+
+### Arquivos removidos e preservados
+
+Única exclusão definitiva nesta revisão: `docs/README-FRONTEND.md`, índice
+redundante descrito acima. Os dois relatórios saíram da raiz por movimentação,
+não por descarte. Nenhum código, teste, imagem ou asset foi removido.
+
+Todos os 32 arquivos de runtime (31 JS/JSX e um CSS) são alcançáveis a partir de
+`src/main.jsx`; não foram encontrados imports não utilizados ou arquivos de
+autoria idênticos. `data/dashboardData.js` contém o menu consumido pela Sidebar,
+e os barrels são usados pelo painel. TimelineCard e páginas com integração
+pendente continuam renderizados; ausência de backend não os torna código morto.
+`node_modules/`, `.npm-cache/`, `dist/` e `coverage/` são artefatos locais ignorados;
+nenhum arquivo versionado corresponde às regras de ignore atuais. Não foram
+apagados caches/dependências para produzir uma limpeza apenas visual.
+
+### Validação desta revisão
+
+| Verificação | Resultado |
+| --- | --- |
+| Baseline: npm.cmd test | 84 testes aprovados, 20 arquivos |
+| Final: npm.cmd test | 86 testes aprovados, 20 arquivos |
+| npm.cmd run build | Aprovado; 868 módulos, páginas/charts/vendor em chunks |
+| Análise AST | 52 módulos JS/JSX; nenhum import relativo quebrado ou import não usado |
+| Manifest/lockfile | Dependências e devDependencies diretas coincidem; sem mudanças |
+| Links Markdown locais | Nenhum destino de arquivo ausente |
+| git diff --check | Sem erros de whitespace |
+| Escopo | Todas as alterações pertencem a FrontEnd/ |
+| Inicialização Vite | HTML, main.jsx e App.jsx responderam HTTP 200 em loopback |
+| Lint/typecheck | Não configurados; não apresentados como aprovados |
+| Cobertura | Não recalculada nesta revisão; percentuais históricos não são resultados atuais |
+| Navegador real/backend/E2E | Não executados |
+
+O sandbox bloqueou a leitura de diretórios superiores pelo esbuild. Testes e
+build passaram na execução autorizada fora dele, sem alterar configurações.
+Na checagem programática do Vite, o servidor respondeu normalmente, mas o
+encerramento aguardou a otimização de dependências: houve aviso de await pendente
+na primeira tentativa e cancelamento do build de dependências na segunda; o
+processo de checagem foi interrompido. Isso limita a certificação do encerramento
+do servidor, não o resultado do build de produção ou dos testes.
+
+### Pendências e partes não alteradas
+
+- Backend: routers/schemas confirmam que autenticação, associação, tasks,
+  jornada individual, timeline e relatório completo continuam sem os contratos
+  necessários. A interface mantém os bloqueios existentes.
+- `backend/app/main.py` e routers: ausência de autenticação/autorização e CORS
+  amplo permanecem externos. O realtime usa janela recente, independentemente
+  da data histórica selecionada. Filtros da interface não implementam autorização.
+- Questões anteriores de seed, idempotência, timezone e exportação permanecem
+  registradas em [EXTERNAL-ISSUES.md](EXTERNAL-ISSUES.md); não foram corrigidas
+  nem certificadas com execução de banco nesta revisão.
+- Frontend: validar layout/contraste em navegador real, teclado/leitor de tela,
+  mobile/desktop e estados com API real. Testes jsdom não certificam esses aspectos.
+- Complementar integração/E2E quando os contratos existirem; há lacunas de
+  testes diretos em SettingsPage, CollaboratorsPage e TimelineCard. Não foram
+  adicionados testes apenas para elevar contagem/cobertura.
+- A auditoria verificou uso local das dependências; não consultou advisories nem
+  executou npm audit. Não representa certificação de ausência de vulnerabilidades.
+
+## Histórico preservado — entregas anteriores
+
+> Referência da revisão anterior: [Auditoria técnica de 23/09/2026](AUDITORIA-TECNICA-2026-09-23.md).
 > O conteúdo abaixo preserva entregas anteriores; resultados e limitações de execução
 > históricos não descrevem a validação da revisão atual.
 

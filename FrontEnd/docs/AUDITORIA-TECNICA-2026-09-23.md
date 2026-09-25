@@ -115,7 +115,7 @@ Criados: este relatório, [DATA-FLOW.md](DATA-FLOW.md) e
 Atualizados: `../README.md`, `README.md`, `ARQUITETURA.md`, `COMPONENTES.md`,
 `INTEGRACAO-FRONTEND-BACKEND.md`, `HOOKS.md`, `REFACTORING.md`, `TESTES.md`,
 `STYLES.md`, `FUNCIONALIDADES.md` e `BACKEND.md`. Os históricos
-`../RELATORIO.md`, `../RELATORIO-AUDITORIA-FRONTEND.md`,
+`RELATORIO.md`, `RELATORIO-AUDITORIA-FRONTEND.md`,
 `AUDITORIA-TECNICA-2026-09-21.md`, `REFATORACAO-CLEAN-CODE.md` e
 `RELATORIO-REFATORACAO-FRONTEND-2026-09-21.md` receberam referência à revisão atual,
 mantendo o conteúdo histórico.

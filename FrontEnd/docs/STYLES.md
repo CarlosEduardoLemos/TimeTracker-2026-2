@@ -31,7 +31,7 @@ Tailwind CSS é a base visual. `src/index.css` contém variáveis, classes reuti
 
 - foco visível global não deve ser removido;
 - controles somente com ícone exigem nome acessível;
-- drawer mobile suporta `Escape` e retorno de foco;
+- drawer mobile suporta `Escape`, retorno de foco ao fechar por botão/link e bloqueio da rolagem ao fundo;
 - estados de integração/erro usam texto, não somente cor;
 - `prefers-reduced-motion` reduz animações/transições;
 - gráficos devem possuir contexto textual e não depender exclusivamente de cor para transmitir significado.

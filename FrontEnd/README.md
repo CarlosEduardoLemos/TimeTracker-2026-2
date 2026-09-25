@@ -50,6 +50,7 @@ FrontEnd/
 │   └── index.css
 │
 ├── docs/
+├── README.md
 ├── index.html
 ├── package.json
 ├── postcss.config.js
@@ -275,7 +276,7 @@ Quando uma funcionalidade ainda não possui integração disponível, o frontend
 
 ## Auditoria técnica
 
-Consulte [a auditoria técnica de 23/09/2026](docs/AUDITORIA-TECNICA-2026-09-23.md)
+Consulte [a organização e auditoria de 25/09/2026](docs/RELATORIO-AUDITORIA-FRONTEND.md)
 para correções, validações e limites desta revisão; o [índice técnico](docs/README.md)
 reúne arquitetura, componentes, contratos e manutenção. O lockfile do frontend
 é versionado para reproduzir a instalação. Não existem scripts de lint ou
@@ -285,6 +286,11 @@ O painel é a única tela com consultas HTTP ativas. Login/cadastro, associaçã
 tasks, jornada e exportação completa continuam pendentes de contratos; os botões
 de envio permanecem bloqueados. Não existe autenticação nem proteção de rotas.
 O tema é inicializado em `App`, inclusive no acesso direto a essas telas.
+
+As páginas são carregadas sob demanda com `React.lazy` e `Suspense`. O
+`ErrorBoundary` de `main.jsx` oferece recuperação por recarregamento em falhas de
+renderização. Este README é o único Markdown na raiz; guias e relatórios ficam em
+`docs/`, com registros históricos identificados no índice.
 
 O Vite usa a porta 5173 e pode escolher outra se estiver ocupada (`strictPort: false`).
 Não há proxy de API: o navegador chama `VITE_API_URL` diretamente. O build gera

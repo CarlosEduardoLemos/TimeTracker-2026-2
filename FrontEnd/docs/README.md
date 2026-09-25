@@ -2,9 +2,13 @@
 
 Documentação técnica da aplicação React em `FrontEnd/src/`.
 
+Ponto de entrada: [README principal](../README.md). Organização e validação mais
+recentes: [relatório de 25/09/2026](RELATORIO-AUDITORIA-FRONTEND.md).
+
 | Documento | Conteúdo |
 | --- | --- |
-| [AUDITORIA-TECNICA-2026-09-23.md](AUDITORIA-TECNICA-2026-09-23.md) | Auditoria atual, riscos, alterações e validações |
+| [RELATORIO-AUDITORIA-FRONTEND.md](RELATORIO-AUDITORIA-FRONTEND.md) | Organização e auditoria de 25/09/2026, com histórico preservado |
+| [AUDITORIA-TECNICA-2026-09-23.md](AUDITORIA-TECNICA-2026-09-23.md) | Auditoria anterior, riscos, alterações e validações daquela revisão |
 | [DATA-FLOW.md](DATA-FLOW.md) | Consultas, cache, filtros, estados e cancelamento |
 | [EXTERNAL-ISSUES.md](EXTERNAL-ISSUES.md) | Problemas comprovados no backend e contratos pendentes |
 | [AUDITORIA-TECNICA-2026-09-21.md](AUDITORIA-TECNICA-2026-09-21.md) | Registro histórico da revisão anterior |
@@ -19,6 +23,14 @@ Documentação técnica da aplicação React em `FrontEnd/src/`.
 | [REFACTORING.md](REFACTORING.md) | Decisões atuais e pendências |
 | [IMPLEMENTACAO-REQUISITOS-FRONTEND.md](IMPLEMENTACAO-REQUISITOS-FRONTEND.md) | Matriz rastreável das entregas e auditoria |
 | [BACKEND.md](BACKEND.md) | Limite de responsabilidade e legado Blazor |
+| [RELATORIO.md](RELATORIO.md) | Histórico da correção de alinhamento e campos sem contrato |
+| [MELHORIAS-FRONTEND-2026-09-23.md](MELHORIAS-FRONTEND-2026-09-23.md) | Entrega de ErrorBoundary e carregamento lazy das páginas |
+| [REFATORACAO-CLEAN-CODE.md](REFATORACAO-CLEAN-CODE.md) | Histórico de decisões e refatorações |
+| [RELATORIO-REFATORACAO-FRONTEND-2026-09-21.md](RELATORIO-REFATORACAO-FRONTEND-2026-09-21.md) | Histórico da revisão de 21/09/2026 |
+
+O antigo índice `README-FRONTEND.md` foi consolidado neste arquivo: seus links já
+estavam nesta tabela e não havia conteúdo técnico exclusivo. Registros históricos
+descrevem o estado de suas entregas; não certificam a implementação ou os testes atuais.
 
 ## Início rápido
 

@@ -8,8 +8,8 @@
 - jsdom 26.x
 - coverage-v8
 
-A cobertura inclui somente `src/**/*.{js,jsx}`. Build, configurações e protótipo
-Blazor não são contabilizados como código da aplicação React.
+A cobertura inclui somente `src/**/*.{js,jsx}`, excluindo `src/test/`.
+Build e configurações não são contabilizados como código da aplicação React.
 
 ## Execução
 
@@ -32,7 +32,8 @@ npm.cmd run build
 - `ActivityChart.test.jsx`: diferencia dia indisponível de zero real.
 - `ReportsAndAgent.test.jsx`
 - `SectionHeading.test.jsx`
-- `Sidebar.test.jsx`: teclado, Escape e fechamento ao atingir o breakpoint desktop.
+- `Sidebar.test.jsx`: teclado, Escape, breakpoint desktop, foco após navegação e restauração da rolagem ao fechar/desmontar.
+- `ErrorBoundary.test.jsx`: fallback seguro e ação de recarregar após falha de renderização.
 
 ### Hooks
 

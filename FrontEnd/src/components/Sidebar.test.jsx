@@ -3,6 +3,38 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Sidebar } from "./Sidebar";
 
 describe("Sidebar", () => {
+  it("restores focus when navigation closes the mobile menu", () => {
+    render(<Sidebar activeSection="painel" />);
+    const openButton = screen.getByRole("button", { name: "Abrir menu" });
+    fireEvent.click(openButton);
+    const dialog = screen.getByRole("dialog");
+    const tasksLink = within(dialog).getByRole("link", { name: "Tasks" });
+    tasksLink.focus();
+    fireEvent.click(tasksLink);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(openButton).toHaveFocus();
+    expect(tasksLink).toHaveAttribute("href", "#/tasks");
+  });
+
+  it("locks background scrolling only while open and restores it on unmount", () => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "auto";
+    try {
+      const { unmount } = render(<Sidebar activeSection="painel" />);
+      const openButton = screen.getByRole("button", { name: "Abrir menu" });
+      fireEvent.click(openButton);
+      expect(document.body.style.overflow).toBe("hidden");
+      fireEvent.click(screen.getByRole("button", { name: "Fechar menu" }));
+      expect(document.body.style.overflow).toBe("auto");
+      expect(openButton).toHaveFocus();
+      fireEvent.click(openButton);
+      unmount();
+      expect(document.body.style.overflow).toBe("auto");
+    } finally {
+      document.body.style.overflow = previousOverflow;
+    }
+  });
+
   let desktop;
   beforeEach(() => {
     desktop = { matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() };

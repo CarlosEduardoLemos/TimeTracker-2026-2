@@ -41,7 +41,7 @@ Comparação executada entre requisitos, implementação atual e Markdown existe
 | `docs/FUNCIONALIDADES.md` | Atualizado | Descrevia aplicação de uma única página e funcionalidades removidas |
 | `docs/HOOKS.md` | Atualizado | `useHashRoute` não estava documentado; `useActiveSection` era apresentado como navegação ativa |
 | `docs/INTEGRACAO-FRONTEND-BACKEND.md` | Atualizado | Ainda pedia ranking/produtividade e tratava exportações antigas como oficiais |
-| `docs/README-FRONTEND.md` | Atualizado | Índice não destacava implementação/requisitos atuais |
+| `docs/README.md` (consolidou o antigo índice em 25/09/2026) | Atualizado | Índice não destacava implementação/requisitos atuais |
 | `docs/README.md` | Atualizado | Índice de hooks/arquitetura estava desatualizado |
 | `docs/REFACTORING.md` | Atualizado | Decisões e pendências refletiam arquitetura anterior |
 | `docs/STYLES.md` | Atualizado | Faltava `form-field` e comportamento atual do drawer/acessibilidade |

@@ -17,9 +17,9 @@ flowchart TB
 
 | Camada | Local | Responsabilidade |
 | --- | --- | --- |
-| Entrada | `src/main.jsx` | Monta `App` em `StrictMode`. |
+| Entrada | `src/main.jsx` | Monta `App` em `StrictMode`, envolvido por `ErrorBoundary`. |
 | Roteamento | `src/hooks/useHashRoute.js` | Resolve rotas por hash e fallback para `painel`. |
-| Composição | `src/App.jsx` | Seleciona a página e aplica Sidebar/layout. |
+| Composição | `src/App.jsx` | Seleciona a página com `React.lazy`/`Suspense` e aplica Sidebar/layout. |
 | Páginas | `src/pages/` | Painel e telas administrativas. |
 | Componentes | `src/components/` | Elementos visuais reutilizáveis. |
 | Estado/efeitos | `src/hooks/` | Ciclo de dados, auto-refresh/visibilidade e tema. |
@@ -55,7 +55,8 @@ Consulte [DATA-FLOW.md](DATA-FLOW.md) para transições e cache.
 | `vite.config.js`, `vitest.config.js` | Scripts npm | Entradas de build e testes independentes; não executam o legado |
 
 Não há context, Redux, React Router, TypeScript ou carregamento de páginas por
-convenção. Imports são estáticos; barrels são usados pelo painel. O protótipo
+convenção. As páginas usam imports dinâmicos explícitos para gerar chunks;
+demais módulos usam imports estáticos e barrels são usados pelo painel. O protótipo
 Blazor foi removido; permanece disponível somente no histórico do Git.
 
 ## Backend e persistência

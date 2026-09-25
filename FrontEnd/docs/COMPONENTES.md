@@ -4,6 +4,10 @@ Este documento descreve os componentes reutilizáveis da implementação atual. 
 
 ## Componentes compartilhados
 
+### `ErrorBoundary`
+Envolve `App` em `main.jsx`. Em falhas de renderização, apresenta mensagem de erro
+e botão para recarregar a aplicação. Falhas HTTP continuam tratadas no hook.
+
 ### `Card`
 Contêiner visual reutilizável para conteúdo do dashboard.
 
@@ -23,7 +27,7 @@ Aviso visual usado quando a interface já está estruturada, mas a ação depend
 
 ### `Sidebar`
 
-Navegação principal desktop/mobile para Painel, Colaboradores, Tasks, Relatórios e Configurações. Usa links por hash e `aria-current="page"`. No mobile, o drawer possui fechamento por botão, backdrop ou `Escape` e contenção de foco.
+Navegação principal desktop/mobile para Painel, Colaboradores, Tasks, Relatórios e Configurações. Usa links por hash e `aria-current="page"`. No mobile, o drawer possui fechamento por botão, backdrop, link ou `Escape`, contenção de foco e bloqueio da rolagem ao fundo. Fechar por ação do usuário devolve foco ao botão de abertura enquanto a Sidebar permanece montada; a rolagem anterior é restaurada também na desmontagem.
 
 ## Dashboard
 

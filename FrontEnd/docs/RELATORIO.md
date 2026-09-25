@@ -1,6 +1,6 @@
 # Relatório técnico — TimeTracker
 
-> Registro histórico. Revisão atual: [23/09/2026](docs/AUDITORIA-TECNICA-2026-09-23.md).
+> Registro histórico. Revisão atual: [23/09/2026](AUDITORIA-TECNICA-2026-09-23.md).
 
 Base analisada: `main` (commit `87938499a1feec72ecca32be049343a3d0ce0a0e`)
 
