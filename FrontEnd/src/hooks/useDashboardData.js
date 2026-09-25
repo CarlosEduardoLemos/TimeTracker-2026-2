@@ -33,7 +33,7 @@ export function useDashboardData(date, username) {
     ]);
     if (controller.signal.aborted || current !== sequence.current) return;
     const availability = {
-      summary: summary.status === 'fulfilled' && validSummary(summary.value),
+      summary: summary.status === 'fulfilled' && validSummary(summary.value) && summary.value.date === date,
       users: users.status === 'fulfilled' && validUsers(users.value),
       realtime: realtime.status === 'fulfilled' && validRealtime(realtime.value),
     };

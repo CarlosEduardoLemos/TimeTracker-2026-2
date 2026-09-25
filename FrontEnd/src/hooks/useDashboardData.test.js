@@ -43,4 +43,12 @@ describe('useDashboardData', () => {
     expect(result.current.data.availability.users).toBe(true);
     expect(result.current.error).toMatch(/indisponíveis/);
   });
+
+  it('rejects a valid summary for a different date', async () => {
+    api.summary.mockResolvedValue({ date: '2026-09-24', users: [] });
+    const { result } = renderHook(() => useDashboardData('2026-09-25', ''));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.data.availability.summary).toBe(false);
+    expect(result.current.data.summary).toBeNull();
+  });
 });

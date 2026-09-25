@@ -64,11 +64,42 @@ describe('estados de integração', () => {
     expect(api.saveSettings).not.toHaveBeenCalled();
   });
 
+  it('rejects an invalid settings response after saving', async () => {
+    api.settings.mockResolvedValue({ capture_interval_seconds: 10, idle_timeout_seconds: 300 });
+    api.saveSettings.mockResolvedValue({ capture_interval_seconds: null, idle_timeout_seconds: 300 });
+    render(<SettingsPage />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Salvar configurações' }));
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Resposta inválida da API'));
+    expect(screen.queryByText('Configurações salvas.')).not.toBeInTheDocument();
+  });
+
+  it('cancels a settings save when leaving the page', async () => {
+    api.settings.mockResolvedValue({ capture_interval_seconds: 10, idle_timeout_seconds: 300 });
+    api.saveSettings.mockReturnValue(new Promise(() => {}));
+    const { unmount } = render(<SettingsPage />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Salvar configurações' }));
+    const signal = api.saveSettings.mock.calls[0][1];
+    expect(signal.aborted).toBe(false);
+    unmount();
+    expect(signal.aborted).toBe(true);
+  });
+
   it('exibe erro HTTP na exportação em vez de abrir uma aba vazia', async () => {
     api.users.mockResolvedValue([]);
     api.exportFile.mockRejectedValue(new Error('API respondeu 500'));
     render(<ReportsPage />);
     fireEvent.click(screen.getByRole('button', { name: 'Exportar CSV' }));
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('API respondeu 500'));
+  });
+
+  it('cancels an export when leaving the page', async () => {
+    api.users.mockResolvedValue([]);
+    api.exportFile.mockReturnValue(new Promise(() => {}));
+    const { unmount } = render(<ReportsPage />);
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar CSV' }));
+    const signal = api.exportFile.mock.calls[0][3];
+    expect(signal.aborted).toBe(false);
+    unmount();
+    expect(signal.aborted).toBe(true);
   });
 });

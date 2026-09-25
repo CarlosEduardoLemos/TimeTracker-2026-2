@@ -45,4 +45,15 @@ describe('DashboardPage', () => {
     fireEvent.change(screen.getByLabelText('Usuário'), { target: { value: 'ana' } });
     expect(useDashboardData.mock.calls.at(-1)[1]).toBe('ana');
   });
+
+  it('mantém a contagem de usuários cadastrados quando realtime falha', () => {
+    useDashboardData.mockReturnValue({
+      data: { ...fullData, realtime: [], availability: { ...fullData.availability, realtime: false } },
+      loading: false, refreshing: false, refresh: vi.fn(),
+    });
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText('Usuário'), { target: { value: 'ana' } });
+    expect(screen.getByText('Usuários cadastrados').closest('article')).toHaveTextContent('1');
+    expect(screen.getByText('Online').closest('article')).toHaveTextContent('—');
+  });
 });

@@ -1,200 +1,52 @@
-# Pendências para concluir o frontend
+# Pendências do frontend e dependências externas
 
-## Revisão do frontend nesta entrega
+Este documento registra o que **não** foi implementado. Os contratos disponíveis são descritos em [Arquitetura](ARQUITETURA.md); a experiência atual está em [Funcionalidades](FUNCIONALIDADES.md). Prioridade alta indica risco funcional, de dados ou de acesso; média indica lacuna relevante de produto ou manutenção; baixa indica melhoria de menor impacto.
 
-- As consultas do painel agora tratam resumo, usuários e realtime separadamente:
-  uma falha parcial aparece como indisponibilidade, sem transformar ausência de
-  resposta em zero. Trocas de filtro cancelam a consulta anterior.
-- A exportação diária baixa o arquivo pela API e informa falhas HTTP na tela.
-- A configuração global só pode ser editada após a leitura real do servidor e
-  valida números inteiros positivos antes de salvar.
-- O menu móvel permite fechar com Escape, mantém o foco no diálogo e libera a
-  rolagem ao fechar. O link de salto preserva a rota por hash.
-- Login/cadastro e tasks continuam sem envio porque os contratos e a
-  autorização necessários não existem. Nenhuma pasta do backend foi editada.
+## Contratos e correções necessários no backend
 
-## Alterações necessárias no backend
+Nenhuma das ações desta seção pode ser concluída com segurança apenas alterando `FrontEnd`. Os nomes dos futuros endpoints, payloads e políticas de autenticação ainda precisam ser definidos pelo backend; esta lista não propõe rotas fictícias.
 
-| Local | Alteração necessária | Motivo |
-| --- | --- | --- |
-| `backend/app/main.py`, `backend/app/models.py`, `backend/app/schemas.py` e novo router de autenticação | Criar conta de gestor, login, sessão segura, consulta da sessão e logout; aplicar autenticação e autorização nos routers existentes | US-05/RF-02 e CA-09 exigem identidade e isolamento; a UI não pode garanti-los |
-| `backend/app/models.py`, `backend/app/schemas.py`, `backend/app/routers/users.py` e `backend/app/crud.py` | Persistir vínculo gestor–colaborador, disponibilizar o código numérico de 6 dígitos e retornar somente a equipe do gestor | US-06/RF-03/RF-05; `GET /users/` lista usuários globalmente |
-| `backend/app/models.py`, `backend/app/schemas.py` e novo router de tasks | Criar CRUD de tasks com descrição, colaboradores associados, aplicações do escopo e estado de execução | RF-06/RF-11; não existe modelo nem endpoint de task |
-| `backend/app/models.py`, `backend/app/schemas.py`, `backend/app/routers/config.py` e `backend/app/crud.py` | Ler/gravar jornada e limite de inatividade por colaborador; usar o limite salvo no cálculo de atividade | RF-20/RF-21; `GET/PUT /config/` é global e `get_realtime_view` usa `MAX_IDLE_SECONDS` de `backend/app/utils.py` |
-| `backend/app/models.py`, `backend/app/schemas.py`, `backend/app/routers/activities.py` e `backend/app/crud.py` | Registrar períodos com task, aplicação, classificação, início/fim, duração e estado; oferecer timeline e presença real do Agente | RF-13/RF-16/RF-27; realtime atual é uma janela de registros, não estado de conexão nem histórico |
-| `backend/app/routers/dashboard.py` e `backend/app/crud.py` | Disponibilizar agregados por período/colaborador/task, possível hora extra e consulta/exportação CSV/PDF com os mesmos filtros | RF-22/RF-24/RF-25/RF-27; resumo/exportações atuais aceitam só data e usuário |
+| Prioridade | Problema e ponto do frontend | Contrato/correção necessária fora do frontend | Por que não foi implementado no frontend |
+| --- | --- | --- | --- |
+| Alta | `AuthPage`, `App` e todas as páginas não identificam um gestor | Cadastro, login, sessão e autorização de leituras e escritas no servidor | Não há como conferir identidade ou isolar dados com uma senha apenas no navegador |
+| Alta | `DashboardPage`, `CollaboratorsPage` e `ReportsPage` consomem usuários globais | Associação do colaborador ao gestor, código de associação previsto em RF-03/RF-04 e consultas restritas ao gestor autenticado | `/users/` devolve todos os usuários; filtro local não é controle de acesso |
+| Alta | `TasksPage` não lista, cria nem edita tasks (RF-06/RF-11) | Persistência e contratos para descrição, colaboradores associados, aplicações do escopo e autorização | Não há modelo/rota de task nem associação de atividade a task no backend atual |
+| Alta | Painel não mostra task ativa, tempo produtivo, ranking, horas extras ou timeline RF-27 | Registros e consultas por task com início/fim, estado ativo/inativo, aplicação, classificação de escopo e jornada | `DailySummaryResponse` só contém data, usuário, total e categoria; métricas adicionais seriam inventadas |
+| Alta | Qualquer página pode solicitar dados globais e `PUT /config/` não exige gestor | Autenticação/autorização das rotas existentes; política CORS adequada ao ambiente | Segurança de consulta/gravação precisa ser imposta no servidor; ocultar botão no frontend não protege a API |
+| Média | `SettingsPage` edita apenas valores globais, enquanto RF-20/RF-21 exigem parâmetros por colaborador | Contratos de jornada e limite de inatividade associados ao colaborador | O objeto `/config/` contém somente dois inteiros globais |
+| Média | Status de atividade no painel não acompanha o limite salvo em `SettingsPage` | `crud.get_realtime_view` precisa usar a configuração apropriada; hoje usa `MAX_IDLE_SECONDS` da configuração do processo | Atualizar o formulário não altera o cálculo do backend |
+| Média | “Online” e “Sem leitura recente” não provam conexão do agente | Definição e emissão de heartbeat/sessão do agente, com estados de conexão | `/activities/realtime` usa a última leitura em uma janela de 15 minutos |
+| Média | `ReportsPage` só exporta um dia e não atende RF-24/RF-25 por inteiro | Contrato autorizado para período, colaborador, task, aplicações, escopo, atividade/inatividade, jornada e possível hora extra | CSV/PDF atuais são derivados do resumo diário por categoria |
+| Média | Data do resumo pode ter interpretação diferente do dia local exibido | Definição do fuso de `captured_at`, agregação e parâmetro `date`, incluindo viradas de dia | `todayIso()` usa data local do navegador; o backend agrega a data de captura no banco |
 
-Os contratos devem definir método, rota, payload, erros, fuso horário e
-autorização antes de conectar as telas pendentes. O Agente Desktop também
-precisará enviar os novos campos previstos na US-12.
+### Defeitos e riscos observados no código externo
 
-Este documento reúne somente o que impede ou limita o **Dashboard do Gestor**.
-Requisitos exclusivos do Agente Desktop não são listados, exceto quando o dado
-produzido pelo Agente também é necessário para uma tela do frontend.
+| Prioridade | Evidência lida no backend | Efeito possível | Ajuste externo necessário |
+| --- | --- | --- | --- |
+| Alta | `backend/seed.py` consulta e insere `SystemSettings.id == 1`, enquanto `backend/app/models.py` declara `id` UUID | Seed de configuração pode falhar ou não encontrar o registro esperado | Alinhar seed ao tipo/chave real e testar inicialização |
+| Alta | `backend/app/main.py` usa `allow_origins=["*"]` e `allow_credentials=True` | Política de origem excessivamente ampla para dados de gestão | Definir origens e credenciais permitidas por ambiente |
+| Média | `crud.get_realtime_view` faz join pelo maior `captured_at` por usuário | Empate de capturas pode devolver mais de uma entrada do mesmo usuário | Definir desempate determinístico |
+| Média | Registro de atividade não mostra chave de idempotência nem unicidade de reenvio | Reenvio pode duplicar duração no resumo | Definir deduplicação/idempotência no servidor |
 
-A análise considera o frontend em `FrontEnd/src`, os contratos existentes em
-`backend/app` e os requisitos RF/CA. Nenhuma alteração de backend foi realizada.
+Essas observações foram feitas por leitura; não houve alteração, migração ou teste de banco no backend nesta revisão.
 
-## O que já funciona com o backend atual
+## Pendências próprias de `FrontEnd`
 
-| Área | Integração disponível | Limite atual |
-| --- | --- | --- |
-| Painel | Resumo diário por categoria, lista global de usuários e atividade recente | Sem gestor/equipe, task, período, jornada ou timeline |
-| Colaboradores | Lista global e estado derivado de `/activities/realtime` | Não representa colaboradores associados ao gestor |
-| Relatórios | Exportação CSV/PDF por uma data e, opcionalmente, usuário | É um resumo parcial por categoria, não o relatório de RF-24 |
-| Configurações | Leitura e gravação do intervalo de captura e timeout globais | Não configura jornada nem valores por colaborador |
+| Prioridade | Local | Trabalho recomendado | Condição para executar |
+| --- | --- | --- | --- |
+| Média | Telas ativas e `src/index.css` | Verificar visualmente foco, contraste, zoom, rolagem horizontal, telas baixas e layout mobile/tablet/desktop | Navegador real e tamanhos de tela definidos |
+| Média | `ReportsPage`, `SettingsPage`, `CollaboratorsPage` | Executar fluxos reais com API disponível e indisponível; conferir download, erros de rede, atualização e retry | Ambiente de integração com backend e dados reais |
+| Média | `FrontEnd` como aplicação instalável | Decidir se o “Dashboard PWA” dos requisitos exige instalação e funcionamento offline. Atualmente não há manifest nem service worker | Definir comportamento desejado; não simular dados offline sem contrato/política |
+| Média | Testes automatizados | Cobrir diretamente lista/erro/retry de Colaboradores e validações/salvamento de Configurações conforme mudanças futuras | Usar casos comportamentais relevantes; não ampliar apenas percentual |
+| Baixa | Código preservado sem consumidor em `src/components`, `useAutoRefresh` e utilitários auxiliares | Reutilizar ou remover após definir quais visualizações futuras terão dados reais | Contratos e desenho das telas futuras esclarecidos |
+| Baixa | Qualidade de código | Avaliar ESLint/formatador e script específico; atualizar `package-lock.json` junto com qualquer dependência | Ganho de manutenção justificado e instalação disponível |
 
-Endpoints já usados pelo React: `GET /users/`, `GET /activities/realtime`,
-`GET /dashboard/summary`, `GET/PUT /config/` e as exportações
-`GET /dashboard/export/csv|pdf`.
+### Ordem sugerida
 
-## Pendências do backend que bloqueiam funcionalidades
+1. Concluir verificação manual de navegação e acessibilidade.
+2. No backend, definir autenticação/autorização e associação de equipe antes de integrar fluxos de gestor.
+3. Definir contratos de task e registros por task; só então implementar criação, seleção e métricas de produtividade.
+4. Definir jornada e relatórios completos; integrar filtros e exportação com testes de fluxo.
+5. Decidir o alcance de PWA e dos componentes preservados, então limpar o que permanecer sem uso.
 
-### 1. Autenticação, sessão e autorização — bloqueio geral
-
-**Requisitos:** RF-02, RF-23, CA-01 e CA-09.
-
-Faltam contratos para cadastro e login do gestor, consulta da sessão atual,
-renovação quando aplicável e logout. As rotas também precisam validar a identidade
-do gestor e responder corretamente com `401` e `403`.
-
-Sem isso, o frontend não pode:
-
-- enviar os formulários de login e cadastro;
-- proteger Dashboard, Colaboradores, Tasks, Relatórios e Configurações;
-- garantir que um gestor veja somente sua equipe e seus registros;
-- anexar token ou usar cookie de sessão nas chamadas da API.
-
-### 2. Código de associação e equipe do gestor
-
-**Requisitos:** RF-03, RF-05, RF-16 e CA-01/CA-04.
-
-Faltam:
-
-- gerar ou consultar o código numérico de 6 dígitos do gestor;
-- definir validade, expiração e regras de regeneração/reutilização do código;
-- listar somente os colaboradores associados ao gestor autenticado;
-- retornar o estado Online/Offline de toda a equipe, inclusive quem não possui
-  atividade recente.
-
-Hoje, `GET /users/` expõe a lista global. O realtime omite usuários sem registro
-nos últimos 15 minutos e retorna `online` ou `ausente`; portanto, ele sozinho não
-cumpre o estado Online/Offline definido nos requisitos.
-
-### 3. Tasks e aplicações do escopo
-
-**Requisitos:** RF-06, RF-11 e parte gerencial de CA-02/CA-03.
-
-Não existem modelo nem endpoints de task. O frontend precisa de contratos para:
-
-- listar, criar, consultar e editar tasks do gestor;
-- armazenar descrição e situação da task;
-- associar e remover colaboradores da equipe;
-- cadastrar as aplicações/serviços pertencentes ao escopo;
-- informar task ativa e colaboradores que a executam;
-- aplicar alterações de escopo ao fluxo do Agente Desktop.
-
-Categorias e regras de categorização atuais não substituem tasks: não possuem
-colaboradores associados, execução ativa nem escopo próprio por task.
-
-### 4. Jornada e inatividade por colaborador
-
-**Requisitos:** RF-20, RF-21, RF-22 e CA-06.
-
-Faltam leitura e gravação, por colaborador, de:
-
-- dias de trabalho;
-- horário de entrada e saída;
-- intervalo;
-- carga horária;
-- limite de inatividade.
-
-Também falta o cálculo dos períodos de task após a jornada como **possível hora
-extra**. O `GET/PUT /config/` atual é global e contém apenas intervalo de captura
-e timeout. Além disso, o timeout salvo nessa configuração não é a fonte usada
-pelo cálculo realtime atual, que lê uma configuração de ambiente.
-
-### 5. Registros necessários ao Dashboard analítico
-
-**Requisitos:** RF-13, RF-14, RF-22, RF-27 e CA-08/CA-10.
-
-Para preencher as visualizações sem inventar dados, os registros e consultas
-precisam fornecer:
-
-- task relacionada e indicação de task ativa;
-- aplicação utilizada e classificação dentro/fora do escopo da task;
-- início, término e duração de cada período;
-- estado Ativo/Inativo do período;
-- tempo total registrado e tempo produtivo por task;
-- possíveis horas extras;
-- sequência cronológica para a Activity Timeline;
-- filtros por período, colaborador e task.
-
-O resumo atual agrega apenas data, usuário, categoria e segundos. O realtime é
-uma fotografia recente e não substitui uma timeline histórica.
-
-### 6. Relatórios completos
-
-**Requisitos:** RF-24, RF-25 e CA-07.
-
-Os endpoints CSV/PDF existentes podem continuar como exportação de resumo diário,
-mas não atendem ao relatório oficial. Faltam consulta e exportação autorizadas com:
-
-- data inicial e final;
-- colaborador e task;
-- tasks e aplicações registradas;
-- classificação dentro/fora do escopo;
-- tempos registrado, produtivo, ativo e inativo;
-- jornada e possíveis horas extras.
-
-Os mesmos filtros e critérios devem produzir resultados coerentes na consulta da
-tela, no CSV e no PDF.
-
-## Funcionalidades ainda pendentes no frontend
-
-Estas implementações continuam necessárias no React quando os contratos acima
-forem definidos:
-
-| Tela/camada | Implementação que falta | Dependência principal |
-| --- | --- | --- |
-| API | Métodos de autenticação, associação, tasks, jornada, timeline e relatório completo | Contratos e schemas do backend |
-| Aplicação | Estado de sessão, persistência segura, logout, proteção de rotas e tratamento específico de `401/403` | Autenticação/autorização |
-| Login/Cadastro | Enviar formulários, exibir erros da API e redirecionar após sucesso | RF-02 |
-| Colaboradores | Exibir/copiar/regenerar código e listar somente a equipe associada | RF-03/RF-05 |
-| Tasks | Implementar listagem e formulário real de criação/edição, seleção de colaboradores e aplicações | RF-06/RF-11 |
-| Configurações | Implementar seleção de colaborador e formulário de jornada/inatividade individual | RF-20/RF-21 |
-| Painel | Adicionar período/task, tasks ativas, ativo/inativo, produtividade por escopo, hora extra e timeline | RF-27 |
-| Relatórios | Adicionar período/task e apresentar/exportar o relatório completo | RF-24/RF-25 |
-
-Observação: a tela de Tasks atual é apenas informativa; login/cadastro possuem
-validação local, mas não enviam dados; as rotas gerenciais ainda são públicas no
-cliente. Esses comportamentos são intencionais enquanto não há contrato seguro,
-mas não representam funcionalidades concluídas.
-
-## Ordem mínima recomendada de implementação
-
-1. Autenticação, sessão, autorização e vínculo gestor–colaborador.
-2. Código de associação e consulta da equipe autenticada.
-3. Modelo/CRUD de tasks, escopo e vínculo de colaboradores.
-4. Jornada e inatividade por colaborador.
-5. Registros por período vinculados à task e cálculo de agregados.
-6. Dashboard analítico e relatórios completos.
-
-Essa ordem evita implementar telas sobre dados globais ou contratos temporários
-que depois precisariam ser refeitos para aplicar autorização e escopo de equipe.
-
-## Contratos que precisam ser definidos antes da integração
-
-Para cada recurso pendente, backend e frontend ainda precisam acordar:
-
-- método, rota, parâmetros e payload;
-- schema de sucesso e formato padronizado de erro;
-- autenticação por cookie seguro ou token e política de renovação;
-- regras de autorização por gestor/equipe;
-- paginação para listas e timelines;
-- fuso horário e limites inclusivo/exclusivo dos períodos;
-- estados vazios, conflitos e códigos HTTP esperados.
-
-Não é necessário criar mocks permanentes para considerar essas telas prontas: até
-os contratos existirem, o frontend deve manter avisos de integração e não exibir
-valores fictícios como se fossem dados reais.
+Os itens externos não foram corrigidos no backend porque o escopo de alteração deste trabalho é exclusivamente `FrontEnd/`.

@@ -1,350 +1,75 @@
-# Arquitetura e manutenção do frontend
+# Arquitetura e contratos do frontend
 
-[Voltar ao README](../README.md). Caminhos de código relativos a `FrontEnd/`.
+Este documento descreve o código executado atualmente em `FrontEnd/`. [Funcionalidades](FUNCIONALIDADES.md) descreve o que aparece ao usuário; [Pendências](PENDENCIAS.md) separa o que requer novos contratos do backend.
 
-- [Estrutura e responsabilidades](#estrutura-e-responsabilidades)
-- [Fluxo de dados](#fluxo-de-dados)
-- [Hooks](#hooks)
-- [Componentes e páginas](#componentes-e-paginas)
-- [Estilos, acessibilidade e responsividade](#interface)
-- [Convenções e contribuição](#contribuicao)
+## Plataforma e entrada
 
-<a id="estrutura-e-responsabilidades"></a>
+- React 18 com JavaScript/JSX, Vite 6, Tailwind CSS 3 e CSS local. Vitest e React Testing Library são usados nos testes. `recharts` permanece instalado porque existe um componente de gráfico preservado, mas o painel atual não o renderiza.
+- `index.html` declara `lang="pt-BR"`, viewport e `#root`. `src/main.jsx` monta `App` sob `React.StrictMode` e `ErrorBoundary`.
+- `ErrorBoundary` mostra uma mensagem e opção de recarregar após exceção de renderização. Falhas HTTP são tratadas nas páginas e no hook de dados; a barreira não as substitui. Detalhes da exceção só são registrados no console durante desenvolvimento.
+- `src/App.jsx` compõe `Sidebar`, conteúdo principal e páginas carregadas com `React.lazy`/`Suspense`. `src/hooks/useHashRoute.js` observa `hashchange`. Hash vazio abre o painel; hash desconhecido produz a página não encontrada. `#/login` e `#/cadastro` usam o layout próprio de `AuthPage`.
+- `App` ajusta `document.title` por rota e mantém uma única instância de `useTheme`. O hook usa a chave `timetracker-theme` no `localStorage`; sem preferência salva, consulta `prefers-color-scheme`.
 
-## Estrutura e responsabilidades
+## Mapa do código
 
-### Visão geral
-
-```mermaid
-flowchart TB
-  M[main.jsx] --> A[App.jsx]
-  A --> R[useHashRoute]
-  A --> P[pages/]
-  P --> C[components/]
-  A --> T[useTheme]
-  P --> H[hooks: useDashboardData / useAutoRefresh]
-  H --> S[services/api.js]
-  S --> API[API HTTP]
-  C --> CSS[index.css + Tailwind]
-```
-
-| Camada | Local | Responsabilidade |
-| --- | --- | --- |
-| Entrada | `src/main.jsx` | Monta `App` em `StrictMode`, envolvido por `ErrorBoundary`. |
-| Roteamento | `src/hooks/useHashRoute.js` | Resolve rotas por hash e fallback para `painel`. |
-| Composição | `src/App.jsx` | Seleciona a página com `React.lazy`/`Suspense` e aplica Sidebar/layout. |
-| Páginas | `src/pages/` | Painel e telas administrativas. |
-| Componentes | `src/components/` | Elementos visuais reutilizáveis. |
-| Estado/efeitos | `src/hooks/` | Ciclo de dados, auto-refresh/visibilidade e tema. |
-| HTTP | `src/services/api.js` | Centraliza os contratos consumidos e a degradação de chamadas opcionais. |
-| Utilitários | `src/utils/` | Formatação e transformações puras. |
-| Navegação | `src/data/dashboardData.js` | Itens da Sidebar. |
-
-### Impacto de manutenção
-
-| Arquivo | Utilizado por / dependências | Motivo de existir e impacto de alteração |
-| --- | --- | --- |
-| `src/App.jsx` | `main.jsx`; páginas, Sidebar, `useHashRoute`, `useTheme` | Entrada comum de layout, rotas e tema; afeta todas as telas |
-| `src/pages/DashboardPage.jsx` | App; componentes, `useDashboardData`, utils | Compõe dados, filtros e estados; concentra a integração visual do painel |
-| `src/services/api.js` | `useDashboardData`; fetch, `safeIsoDate` | Único cliente HTTP ativo; alterações afetam filtros, série histórica e status |
-| `src/hooks/useDashboardData.js` | DashboardPage; serviço e `useAutoRefresh` | Coordena estado e cache por filtro; afeta refresh e proteção contra respostas antigas |
-| `src/hooks/useAutoRefresh.js` | `useDashboardData`; Visibility API | Isola intervalo e listeners do ciclo de dados |
-| `src/hooks/useTheme.js` | App; localStorage, matchMedia, dataset | Mantém uma preferência global sem store ou context adicional |
-| `src/hooks/useHashRoute.js` | App; hashchange | Resolve sete rotas e fallback; exige sincronização com navegação |
-| `src/data/dashboardData.js` | Sidebar | Define apenas itens de menu, sem dados operacionais fictícios |
-| `src/utils/dashboard.js` | Serviço, DashboardPage, Header, ActivityChart, PeopleCard, TimelineCard | Datas, filtros e duração compartilhados; alteração pode afetar rede e apresentação |
-| `src/constants/ui.js` | Header, PeopleCard | Rótulos de estados e paleta de avatares |
-| `src/index.css`, `tailwind.config.js` | Todas as telas via main/Vite | Estilos globais e tokens; impacto visual transversal |
-| `vite.config.js`, `vitest.config.js` | Scripts npm | Entradas de build e testes independentes; não executam o legado |
-
-Não há context, Redux, React Router, TypeScript ou carregamento de páginas por
-convenção. As páginas usam imports dinâmicos explícitos para gerar chunks;
-demais módulos usam imports estáticos e barrels são usados pelo painel. O protótipo
-Blazor foi removido; permanece disponível somente no histórico do Git.
-
-Persistência e limites do servidor estão em [Integração](INTEGRACAO.md).
-Credenciais não são persistidas; não existe sessão simulada. Dados desnecessários
-ao painel, como `window_title`, ficam fora da interface gerencial.
-
-<a id="fluxo-de-dados"></a>
-
-## Fluxo de dados
-
-```mermaid
-flowchart TD
-  App[App: rota e tema] --> Page[DashboardPage: data, usuário, autoRefresh]
-  Page --> Hook[useDashboardData: estado e cache]
-  Hook --> Timer[useAutoRefresh: intervalo e visibilidade]
-  Timer --> Hook
-  Hook --> API[api.js: lote HTTP e validação]
-  API --> Routes[FastAPI: dashboard, activities, users]
-  Routes --> CRUD[crud.py e sessão SQLAlchemy]
-  CRUD --> DB[(PostgreSQL)]
-  API --> Hook
-  Hook --> Page
-  Page --> Header[Header: filtros, atualização e status]
-  Page --> Chart[ActivityChart: totais diários]
-  Page --> People[PeopleCard: leituras recentes]
-  Page --> Metrics[MetricCard: contagem online]
-```
-
-### Primeira consulta e filtros
-
-1. `DashboardPage` inicia a data no dia local (`safeIsoDate`), usuário vazio e
-   atualização automática habilitada. Datas inválidas caem no dia local atual.
-2. `useDashboardData` cria uma chave `data:usuário`, limpa dados de outro filtro
-   e chama `fetchDashboardData` com um `AbortSignal`.
-3. O serviço consulta sete resumos diários, realtime e usuários em paralelo:
-   nove GETs na carga inicial. A série é calculada em UTC para evitar deslocar
-   datas por fuso/DST; isso não define o fuso da agregação feita pelo banco.
-4. O serviço valida os campos efetivamente consumidos e retorna `summary`,
-   `realtime`, `users`, `weeklySummaries` e `availability`.
-5. O hook registra dados e `updatedAt`. O painel filtra realtime por usuário
-   localmente, conta `status === "online"` e entrega dados aos componentes.
-
-Somente resumos recebem data/usuário na query. Realtime sempre representa a
-janela recente do backend, mesmo quando uma data histórica está selecionada.
-A lista de usuários permanece global; filtro visual não é autorização.
-
-### Atualização e cancelamento
-
-- Polling a cada 30 segundos enquanto a aba está visível. Retorno à aba atualiza
-  imediatamente. Pausar o checkbox suspende futuras atualizações automáticas.
-- Para o mesmo filtro, seis dias históricos bem-sucedidos são reutilizados:
-  polling normal faz três GETs. Falhas históricas são tentadas novamente.
-- Refresh manual limpa o cache e reconsulta todos os dias. Cache é memória do
-  hook; sair do painel o descarta. Não há cache persistente nem TTL histórico.
-- Mudar filtro, atualizar novamente ou desmontar aborta o lote anterior. O hook
-  também verifica o signal antes de aceitar resultados, evitando respostas antigas.
-- Cada request tem 15 segundos de timeout, incluindo `response.json()`. Falha
-  do resumo obrigatório rejeita o lote e cancela requests pendentes. Falhas
-  opcionais isoladas não cancelam os demais dados. Listeners e timers são limpos.
-
-### Estados observáveis
-
-| Situação | Dados / interface |
+| Caminho | Responsabilidade atual |
 | --- | --- |
-| Primeira carga ou novo filtro | `data: null`, loading; cards dizem que estão consultando |
-| Sucesso com listas vazias | Ausência real de resultados, zero online quando realtime disponível |
-| Falha opcional | `availability` false, status degraded, histórico marcado unavailable e tabela indisponível |
-| Falha principal sem dados anteriores | Status offline, alerta/retry e cards indisponíveis |
-| Refresh do mesmo filtro | Dados anteriores mantidos, `refreshing: true` |
-| Falha de refresh | Dados anteriores mantidos; alerta identifica a última consulta concluída |
-| Cancelamento | Sem alerta de erro nem aviso de indisponibilidade opcional |
+| `src/services/api.js` | Origem da API, `fetch`, timeout, cancelamento, parâmetros e download. É o único cliente HTTP usado pelas páginas. |
+| `src/hooks/useDashboardData.js` | Estado e atualização das três fontes do painel: resumo, usuários e realtime. |
+| `src/utils/dashboard.js` | Validação dos objetos recebidos e cálculo/apresentação de duração, categorias e status derivados. |
+| `src/pages/DashboardPage.jsx` | Filtros, indicadores e tabelas do painel. |
+| `src/pages/CollaboratorsPage.jsx` | Listagem global de usuários combinada, quando possível, com última atividade. |
+| `src/pages/SettingsPage.jsx` | Leitura e atualização dos dois parâmetros globais de `/config/`. |
+| `src/pages/ReportsPage.jsx` | Seleção de data/usuário e download do resumo diário em CSV/PDF. |
+| `src/pages/AuthPage.jsx`, `TasksPage.jsx` | Mensagens de indisponibilidade; não coletam credenciais nem dados de task. |
+| `src/components/Sidebar.jsx` | Navegação desktop e diálogo móvel. |
+| `src/index.css`, `tailwind.config.js` | Estilos base, tokens de cor, tema, foco e adaptação de layout. |
 
-`summary.users[].total_seconds` alimenta o gráfico em horas arredondadas a uma
-casa decimal. O resumo não separa tempo ativo/inativo nem produtividade por task.
-`PeopleCard` mostra usuário, processo, status e tempo desde a leitura; título de
-janela, máquina e categoria não são renderizados. Demais indicadores/timeline
-mantêm os placeholders existentes porque não têm contrato real.
+## Cliente HTTP
 
-### Outros estados
+`VITE_API_URL` em `.env` determina a origem da API; na ausência dela, o cliente usa `http://localhost:8000`. `.env.example` documenta esse valor. O serviço remove uma barra final da origem e monta os caminhos abaixo. O valor de `username` é codificado por `URLSearchParams`.
 
-`App` inicializa `useTheme` em todas as rotas; a preferência salva em localStorage
-é a única persistência do frontend. Login/cadastro e tasks mantêm campos apenas
-em `useState`, sem envio HTTP. As rotas de autenticação ocultam Sidebar/layout,
-mas não criam sessão. Hash inválido cai em `painel`; query no hash é ignorada.
+| Método e rota consumida | Parâmetros/corpo | Resposta contratada pelo backend | Consumidor |
+| --- | --- | --- | --- |
+| `GET /users/` | Nenhum | Array de `UserOut`: `id`, `username`, `full_name?`, `department?`, `created_at` | Painel, Colaboradores, Relatórios |
+| `GET /activities/realtime` | Nenhum | Array de `RealtimeEntry`: `username`, `hostname`, `process_name`, `window_title?`, `category?`, `is_idle`, `seconds_since_last_activity`, `status` | Painel, Colaboradores |
+| `GET /dashboard/summary` | `date` obrigatório em `AAAA-MM-DD`; `username` opcional | `{ date, users: [{ username, total_seconds, by_category: [{ category, color, total_seconds }] }] }` | Painel |
+| `GET /dashboard/export/csv` | Mesmos filtros do resumo | `text/csv`, colunas `username,category,total_seconds` | Relatórios |
+| `GET /dashboard/export/pdf` | Mesmos filtros do resumo | `application/pdf`, total e categorias de cada usuário | Relatórios |
+| `GET /config/` | Nenhum | `{ capture_interval_seconds, idle_timeout_seconds, updated_at? }` | Configurações |
+| `PUT /config/` | JSON com os dois inteiros positivos | Mesmo objeto de configuração | Configurações |
 
-<a id="hooks"></a>
+`api.js` rejeita HTTP não bem sucedido com o código de status, usa timeout de 15 segundos inclusive durante a leitura do corpo e aceita um `AbortSignal` externo por chamada. A data de resumo/exportação precisa ser uma data real em `AAAA-MM-DD`. O download aceita apenas `csv`/`pdf`; se o servidor informar um tipo de conteúdo diferente do esperado, rejeita a resposta. `ReportsPage` também rejeita blob vazio. JSON malformado ou estruturas inesperadas são tratados como indisponibilidade pelas páginas/hook, conforme a fonte.
 
-## Hooks
+Não há cabeçalho de autenticação, cookie de sessão administrado pela aplicação, cache persistente de dados da API nem endpoint criado localmente. O backend também expõe categorias e regras, mas a interface atual não as consome: essas categorias não equivalem a aplicações produtivas de uma task.
 
-### `useDashboardData`
+## Ciclo de dados do painel
 
-`src/hooks/useDashboardData.js` recebe data, colaborador e auto-refresh e retorna
-dados, estados de loading/refresh/error, última atualização e `refresh`.
-Coordena estado/cache e delega agendamento a `useAutoRefresh`; os detalhes de
-cancelamento, cache e requisições estão no [fluxo de dados](#fluxo-de-dados).
+1. `DashboardPage` inicia com a data local do navegador e usuário vazio. A mudança de data ou usuário altera os argumentos de `useDashboardData`.
+2. O hook cancela a consulta anterior, incrementa um identificador de sequência e solicita resumo, usuários e realtime em paralelo com `Promise.allSettled`.
+3. `validSummary`, `validUsers` e `validRealtime` verificam a estrutura necessária à interface. O resumo também precisa corresponder à data solicitada. Cada fonte recebe sua própria flag em `availability`.
+4. Mudança de filtro limpa os dados anteriores. Uma atualização do mesmo filtro mantém os dados durante `refreshing`. Uma resposta cancelada ou de sequência antiga não substitui a atual.
+5. Se alguma fonte falhar ou vier inválida, aparece alerta genérico e apenas a parte dependente dessa fonte fica indisponível. Lista vazia válida permanece distinta de falha. `updatedAt` indica a última consulta em que ao menos uma fonte foi válida.
+6. Há atualização manual e consulta a cada 30 segundos enquanto a aba está visível. Ao voltar para a aba, ocorre atualização imediata. O intervalo e o listener são limpos quando o hook desmonta.
 
-### `useAutoRefresh`
+`deriveTeam` une `/users/` com `/activities/realtime` por `username`. O backend devolve `online` ou `ausente` somente para usuários com leitura nos últimos 15 minutos. Para usuário cadastrado sem entrada nessa janela, o frontend deriva `offline` e apresenta “Sem leitura recente”. Isso não comprova desconexão do agente. O filtro de data afeta somente `/dashboard/summary`; o filtro de usuário é enviado ao resumo e aplicado localmente à lista de última atividade. `categoryTotals` soma a duração de cada categoria dos usuários presentes no resumo; não há cálculo de produtividade por task.
 
-**Arquivo:** `src/hooks/useAutoRefresh.js`
+## Ciclos das demais páginas
 
-Responsável exclusivamente pelo agendamento periódico. Enquanto habilitado e a aba está visível, dispara `onRefresh` a cada 30 segundos por padrão. Ao ocultar a aba, interrompe o timer; ao retornar, solicita uma atualização imediata e reinicia o intervalo.
+- **Colaboradores:** consulta usuários e realtime em paralelo, valida cada resposta e permite tentar novamente. Se apenas realtime falhar, a lista de usuários ainda aparece com última atividade indisponível. Uma nova consulta cancela a anterior; saída da página também cancela.
+- **Configurações:** lê antes de exibir o formulário. Os dois valores precisam ser inteiros positivos seguros tanto na resposta de leitura quanto na de gravação. Durante o `PUT`, campos e botão são desabilitados; uma resposta inválida não produz sucesso. Há retry da leitura e cancelamento da operação ao sair.
+- **Relatórios:** lê usuários para preencher o filtro opcional. Falha nessa lista preserva a exportação geral. Cada download usa o filtro selecionado, impede outro download simultâneo, cancela ao sair e cria temporariamente uma URL de objeto para salvar `resumo_<data>.csv` ou `.pdf`.
 
-### `useTheme`
+## Interface, acessibilidade e responsividade
 
-**Arquivo:** `src/hooks/useTheme.js`
+O layout usa `sm`, `lg` e `xl` do Tailwind. O menu lateral fixo aparece no desktop; no mobile, o botão abre um diálogo com foco inicial, ciclo de Tab, fechamento por Escape ou clique externo, bloqueio da rolagem do fundo e restauração do foco. O link “Pular para o conteúdo principal” foca o `<main>` sem trocar o hash. Filtros têm labels; erros usam `role="alert"`, carregamento usa `role="status"`, e tabelas largas têm `caption` e contêiner focalizável para rolagem horizontal. `index.css` oferece foco visível e respeita `prefers-reduced-motion`.
 
-Gerencia tema claro/escuro, persiste `timetracker-theme` em `localStorage` e sincroniza `data-theme` no elemento raiz (`<html>`).
+Esses recursos têm testes automatizados, mas contraste, zoom, leitor de tela e comportamento visual em navegador ainda requerem inspeção manual. Consulte [Testes](TESTES.md).
 
-É chamado uma única vez por `App`, antes da seleção de rota. Retorna
-`[dark, toggleTheme]`; o painel recebe esses valores por props e os encaminha ao
-`Header`. Assim, acesso direto a login, tasks e configurações também restaura o tema.
-Preferência salva prevalece sobre `prefers-color-scheme`; falha no armazenamento
-não impede a renderização. Não acompanha mudanças posteriores do tema do sistema.
+## Código preservado fora do caminho atual
 
-### `useHashRoute`
+`ActivityChart`, `Header`, `PeopleCard`, `ReportsAndAgent`, `TimelineCard`, `Card`, `SectionHeading`, `EmptyState`, `useAutoRefresh` e algumas funções de `utils/dashboard.js` são usados apenas por componentes preservados ou testes, sem consumidor na árvore ativa de `App`. Eles não comprovam que histórico semanal, timeline, task ativa ou controle de polling por checkbox estejam disponíveis hoje. Permanecem para decisão posterior sobre reutilização, pois a intenção futura é plausível; veja [Pendências](PENDENCIAS.md).
 
-`src/hooks/useHashRoute.js` observa `window.location.hash`, aceita somente as
-[sete rotas conhecidas](FUNCIONALIDADES.md#navegação) e usa `painel` como fallback.
-`useActiveSection` e o barrel `useDashboard.js` foram removidos após perderem
-consumidores na migração para hash; veja [Refatoração](REFATORACAO.md).
+## Ao alterar um contrato
 
-<a id="componentes-e-paginas"></a>
-
-## Componentes e páginas
-
-### Componentes compartilhados
-
-#### `ErrorBoundary`
-
-Envolve `App` em `main.jsx`. Em falhas de renderização, apresenta mensagem de erro
-e botão para recarregar a aplicação. Falhas HTTP continuam tratadas no hook.
-
-#### `Card`
-
-Contêiner visual reutilizável para conteúdo do dashboard.
-
-#### `SectionHeading`
-
-Título/descrição de seções internas existentes.
-
-#### `PageHeader`
-
-Cabeçalho padrão das páginas administrativas, com título, descrição e ação opcional.
-
-#### `EmptyState`
-
-Estado vazio reutilizável para telas sem dados/integração disponível.
-
-#### `IntegrationNotice`
-
-Aviso visual usado quando a interface já está estruturada, mas a ação depende de contrato externo.
-
-### Comportamentos de interface
-
-- `Sidebar`: links por hash com `aria-current="page"`; drawer mobile com botão,
-  backdrop, links, Escape e histórico para fechar; contenção de foco, retorno
-  ao botão enquanto montado e restauração da rolagem inclusive na desmontagem.
-- `Header`: filtros de data/colaborador, tema, refresh e última atualização;
-  estados `online`, `offline`, `loading` e `degraded` distinguem falha parcial.
-- `MetricCard`: seis indicadores RF-27; ícones decorativos e `—` quando falta contrato.
-- `ActivityChart`: tempo registrado; alternativa tabular acessível diferencia
-  histórico indisponível de zero horas.
-- `PeopleCard`: dados minimizados, status `ausente` explícito, caption e scope nas colunas.
-- `TimelineCard`: aguarda aplicação, início/fim, duração, estado, task e escopo.
-- `ReportsAndAgent`: preferência de polling; CSV/PDF desabilitados até contrato completo.
-
-### Contratos e dependências para manutenção
-
-Componentes abaixo ficam em `src/components/<Nome>.jsx`, salvo páginas em
-`src/pages/`. Props opcionais possuem defaults no código. Não há acesso HTTP
-direto em componentes visuais.
-
-| Componente | Props / dados / eventos | Consumidores e dependências |
-| --- | --- | --- |
-| Card | children, className, id; article sem evento próprio | MetricCard, ActivityChart, TimelineCard, PeopleCard; estilos Tailwind |
-| SectionHeading | title, description, action | ActivityChart, TimelineCard, PeopleCard |
-| PageHeader | eyebrow, title, description, actions | CollaboratorsPage, TasksPage, ReportsPage, SettingsPage |
-| EmptyState | title, description, action | CollaboratorsPage e TasksPage |
-| IntegrationNotice | title, children; role status | AuthPage, CollaboratorsPage, TasksPage, ReportsPage, SettingsPage |
-| Sidebar | activeSection, items (default navItems); cliques mudam hash; estado mobileOpen | App; dashboardData, matchMedia, refs e listener de teclado; Escape/Tab controlam foco |
-| Header | formattedDate, dark, toggleTheme, selectedDate/setSelectedDate, selectedUsername/setSelectedUsername, users, apiStatus, refreshing, onRefresh, updatedAt | DashboardPage; API_STATUS_LABELS e safeIsoDate; controla filtros, tema e refresh |
-| MetricCard | icon, tone, label, value, detail | DashboardPage; Card; seis indicadores, cinco ainda sem dados de contrato |
-| ActivityChart | weeklySummaries, loading, unavailable; totais por data | DashboardPage; Recharts, Card, SectionHeading, getSummaryTotalSeconds; tabela acessível equivalente |
-| PeopleCard | realtimePeople, loading, unavailable; usuário/processo/status/tempo | DashboardPage; Card, SectionHeading, constantes e formatRelativeActivityTime |
-| TimelineCard | activities (default []); id, application, startedAt, endedAt, durationSeconds, state, task, inScope são props locais propostas, não DTO da API | DashboardPage sempre passa []; Card, SectionHeading, formatDuration |
-| ReportsAndAgent | autoRefresh, setAutoRefresh; checkbox altera polling, CSV/PDF disabled | DashboardPage; não controla nem instala agente desktop |
-| DashboardPage | dark, toggleTheme vindos de App; data/usuário/autoRefresh em useState | App; useDashboardData, utils e componentes do painel |
-| AuthPage | mode: login/cadastro; e-mail/senha em memória, validação local | App; IntegrationNotice; submit preventDefault e botão disabled |
-| TasksPage | Sem props; description/services em memória; Limpar reseta ambos | App; PageHeader, IntegrationNotice, EmptyState; nenhum POST |
-| CollaboratorsPage | Sem props; associação e listagem bloqueadas | App; PageHeader, IntegrationNotice, EmptyState |
-| ReportsPage | Sem props; filtros e exportações desabilitados | App; PageHeader e IntegrationNotice |
-| SettingsPage | Sem props; jornada/inatividade desabilitadas | App; PageHeader e IntegrationNotice |
-
-`loading` e `unavailable` distinguem consulta pendente e falha de uma resposta
-vazia em PeopleCard/ActivityChart. Dados anteriores do mesmo filtro são mantidos
-durante refresh; o alerta do painel identifica dados retidos após falha.
-Alterações nos componentes base afetam todos os consumidores da tabela; alterações
-no cliente HTTP devem ser verificadas também no hook, painel e testes dos cards.
-
-`AppsCard` e `CategoryChart`, sem renderização no app ativo, foram removidos;
-a justificativa e os demais módulos retirados estão em [Refatoração](REFATORACAO.md).
-
-<a id="interface"></a>
-
-## Estilos, acessibilidade e responsividade
-
-### Organização
-
-Tailwind CSS é a base visual. `src/index.css` contém variáveis, classes reutilizáveis, impressão e regras globais de acessibilidade.
-
-### Classes compartilhadas
-
-| Classe | Finalidade |
-| --- | --- |
-| `control`, `icon-control` | Controles compactos do Dashboard |
-| `primary-button`, `secondary-button` | Ações principais/secundárias |
-| `form-field` | Inputs, selects e textareas das novas páginas, incluindo focus/disabled/dark |
-| `avatar`, `status-dot` | Avatar e indicador de estado |
-| `skip-link` | Atalho de teclado para o conteúdo principal |
-
-### Responsividade
-
-- layout principal sem overflow horizontal desnecessário;
-- Sidebar fixa em desktop e drawer em telas menores que `lg`;
-- cards reorganizados por breakpoints;
-- tabelas podem usar rolagem horizontal dentro do próprio componente;
-- formulários usam grids responsivos e mantêm labels próximas dos campos;
-- largura mínima suportada pelo CSS atual: 320 px.
-
-### Acessibilidade
-
-- foco visível global não deve ser removido;
-- controles somente com ícone exigem nome acessível;
-- drawer mobile suporta `Escape`, retorno de foco ao fechar por botão/link/histórico e bloqueio da rolagem ao fundo;
-- estados de integração/erro usam texto, não somente cor;
-- `prefers-reduced-motion` reduz animações/transições;
-- gráficos devem possuir contexto textual e não depender exclusivamente de cor para transmitir significado.
-
-### Contraste (revisão de 25/09/2026)
-
-O token `muted` usa `--muted`: #475569 no tema claro e #94a3b8 no escuro.
-Cabeçalhos secundários, placeholders e eixo do gráfico usam esse token. Status
-verde/âmbar usam tons 700 no claro e 400 no escuro. A revisão corrigiu combinações
-de texto abaixo de 4,5:1; a validação completa de estados exige navegador real.
-
-<a id="contribuicao"></a>
-
-## Convenções e contribuição
-
-Mudanças de frontend permanecem em `FrontEnd/`. Registre contratos e bloqueios
-externos em [Integração](INTEGRACAO.md), vinculando requisitos em
-[Funcionalidades](FUNCIONALIDADES.md), sem implementar alterações fora do escopo.
-Instalação e comandos estão no [README](../README.md); validação em [Testes](TESTES.md).
-
-### Convenções atuais
-
-- telas completas em `src/pages/`;
-- componentes reutilizáveis em `src/components/`;
-- hooks em `src/hooks/`;
-- chamadas HTTP centralizadas em `src/services/api.js`;
-- regras/formatação reutilizáveis em `src/utils/`;
-- navegação principal por `useHashRoute` e itens definidos em `dashboardData.js`;
-- não criar dados fictícios para suprir contrato ausente;
-- não armazenar credenciais/tokens em logs ou armazenamento inseguro;
-- novas ações dependentes de API devem possuir loading/error/empty/success quando forem habilitadas.
-
-### Quando atualizar a documentação
-
-| Mudança | Documento |
-| --- | --- |
-| Tela, rota, filtro, estado ou requisito | [Funcionalidades](FUNCIONALIDADES.md) |
-| Componentes, hooks, fluxo, estrutura, estilos ou acessibilidade | [Arquitetura](ARQUITETURA.md) |
-| Contrato, persistência ou dependência externa | [Integração](INTEGRACAO.md) |
-| Testes e instruções de validação | [Testes](TESTES.md) |
-| Decisão, correção ou refatoração | [Refatoração](REFATORACAO.md) |
-| Achados e resultados de revisão datada | [Auditoria](AUDITORIA.md) |
-
-### Checklist de PR
-
-- [ ] Alterações restritas ao escopo autorizado.
-- [ ] `npm.cmd test` passa.
-- [ ] `npm.cmd run build` passa.
-- [ ] Testes adicionados/atualizados para comportamento alterado.
-- [ ] Estados de loading/error/empty/success avaliados quando aplicável.
-- [ ] Tema e responsividade revisados.
-- [ ] Navegação por teclado/foco revisada.
-- [ ] Documentação correspondente atualizada.
-- [ ] Nenhum segredo, dado pessoal real ou `dist/` incluído.
+Conferir a rota e o schema no backend antes de modificar `api.js`; ajustar a validação correspondente em `utils/dashboard.js` ou na página consumidora; preservar estados de carregamento, vazio e falha; acrescentar regressão apenas para o comportamento novo ou corrigido. Atualizar [Funcionalidades](FUNCIONALIDADES.md) quando a tela mudar, [Pendências](PENDENCIAS.md) quando um bloqueio for resolvido ou surgir, e [Testes](TESTES.md) com a evidência realmente executada. Não tratar componentes isolados ou descrições de requisitos como prova de um endpoint existente.

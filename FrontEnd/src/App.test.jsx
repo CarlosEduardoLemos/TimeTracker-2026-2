@@ -32,3 +32,11 @@ it("skips to content without replacing the current hash route", async () => {
     await screen.findByRole("heading", { level: 1, name: "Tasks" }),
   ).toBeInTheDocument();
 });
+
+it("shows a destination for an unknown route and updates the document title", () => {
+  window.location.hash = '#/rota-inexistente';
+  render(<App />);
+  expect(screen.getByRole('heading', { name: 'Página não encontrada' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Ir para o painel' })).toHaveAttribute('href', '#/painel');
+  expect(document.title).toBe('Página não encontrada | TimeTrack');
+});

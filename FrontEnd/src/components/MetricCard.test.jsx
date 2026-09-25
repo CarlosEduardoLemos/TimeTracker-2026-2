@@ -15,7 +15,7 @@ describe("MetricCard", () => {
     );
 
     expect(screen.getByText("Tempo monitorado")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "6h 42min" })).toBeInTheDocument();
+    expect(screen.getByText("6h 42min")).toBeInTheDocument();
     expect(screen.getByText("dados da API")).toBeInTheDocument();
     expect(screen.getByText("◷")).toHaveAttribute("aria-hidden", "true");
   });

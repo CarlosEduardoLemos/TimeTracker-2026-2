@@ -1,148 +1,85 @@
-# Funcionalidades do frontend
+# Funcionalidades disponíveis no frontend
 
-[Voltar ao README](../README.md). Consulte a [matriz de requisitos](#requisitos)
-para relacionar telas, critérios de aceitação e dependências externas.
+Este é o inventário das telas que a aplicação **executa hoje**. Os requisitos em `requisitos/` descrevem o produto desejado; a ausência de um contrato no backend está registrada em [Pendências](PENDENCIAS.md). Nenhuma informação de task, produtividade, usuário autenticado ou equipe é criada no navegador.
 
-## Perfis
+## Rotas e navegação
 
-O frontend React documentado nesta pasta corresponde ao **Dashboard do Gestor**.
-PWA é uma intenção dos requisitos; não há manifest ou service worker implementado.
-O colaborador utiliza o Agente Desktop e não deve receber fluxo manual de login neste frontend.
-
-## Navegação
-
-| Rota | Tela | Estado |
+| Hash | Conteúdo atual | Fonte de dados |
 | --- | --- | --- |
-| `#/painel` | Dashboard | Parcialmente integrado |
-| `#/colaboradores` | Colaboradores | Listagem global integrada; associação pendente |
-| `#/tasks` | Tasks | Formulário/validação prontos; API pendente |
-| `#/relatorios` | Relatórios | Exportação diária integrada; relatório completo pendente |
-| `#/configuracoes` | Configuração global | Leitura e gravação integradas; jornada individual pendente |
-| `#/login` | Login do gestor | Validação local; API pendente |
-| `#/cadastro` | Cadastro do gestor | Validação local; API pendente |
+| `#/painel` ou hash vazio | Indicadores, última atividade e categorias do resumo diário | Três endpoints de leitura |
+| `#/colaboradores` | Usuários globais cadastrados, com última atividade quando disponível | `/users/`, `/activities/realtime` |
+| `#/tasks` | Explicação da dependência de contratos de task | Nenhuma consulta |
+| `#/relatorios` | Exportação do resumo diário CSV/PDF | `/users/`, `/dashboard/export/*` |
+| `#/configuracoes` | Dois parâmetros globais do sistema | `GET`/`PUT /config/` |
+| `#/login`, `#/cadastro` | Aviso de autenticação indisponível e retorno ao painel | Nenhuma consulta |
+| Qualquer outro hash | Página não encontrada e link para o painel | Nenhuma consulta |
 
-## Painel
+O menu principal mostra Painel, Colaboradores, Tasks, Relatórios e Configurações. Há um link “Criar conta”, mas a rota de cadastro explica que a função ainda não existe. A navegação por hash permite acesso direto às páginas, e o título da aba muda conforme a rota. O tema claro/escuro é mantido entre visitas por `localStorage`; sem escolha anterior, segue a preferência do sistema.
 
-O painel consome os dados fornecidos por `GET /users/`,
-`GET /activities/realtime` e `GET /dashboard/summary`. Exibe somente valores
-obtidos ou derivados com segurança desses contratos; não há ranking nem
-métrica de produtividade.
+## Painel (`#/painel`)
 
-Os estados Online e Ausente preservam a classificação do endpoint realtime.
-Um usuário cadastrado fora da janela recente aparece como **Sem leitura recente**;
-isso não afirma que o Agente esteja desconectado. Se o realtime falhar, o
-indicador fica indisponível em vez de mostrar zero.
+### Filtros e atualização
 
-Estados previstos:
+- **Data do resumo:** inicia na data local do navegador, não aceita data vazia e oferece datas até o dia atual. É enviada ao backend apenas para `/dashboard/summary`.
+- **Usuário:** opções provenientes de `/users/`; fica desabilitado quando a lista não está disponível. O `username` selecionado é enviado ao resumo e usado no navegador para filtrar a tabela atual. O backend realtime não recebe filtro.
+- **Atualizar:** repete a consulta das três fontes. Também há atualização automática a cada 30 segundos quando a aba está visível e atualização imediata ao retornar à aba. A interface mostra o horário da última resposta com pelo menos uma fonte válida.
 
-- carregamento inicial;
-- atualização em segundo plano, com cancelamento da consulta anterior ao trocar filtros;
-- erro com ação de retry;
-- ausência de dados;
-- indicadores indisponíveis quando a consulta correspondente falha ou o backend
-  ainda não fornece os campos necessários.
+### Indicadores exibidos
 
-O filtro atual por data de referência e colaborador continua operacional para os endpoints existentes. Os filtros completos por período e task exigidos pelo RF-27 permanecem dependentes de API.
+| Indicador | Cálculo e fonte | Limite da interpretação |
+| --- | --- | --- |
+| Online | Contagem de usuários da lista, filtrados se necessário, cujo status realtime é `online` | Status de leitura calculado pelo backend; não é prova de conexão autenticada do agente |
+| Ausentes | Contagem com status realtime `ausente` | Indica leitura recente marcada como ociosa ou acima do limite do backend |
+| Sem leitura recente | Usuários cadastrados que não aparecem na resposta realtime | Derivado no frontend da janela de 15 minutos; não equivale a offline de rede |
+| Tempo registrado | Soma de `total_seconds` dos usuários no resumo da data selecionada | Tempo agregado de atividades, sem classificar produtividade por task |
+| Usuários cadastrados | Sem filtro, tamanho de `/users/`; com filtro, contagem do `username` selecionado nessa lista | Não é equipe vinculada a gestor; independe da disponibilidade do realtime |
 
-## Login e cadastro
+Se usuários ou realtime falharem, contagens de estado aparecem como indisponíveis, e não como zero. Se o resumo falhar ou vier com data diferente, o tempo registrado e as categorias ficam indisponíveis. Um resumo válido com lista vazia produz zero de tempo e mensagem “Sem registros na data selecionada”.
 
-`AuthPage` oferece campos semânticos de e-mail e senha com autocomplete
-apropriado e validação local. O envio permanece desabilitado porque não existe contrato oficial
-de autenticação/sessão; o frontend não guarda as credenciais preenchidas.
+O indicador **Usuários cadastrados** usa somente `/users/`, inclusive quando há usuário selecionado. Uma falha isolada do realtime não altera essa contagem.
 
-## Colaboradores
+### Tabelas
 
-A tela lista os usuários reais retornados por `GET /users/` e combina os dados
-disponíveis em `GET /activities/realtime` para apresentar a última atividade. Essa
-lista ainda é global e não representa uma equipe vinculada ao gestor.
+**Última atividade** mostra usuário, status de leitura, `process_name` e segundos desde a última captura. Os dados são atuais, mesmo quando a data do resumo é antiga. **Tempo por categoria** agrega `by_category` de todos os usuários presentes no resumo filtrado e ordena pela duração. Categorias não representam aplicações produtivas dentro de uma task. Ambas as áreas têm mensagens próprias de carregamento, vazio e indisponibilidade.
 
-A ação de geração de código de associação permanece bloqueada até que regras
-de validade, expiração, reutilização/regeneração e contrato de API sejam definidos.
+Um aviso informa que `/users/` é global e que a API não oferece conexão real do agente. Tasks ativas, tempo produtivo, horas extras e timeline não são calculados.
 
-## Tasks
+## Colaboradores (`#/colaboradores`)
 
-O formulário contempla descrição, aplicações/serviços monitorados e área de colaboradores associados. Validações locais evitam descrição inválida. Persistência e seleção real de colaboradores dependem da API.
+A tabela exibe `username`, `full_name` e `department` da lista global. Quando realtime está disponível, acrescenta estado da última leitura e processo mais recente. Se realtime falhar, os usuários ainda aparecem e as colunas de atividade indicam indisponibilidade. Se a lista de usuários falhar, não se apresenta uma lista vazia como resultado real. Há estado de carregamento, aviso de falha, botão “Tentar novamente” e mensagem para lista validamente vazia. Esta tela não mostra código de associação, gestor, permissões ou conexão confirmada do agente.
 
-## Configurações
+## Tasks (`#/tasks`)
 
-A tela lê e salva as configurações globais de intervalo de captura e timeout
-por meio de `GET/PUT /config/`. Esse contrato não contempla jornada semanal,
-horários, intervalo ou configuração individual por colaborador; esses recursos
-permanecem pendentes.
+A página informa que o backend não oferece consulta, criação, edição ou persistência de tasks, seleção de colaboradores associados e aplicações do escopo. Não há formulário local, botão de salvar, mock ou dados predefinidos. O requisito RF-06 permanece dependente dos contratos indicados em [Pendências](PENDENCIAS.md).
 
-## Relatórios
+## Configurações (`#/configuracoes`)
 
-A tela permite exportar o resumo disponível em CSV e PDF pelos endpoints
-`GET /dashboard/export/csv` e `GET /dashboard/export/pdf`, com uma data e,
-opcionalmente, um usuário. Essa exportação parcial não é apresentada como o
-relatório oficial dos RF-24/RF-25. Filtros por período e task, jornada, possíveis
-horas extras e demais dados exigidos continuam dependentes de novos contratos.
+O formulário aparece após `GET /config/` válido. Permite editar somente `capture_interval_seconds` e `idle_timeout_seconds`, ambos globais e medidos em segundos. Inputs exigem inteiros positivos; a mesma regra é verificada antes do envio e na resposta do servidor. `PUT /config/` envia os dois valores juntos. Durante o salvamento os campos são bloqueados; uma resposta válida mostra “Configurações salvas”. Falha de leitura mostra retry; falha de gravação preserva o formulário com erro. Sair da página cancela uma operação em andamento.
 
-## O que deliberadamente não é simulado
+O campo global de inatividade **não** configura o limite individual previsto em RF-21. O backend usa atualmente uma constante própria para calcular o status realtime; salvar esse campo não muda esse cálculo por si só. Não há controles de jornada, dias úteis, horários ou intervalo (RF-20).
 
-- usuário gestor autenticado;
-- tokens/sessões;
-- código de associação;
-- colaboradores associados;
-- tasks persistidas;
-- jornada salva;
-- timeline operacional fictícia;
-- rankings/produtividade;
-- possíveis horas extras calculadas sem jornada;
-- CSV/PDF parcial apresentado como relatório oficial.
+## Relatórios (`#/relatorios`)
 
-<a id="requisitos"></a>
+A página oferece uma data e, quando `/users/` responde validamente, um filtro opcional de usuário. A falha da lista desabilita apenas esse filtro; a exportação geral continua disponível. Os botões chamam `/dashboard/export/csv` ou `/dashboard/export/pdf` com a data e, se escolhido, `username`. Durante o download há indicação de progresso e não se inicia outro. HTTP com falha, tipo de conteúdo incompatível ou arquivo vazio gera mensagem de erro. A operação é cancelada ao sair da página.
 
-## Rastreabilidade dos requisitos
+O **CSV atual** contém as colunas `username`, `category`, `total_seconds` e uma linha por categoria retornada para cada usuário. Sem registros, pode conter apenas o cabeçalho. O **PDF atual** contém a data, o total e as categorias de cada usuário retornado. A interface salva o arquivo como `resumo_<data>.csv` ou `.pdf`. Esses arquivos são exportações do resumo diário parcial, não relatórios completos de RF-24/RF-25: não contêm período, task, aplicação, classificação dentro/fora do escopo, jornada ou possível hora extra.
 
-A matriz reúne as entregas 1 e 2 e a auditoria documental, originalmente
-validadas sobre `main` com os commits de alinhamento e estruturação das telas.
-O escopo dessas entregas foi exclusivamente `FrontEnd/`.
+## Login e cadastro (`#/login`, `#/cadastro`)
 
-| Prioridade | Área | Requisitos | Estado frontend | Dependência externa |
-| --- | --- | --- | --- | --- |
-| 🔴 | Login/Cadastro gestor | RF-02, CA-01 | UI + validação local | autenticação/sessão/401/403 |
-| 🔴 | Associação | RF-03, RF-05 | listagem global integrada; associação pendente | regras do código + API |
-| 🔴 | Tasks | RF-06, RF-11 | formulário + validação | persistência e colaboradores |
-| 🔴 | Jornada/Inatividade | RF-20, RF-21 | configuração global integrada | leitura/gravação por colaborador |
-| 🔴 | Dashboard | RF-16, RF-27, CA-10 | parcial, sem produtividade/mocks | dados agregados e filtros completos |
-| 🔴 | Relatórios | RF-24, RF-25 | CSV/PDF diário integrado | consulta/exportação completa |
-| 🟠 | Segurança | RNF-03/04/05/06 | sem credenciais fictícias; minimização visual | autorização e HTTPS em backend/deploy |
-| 🟠 | Usabilidade | RNF-12 | estados claros, foco, drawer e responsividade | validação final manual/a11y |
+As rotas mostram o bloqueio de autenticação e um retorno ao painel. Não há formulário de credenciais, sessão, token, usuário fictício nem proteção de rota. Enquanto o backend não oferecer autenticação e autorização, todas as consultas disponíveis usam os endpoints globais atuais. A possibilidade de navegar até essas telas não significa que cadastro ou login funcionem.
 
-Os contratos necessários, responsáveis externos e impactos dos bloqueios estão
-em [Integração](INTEGRACAO.md#dados-que-o-frontend-ainda-precisa).
-O frontend não pode validar credenciais, autorização ou sessão no lugar do servidor;
-por isso envio de autenticação e proteção real de rotas continuam pendentes.
+## Acessibilidade e apresentação
 
-## Histórico de adequação aos requisitos
+O layout adapta menu e colunas a mobile, tablet e desktop. Há link para pular ao conteúdo, foco visível, labels nos controles, cabeçalhos e `caption` de tabela, mensagens de erro/status anunciáveis, navegação do diálogo móvel por teclado e redução de movimento quando solicitada pelo sistema. Tabelas extensas permitem rolagem horizontal com foco. Essas medidas estão implementadas no código; a validação manual restante está em [Testes](TESTES.md).
 
-- integrado o Dashboard aos contratos atualmente fornecidos pela API;
-- preservados Online/Ausente da API e distinguida a ausência de leitura recente
-  do estado real de conexão do Agente;
-- ativadas a listagem real de colaboradores, as exportações CSV/PDF e as
-  configurações globais compatíveis com os endpoints existentes;
-- revisadas as mensagens para distinguir endpoint ausente de integração parcial;
-- preservada a responsividade do painel, das tabelas, dos formulários e da navegação;
-- removidas métricas/rankings de produtividade e fallback automático para mocks;
-- indicadores do RF-27 representados sem inventar valores;
-- navegação por hash para Painel, Colaboradores, Tasks, Relatórios e Configurações;
-- telas de Login/Cadastro, Colaboradores, Tasks, Configurações e Relatórios;
-- componentes reutilizáveis `PageHeader`, `EmptyState` e `IntegrationNotice`;
-- drawer mobile com Escape e retorno de foco;
-- formulários e validações locais onde o comportamento é exclusivamente frontend;
-- testes para rotas, autenticação, tasks, relatórios e componentes afetados.
+## Correspondência com os requisitos do produto
 
-A inspeção cruzou requisitos, `FrontEnd/src` e Markdown. Corrigiu descrições de
-SPA de página única, produtividade/ranking, demonstração e mocks automáticos;
-documentou `pages/`, `useHashRoute`, props atuais, `form-field`, drawer e testes.
-O guia de backend já delimitava corretamente responsabilidade e legado.
-Os índices e as decisões foram alinhados às entregas. O checklist documental
-foi concluído; integrações ficaram pendentes, assim como testes/build no ambiente
-daquela entrega. Resultados executáveis posteriores estão em [Auditoria](AUDITORIA.md).
+| Requisito do projeto | Situação do frontend atual |
+| --- | --- |
+| RF-02, RF-03 | Login/cadastro e código de associação indisponíveis por falta de contratos e autorização |
+| RF-05, RF-16 | Há listagem global e status de leitura aproximado; equipe associada e conexão real indisponíveis |
+| RF-06, RF-11 | Criação/edição de task e escopo indisponíveis |
+| RF-20, RF-21 | Apenas configuração global da API; jornada e limite por colaborador indisponíveis |
+| RF-22, RF-24, RF-25, RF-27 | Resumo e exportação diária parciais; métricas, filtros e timeline completos indisponíveis |
 
-A entrega 3 separou agendamento/Visibility API de consulta, simplificou o serviço,
-extraiu transformações puras e preparação de dados dos componentes, removeu props
-sem uso e adicionou testes. A [matriz de refatoração](REFATORACAO.md#clean-code)
-preserva arquivo, problema, solução, motivo, impacto e validação.
-Nenhuma dessas entregas alterou backend, banco, Docker, infraestrutura ou CI/CD.
+Os RF relacionados ao Agente Desktop e ao histórico da System Tray estão fora da responsabilidade deste frontend. Detalhes técnicos dos contratos existentes estão em [Arquitetura](ARQUITETURA.md).

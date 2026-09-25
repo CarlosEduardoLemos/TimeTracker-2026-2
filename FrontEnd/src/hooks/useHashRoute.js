@@ -13,7 +13,8 @@ const KNOWN_ROUTES = new Set([
 
 function readRoute() {
   const raw = window.location.hash.replace(/^#\/?/, "").split("?")[0];
-  return KNOWN_ROUTES.has(raw) ? raw : DEFAULT_ROUTE;
+  if (!raw) return DEFAULT_ROUTE;
+  return KNOWN_ROUTES.has(raw) ? raw : "notFound";
 }
 
 export function useHashRoute() {

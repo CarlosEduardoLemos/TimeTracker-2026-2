@@ -56,4 +56,21 @@ describe('cliente da API', () => {
     expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/dashboard/export/csv');
     await expect(api.exportFile('html', '2026-09-25')).rejects.toThrow('Formato');
   });
+
+  it('rejects invalid dates before sending a request', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(api.summary('2026-02-31')).rejects.toThrow('data válida');
+    await expect(api.exportFile('csv', '')).rejects.toThrow('data válida');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects an HTML response in place of a CSV export', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      headers: { get: () => 'text/html; charset=utf-8' },
+      blob: vi.fn(),
+    })));
+    await expect(api.exportFile('csv', '2026-09-25')).rejects.toThrow('Formato de resposta inválido');
+  });
 });

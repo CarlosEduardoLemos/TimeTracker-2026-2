@@ -7,10 +7,10 @@ afterEach(() => {
 });
 
 describe("useHashRoute", () => {
-  it("uses painel as fallback for unknown routes", () => {
+  it("marks unknown routes as not found", () => {
     window.location.hash = "#/rota-inexistente";
     const { result } = renderHook(() => useHashRoute());
-    expect(result.current).toBe("painel");
+    expect(result.current).toBe("notFound");
   });
 
   it("updates when the hash changes", () => {
