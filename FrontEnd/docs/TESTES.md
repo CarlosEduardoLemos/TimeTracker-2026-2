@@ -1,5 +1,14 @@
 # Guia de testes automatizados — TimeTrack Frontend
 
+## Validação desta revisão
+
+Em 25/09/2026, `npm.cmd test` passou com **80 testes em 21 arquivos**;
+`npm.cmd run build` também passou. A suíte foi alinhada ao código atual e
+inclui falha parcial da API, resposta obsoleta, timeout durante leitura do
+corpo, exportação com erro HTTP, navegação por teclado e formulários bloqueados
+por contratos de backend ainda ausentes. O script de teste usa
+`--configLoader runner` para funcionar neste ambiente Windows.
+
 [Voltar ao README](../README.md).
 
 ## Ferramentas
@@ -42,20 +51,23 @@ npm.cmd run build
 - `useTheme.test.js`
 - `useHashRoute.test.js`
 - `useAutoRefresh.test.js`
-- `useDashboardData.test.js`: loading, refresh, erro, resposta obsoleta, cache no polling e invalidação manual.
+- `useDashboardData.test.js`: carregamento, atualização manual e falha parcial.
 
 ### Páginas
 
 - `App.test.jsx`: link de salto preserva a rota e move o foco ao conteúdo.
 
 - `DashboardPage.test.jsx`: garante que falha do realtime não seja exibida como zero usuários online.
+- `frontendRevision.test.jsx`: falha parcial, resposta antiga, resumo inválido,
+  configuração indisponível e erro de exportação.
 - `AuthPage.test.jsx`
 - `TasksPage.test.jsx`
 - `ReportsPage.test.jsx`
 
 ### Serviços/utilitários
 
-- `api.test.js`: datas, degradação parcial, contratos inválidos, timeout inclusive no corpo, cancelamento, erro HTTP e histórico reutilizado.
+- `api.test.js`: filtros codificados, timeout inclusive no corpo, cancelamento,
+  erro HTTP e formatos de exportação.
 - `dashboard.test.js`: formatação, totais, filtros e contagem por status.
 
 Os testes de `utils/report.js` foram removidos junto com o módulo, que não possuía consumidores no fluxo atual.
@@ -63,8 +75,9 @@ Os testes de `utils/report.js` foram removidos junto com o módulo, que não pos
 ## Resultados e limites da validação
 
 Execuções históricas ficam em [Auditoria](AUDITORIA.md), com datas e ambientes.
-A revisão técnica mais recente registrada, em 25/09/2026, executou 89 testes em
-20 arquivos e build; isso não representa uma nova execução nesta consolidação.
+A revisão histórica anterior registrou 89 testes em 20 arquivos. A suíte desta
+revisão foi ajustada aos contratos e componentes atualmente usados, com o
+resultado novo indicado acima.
 
 As regressões de 23/09 cobriram tema salvo em entrada direta, loading/falha nos
 cards e propagação pelo painel, retenção de dados após refresh e cancelamento

@@ -1,5 +1,33 @@
 # Pendências para concluir o frontend
 
+## Revisão do frontend nesta entrega
+
+- As consultas do painel agora tratam resumo, usuários e realtime separadamente:
+  uma falha parcial aparece como indisponibilidade, sem transformar ausência de
+  resposta em zero. Trocas de filtro cancelam a consulta anterior.
+- A exportação diária baixa o arquivo pela API e informa falhas HTTP na tela.
+- A configuração global só pode ser editada após a leitura real do servidor e
+  valida números inteiros positivos antes de salvar.
+- O menu móvel permite fechar com Escape, mantém o foco no diálogo e libera a
+  rolagem ao fechar. O link de salto preserva a rota por hash.
+- Login/cadastro e tasks continuam sem envio porque os contratos e a
+  autorização necessários não existem. Nenhuma pasta do backend foi editada.
+
+## Alterações necessárias no backend
+
+| Local | Alteração necessária | Motivo |
+| --- | --- | --- |
+| `backend/app/main.py`, `backend/app/models.py`, `backend/app/schemas.py` e novo router de autenticação | Criar conta de gestor, login, sessão segura, consulta da sessão e logout; aplicar autenticação e autorização nos routers existentes | US-05/RF-02 e CA-09 exigem identidade e isolamento; a UI não pode garanti-los |
+| `backend/app/models.py`, `backend/app/schemas.py`, `backend/app/routers/users.py` e `backend/app/crud.py` | Persistir vínculo gestor–colaborador, disponibilizar o código numérico de 6 dígitos e retornar somente a equipe do gestor | US-06/RF-03/RF-05; `GET /users/` lista usuários globalmente |
+| `backend/app/models.py`, `backend/app/schemas.py` e novo router de tasks | Criar CRUD de tasks com descrição, colaboradores associados, aplicações do escopo e estado de execução | RF-06/RF-11; não existe modelo nem endpoint de task |
+| `backend/app/models.py`, `backend/app/schemas.py`, `backend/app/routers/config.py` e `backend/app/crud.py` | Ler/gravar jornada e limite de inatividade por colaborador; usar o limite salvo no cálculo de atividade | RF-20/RF-21; `GET/PUT /config/` é global e `get_realtime_view` usa `MAX_IDLE_SECONDS` de `backend/app/utils.py` |
+| `backend/app/models.py`, `backend/app/schemas.py`, `backend/app/routers/activities.py` e `backend/app/crud.py` | Registrar períodos com task, aplicação, classificação, início/fim, duração e estado; oferecer timeline e presença real do Agente | RF-13/RF-16/RF-27; realtime atual é uma janela de registros, não estado de conexão nem histórico |
+| `backend/app/routers/dashboard.py` e `backend/app/crud.py` | Disponibilizar agregados por período/colaborador/task, possível hora extra e consulta/exportação CSV/PDF com os mesmos filtros | RF-22/RF-24/RF-25/RF-27; resumo/exportações atuais aceitam só data e usuário |
+
+Os contratos devem definir método, rota, payload, erros, fuso horário e
+autorização antes de conectar as telas pendentes. O Agente Desktop também
+precisará enviar os novos campos previstos na US-12.
+
 Este documento reúne somente o que impede ou limita o **Dashboard do Gestor**.
 Requisitos exclusivos do Agente Desktop não são listados, exceto quando o dado
 produzido pelo Agente também é necessário para uma tela do frontend.

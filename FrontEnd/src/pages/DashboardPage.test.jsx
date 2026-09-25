@@ -1,78 +1,48 @@
-import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DashboardPage } from "./DashboardPage";
-import { ActivityChart, PeopleCard } from "../components";
+import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { DashboardPage } from './DashboardPage';
+import { useDashboardData } from '../hooks/useDashboardData';
 
-const useDashboardData = vi.fn();
+vi.mock('../hooks/useDashboardData', () => ({ useDashboardData: vi.fn() }));
 
-vi.mock("../hooks", () => ({
-  useDashboardData: (...args) => useDashboardData(...args),
-}));
+const fullData = {
+  summary: { date: '2026-09-25', users: [{ username: 'ana', total_seconds: 3600, by_category: [] }] },
+  users: [{ username: 'ana', full_name: 'Ana' }],
+  realtime: [{ username: 'ana', status: 'online', seconds_since_last_activity: 5, process_name: 'Editor' }],
+  availability: { summary: true, users: true, realtime: true },
+};
 
-vi.mock("../components", () => ({
-  Header: ({ apiStatus }) => <div data-testid="api-status">{apiStatus}</div>,
-  MetricCard: ({ label, value, detail }) => (
-    <div>
-      <span>{label}</span>
-      <span>{value}</span>
-      <span>{detail}</span>
-    </div>
-  ),
-  ActivityChart: vi.fn(() => null),
-  PeopleCard: vi.fn(() => null),
-  ReportsAndAgent: () => null,
-  TimelineCard: () => null,
-}));
+beforeEach(() => vi.clearAllMocks());
 
-describe("DashboardPage", () => {
-  beforeEach(() => {
-    useDashboardData.mockReset();
-    vi.clearAllMocks();
+describe('DashboardPage', () => {
+  it('mostra carregamento antes da primeira resposta', () => {
+    useDashboardData.mockReturnValue({ data: null, loading: true, refreshing: false, refresh: vi.fn() });
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
+    expect(screen.getByText('Online').closest('article')).toHaveTextContent('…');
   });
 
-  it.each([
-    [true, null, false],
-    [false, new Error("API offline"), true],
-  ])("passes loading=%s and availability to data consumers", (loading, error, unavailable) => {
-    useDashboardData.mockReturnValue({ data: null, loading, error, refresh: vi.fn() });
-    render(<DashboardPage />);
-    expect(ActivityChart.mock.calls.at(-1)[0]).toMatchObject({ loading, unavailable });
-    expect(PeopleCard.mock.calls.at(-1)[0]).toMatchObject({ loading, unavailable });
+  it('mostra apenas totais e estados fornecidos pela API', () => {
+    useDashboardData.mockReturnValue({ data: fullData, loading: false, refreshing: false, refresh: vi.fn() });
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
+    expect(screen.getByText('Tempo registrado').closest('article')).toHaveTextContent('1h 00min');
+    expect(screen.getByText('Online').closest('article')).toHaveTextContent('1');
+    expect(screen.getByText('Editor')).toBeInTheDocument();
   });
 
-  it("identifies retained data after a refresh failure", () => {
+  it('marca realtime indisponível sem exibir zero', () => {
     useDashboardData.mockReturnValue({
-      data: { realtime: [], users: [], weeklySummaries: [] },
-      loading: false,
-      error: new Error("API offline"),
-      refresh: vi.fn(),
+      data: { ...fullData, realtime: [], availability: { ...fullData.availability, realtime: false } },
+      loading: false, refreshing: false, error: 'Alguns dados estão temporariamente indisponíveis.', refresh: vi.fn(),
     });
-    render(<DashboardPage />);
-    expect(screen.getByRole("alert")).toHaveTextContent("última consulta concluída");
-    expect(PeopleCard.mock.calls.at(-1)[0].unavailable).toBe(false);
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
+    expect(screen.getByText('Online').closest('article')).toHaveTextContent('—');
+    expect(screen.getByRole('alert')).toHaveTextContent('temporariamente indisponíveis');
   });
 
-  it("shows degraded state without converting missing realtime data into zero online users", () => {
-    useDashboardData.mockReturnValue({
-      data: {
-        realtime: [],
-        users: [],
-        weeklySummaries: [],
-        availability: { realtime: false, users: true, history: true },
-      },
-      loading: false,
-      refreshing: false,
-      error: null,
-      updatedAt: new Date(),
-      refresh: vi.fn(),
-    });
-
-    render(<DashboardPage />);
-
-    expect(screen.getByTestId("api-status")).toHaveTextContent("degraded");
-    expect(screen.getByText(/Alguns dados estão temporariamente indisponíveis/i)).toBeInTheDocument();
-    expect(screen.getByText("dados em tempo real indisponíveis")).toBeInTheDocument();
-    expect(screen.getAllByText("—").length).toBeGreaterThan(0);
-    expect(PeopleCard.mock.calls.at(-1)[0].unavailable).toBe(true);
+  it('aplica o filtro de usuário à consulta', () => {
+    useDashboardData.mockReturnValue({ data: fullData, loading: false, refreshing: false, refresh: vi.fn() });
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText('Usuário'), { target: { value: 'ana' } });
+    expect(useDashboardData.mock.calls.at(-1)[1]).toBe('ana');
   });
 });

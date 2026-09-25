@@ -1,2 +1,14 @@
-import {PageHeader} from '../components/PageHeader';import {IntegrationNotice} from '../components/IntegrationNotice';
-export function TasksPage(){return <><PageHeader title="Tasks" description="Estrutura prevista para criação, edição e associação de tasks."/><IntegrationNotice>Não há endpoints de tasks no backend atual. Para cumprir RF-06/RF-11 sem criar dados fictícios, o frontend mantém esta área como dependência explícita. O backend precisa fornecer CRUD de tasks, associação de colaboradores e aplicações pertencentes ao escopo.</IntegrationNotice><section className="card mt-5"><h2 className="font-bold">Contrato mínimo esperado</h2><ul className="mt-3 list-disc space-y-2 pl-5 text-sm muted"><li>listar/criar/editar tasks do gestor autenticado;</li><li>associar colaboradores já vinculados ao gestor;</li><li>definir aplicações do escopo produtivo;</li><li>informar se a task está ativa e quais colaboradores a executam.</li></ul></section></>}
+import { useState } from 'react';
+import { PageHeader } from '../components/PageHeader';
+import { IntegrationNotice } from '../components/IntegrationNotice';
+
+export function TasksPage() {
+  const [description, setDescription] = useState('');
+  const [applications, setApplications] = useState('');
+  const invalid = description.length > 0 && description.trim().length < 3;
+  return <>
+    <PageHeader title="Tasks" description="Preparação da task pelo gestor." />
+    <IntegrationNotice>O backend ainda não oferece CRUD de tasks, associação de colaboradores nem escopo de aplicações. O formulário pode ser preenchido localmente, mas os dados não são salvos.</IntegrationNotice>
+    <section className="card mt-5 max-w-2xl"><h2 className="font-bold">Dados da task</h2><div className="mt-4 grid gap-4"><label className="text-sm font-semibold">Descrição<input className="form-field mt-2" value={description} onChange={event => setDescription(event.target.value)} aria-invalid={invalid} aria-describedby={invalid ? 'task-error' : undefined} /></label>{invalid && <p id="task-error" className="text-sm text-red-700">Informe pelo menos 3 caracteres.</p>}<label className="text-sm font-semibold">Aplicações ou serviços do escopo<textarea className="form-field mt-2" rows="4" value={applications} onChange={event => setApplications(event.target.value)} placeholder="Uma aplicação por linha" /></label><p className="text-sm muted">A seleção de colaboradores associados estará disponível quando a API fornecer a equipe do gestor.</p></div><div className="mt-5 flex flex-wrap gap-2"><button className="primary-button" disabled>Salvar task</button><button className="secondary-button" onClick={() => { setDescription(''); setApplications(''); }}>Limpar formulário</button></div></section>
+  </>;
+}

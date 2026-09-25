@@ -29,28 +29,31 @@ obtidos ou derivados com segurança desses contratos; não há ranking nem
 métrica de produtividade.
 
 Os estados Online e Ausente preservam a classificação do endpoint realtime.
-Offline é derivado somente para um usuário cadastrado que não aparece na janela
-de 15 minutos desse endpoint, sem converter ausência de dados em informação
-fictícia.
+Um usuário cadastrado fora da janela recente aparece como **Sem leitura recente**;
+isso não afirma que o Agente esteja desconectado. Se o realtime falhar, o
+indicador fica indisponível em vez de mostrar zero.
 
 Estados previstos:
 
 - carregamento inicial;
-- atualização em segundo plano;
+- atualização em segundo plano, com cancelamento da consulta anterior ao trocar filtros;
 - erro com ação de retry;
 - ausência de dados;
-- indicadores indisponíveis quando o backend ainda não fornece os campos necessários.
+- indicadores indisponíveis quando a consulta correspondente falha ou o backend
+  ainda não fornece os campos necessários.
 
 O filtro atual por data de referência e colaborador continua operacional para os endpoints existentes. Os filtros completos por período e task exigidos pelo RF-27 permanecem dependentes de API.
 
 ## Login e cadastro
 
-`AuthPage` oferece campos semânticos de e-mail e senha, autocomplete apropriado e validação local. O envio permanece desabilitado porque não existe contrato oficial de autenticação/sessão.
+`AuthPage` oferece campos semânticos de e-mail e senha com autocomplete
+apropriado e validação local. O envio permanece desabilitado porque não existe contrato oficial
+de autenticação/sessão; o frontend não guarda as credenciais preenchidas.
 
 ## Colaboradores
 
 A tela lista os usuários reais retornados por `GET /users/` e combina os dados
-disponíveis em `GET /activities/realtime` para apresentar o estado atual. Essa
+disponíveis em `GET /activities/realtime` para apresentar a última atividade. Essa
 lista ainda é global e não representa uma equipe vinculada ao gestor.
 
 A ação de geração de código de associação permanece bloqueada até que regras
@@ -115,7 +118,8 @@ por isso envio de autenticação e proteção real de rotas continuam pendentes.
 ## Histórico de adequação aos requisitos
 
 - integrado o Dashboard aos contratos atualmente fornecidos pela API;
-- adotado cálculo seguro de Online, Ausente e Offline;
+- preservados Online/Ausente da API e distinguida a ausência de leitura recente
+  do estado real de conexão do Agente;
 - ativadas a listagem real de colaboradores, as exportações CSV/PDF e as
   configurações globais compatíveis com os endpoints existentes;
 - revisadas as mensagens para distinguir endpoint ausente de integração parcial;
