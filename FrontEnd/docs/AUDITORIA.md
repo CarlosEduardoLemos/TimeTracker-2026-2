@@ -65,7 +65,7 @@ O backend expõe categorias e regras de categorização, mas não há contrato q
 | `src/index.css` | Regras comprimidas; regiões com rolagem via teclado sem foco visível | Formatação e contorno de foco para `tabIndex=0` |
 | `src/App.test.jsx`, `src/hooks/useHashRoute.test.js` | Testes esperavam fallback antigo | Cobrem 404, retorno e título da página |
 | `src/hooks/useDashboardData.test.js`, `src/services/api.test.js` | Datas incorretas e formato de resposta da exportação não tinham regressão | Cobrem resposta com data divergente, rejeição de data inválida sem rede e HTML recebido como CSV |
-| `src/pages/frontendRevision.test.jsx` | Salvamento inválido e saída durante escrita/download sem regressão | Exige erro sem mensagem falsa de sucesso e cancelamento ao sair das páginas |
+| `src/test/frontendRevision.test.jsx` | Salvamento inválido e saída durante escrita/download sem regressão | Exige erro sem mensagem falsa de sucesso e cancelamento ao sair das páginas |
 | `src/components/MetricCard.test.jsx` | Teste exigia valor numérico como título | Verifica o valor visível com semântica de texto |
 | `src/pages/AuthPage.test.jsx`, `src/pages/TasksPage.test.jsx` | Testavam formulários sem persistência | Cobrem explicação do bloqueio e ausência de coleta de dados |
 | `src/pages/DashboardPage.test.jsx` | Faltava regressão para contagem filtrada com falha de realtime | Confirma usuário cadastrado pela lista global e estados realtime indisponíveis |
