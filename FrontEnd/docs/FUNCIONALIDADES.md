@@ -14,16 +14,24 @@ O colaborador utiliza o Agente Desktop e não deve receber fluxo manual de login
 | Rota | Tela | Estado |
 | --- | --- | --- |
 | `#/painel` | Dashboard | Parcialmente integrado |
-| `#/colaboradores` | Colaboradores | Estrutura pronta; API pendente |
+| `#/colaboradores` | Colaboradores | Listagem global integrada; associação pendente |
 | `#/tasks` | Tasks | Formulário/validação prontos; API pendente |
-| `#/relatorios` | Relatórios | Estrutura/filtros prontos; API pendente |
-| `#/configuracoes` | Jornada e inatividade | Estrutura pronta; API pendente |
+| `#/relatorios` | Relatórios | Exportação diária integrada; relatório completo pendente |
+| `#/configuracoes` | Configuração global | Leitura e gravação integradas; jornada individual pendente |
 | `#/login` | Login do gestor | Validação local; API pendente |
 | `#/cadastro` | Cadastro do gestor | Validação local; API pendente |
 
 ## Painel
 
-O painel exibe somente dados que podem ser obtidos ou derivados com segurança dos contratos atuais. Não há ranking nem métrica de produtividade.
+O painel consome os dados fornecidos por `GET /users/`,
+`GET /activities/realtime` e `GET /dashboard/summary`. Exibe somente valores
+obtidos ou derivados com segurança desses contratos; não há ranking nem
+métrica de produtividade.
+
+Os estados Online e Ausente preservam a classificação do endpoint realtime.
+Offline é derivado somente para um usuário cadastrado que não aparece na janela
+de 15 minutos desse endpoint, sem converter ausência de dados em informação
+fictícia.
 
 Estados previstos:
 
@@ -41,7 +49,12 @@ O filtro atual por data de referência e colaborador continua operacional para o
 
 ## Colaboradores
 
-A tela possui estrutura de listagem e ação de geração de código de associação. A geração permanece bloqueada até que regras de validade, expiração, reutilização/regeneração e contrato de API sejam definidos.
+A tela lista os usuários reais retornados por `GET /users/` e combina os dados
+disponíveis em `GET /activities/realtime` para apresentar o estado atual. Essa
+lista ainda é global e não representa uma equipe vinculada ao gestor.
+
+A ação de geração de código de associação permanece bloqueada até que regras
+de validade, expiração, reutilização/regeneração e contrato de API sejam definidos.
 
 ## Tasks
 
@@ -49,11 +62,18 @@ O formulário contempla descrição, aplicações/serviços monitorados e área 
 
 ## Configurações
 
-A tela representa jornada semanal, horários/intervalo e limite de inatividade. Os controles são apresentados de forma acessível, mas permanecem sem persistência enquanto não existir contrato por colaborador.
+A tela lê e salva as configurações globais de intervalo de captura e timeout
+por meio de `GET/PUT /config/`. Esse contrato não contempla jornada semanal,
+horários, intervalo ou configuração individual por colaborador; esses recursos
+permanecem pendentes.
 
 ## Relatórios
 
-A tela prevê filtros de período, colaborador e task e as opções CSV/PDF. As exportações permanecem desabilitadas até que a API consiga aplicar os filtros e fornecer todos os dados previstos em RF-24/RF-25.
+A tela permite exportar o resumo disponível em CSV e PDF pelos endpoints
+`GET /dashboard/export/csv` e `GET /dashboard/export/pdf`, com uma data e,
+opcionalmente, um usuário. Essa exportação parcial não é apresentada como o
+relatório oficial dos RF-24/RF-25. Filtros por período e task, jornada, possíveis
+horas extras e demais dados exigidos continuam dependentes de novos contratos.
 
 ## O que deliberadamente não é simulado
 
@@ -79,11 +99,11 @@ O escopo dessas entregas foi exclusivamente `FrontEnd/`.
 | Prioridade | Área | Requisitos | Estado frontend | Dependência externa |
 | --- | --- | --- | --- | --- |
 | 🔴 | Login/Cadastro gestor | RF-02, CA-01 | UI + validação local | autenticação/sessão/401/403 |
-| 🔴 | Associação | RF-03, RF-05 | UI/empty state | regras do código + API |
+| 🔴 | Associação | RF-03, RF-05 | listagem global integrada; associação pendente | regras do código + API |
 | 🔴 | Tasks | RF-06, RF-11 | formulário + validação | persistência e colaboradores |
-| 🔴 | Jornada/Inatividade | RF-20, RF-21 | UI estruturada | leitura/gravação por colaborador |
+| 🔴 | Jornada/Inatividade | RF-20, RF-21 | configuração global integrada | leitura/gravação por colaborador |
 | 🔴 | Dashboard | RF-16, RF-27, CA-10 | parcial, sem produtividade/mocks | dados agregados e filtros completos |
-| 🔴 | Relatórios | RF-24, RF-25 | UI/filtros estruturados | consulta/exportação completa |
+| 🔴 | Relatórios | RF-24, RF-25 | CSV/PDF diário integrado | consulta/exportação completa |
 | 🟠 | Segurança | RNF-03/04/05/06 | sem credenciais fictícias; minimização visual | autorização e HTTPS em backend/deploy |
 | 🟠 | Usabilidade | RNF-12 | estados claros, foco, drawer e responsividade | validação final manual/a11y |
 
@@ -94,6 +114,12 @@ por isso envio de autenticação e proteção real de rotas continuam pendentes.
 
 ## Histórico de adequação aos requisitos
 
+- integrado o Dashboard aos contratos atualmente fornecidos pela API;
+- adotado cálculo seguro de Online, Ausente e Offline;
+- ativadas a listagem real de colaboradores, as exportações CSV/PDF e as
+  configurações globais compatíveis com os endpoints existentes;
+- revisadas as mensagens para distinguir endpoint ausente de integração parcial;
+- preservada a responsividade do painel, das tabelas, dos formulários e da navegação;
 - removidas métricas/rankings de produtividade e fallback automático para mocks;
 - indicadores do RF-27 representados sem inventar valores;
 - navegação por hash para Painel, Colaboradores, Tasks, Relatórios e Configurações;

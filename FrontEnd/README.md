@@ -25,4 +25,4 @@ Por padrão, o frontend espera a API em `http://localhost:8000`.
 
 ## Limites do backend atual
 
-Consulte `docs/PENDENCIAS_BACKEND.md`. Nenhuma pasta ou arquivo do backend foi alterado nesta entrega.
+Consulte [`docs/PENDENCIAS.md`](docs/PENDENCIAS.md). Nenhuma pasta ou arquivo do backend foi alterado nesta entrega.
