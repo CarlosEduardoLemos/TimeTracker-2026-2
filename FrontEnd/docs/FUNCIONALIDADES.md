@@ -1,5 +1,8 @@
 # Funcionalidades do frontend
 
+[Voltar ao README](../README.md). Consulte a [matriz de requisitos](#requisitos)
+para relacionar telas, critérios de aceitação e dependências externas.
+
 ## Perfis
 
 O frontend React documentado nesta pasta corresponde ao **Dashboard do Gestor**.
@@ -64,3 +67,52 @@ A tela prevê filtros de período, colaborador e task e as opções CSV/PDF. As 
 - rankings/produtividade;
 - possíveis horas extras calculadas sem jornada;
 - CSV/PDF parcial apresentado como relatório oficial.
+
+<a id="requisitos"></a>
+
+## Rastreabilidade dos requisitos
+
+A matriz reúne as entregas 1 e 2 e a auditoria documental, originalmente
+validadas sobre `main` com os commits de alinhamento e estruturação das telas.
+O escopo dessas entregas foi exclusivamente `FrontEnd/`.
+
+| Prioridade | Área | Requisitos | Estado frontend | Dependência externa |
+| --- | --- | --- | --- | --- |
+| 🔴 | Login/Cadastro gestor | RF-02, CA-01 | UI + validação local | autenticação/sessão/401/403 |
+| 🔴 | Associação | RF-03, RF-05 | UI/empty state | regras do código + API |
+| 🔴 | Tasks | RF-06, RF-11 | formulário + validação | persistência e colaboradores |
+| 🔴 | Jornada/Inatividade | RF-20, RF-21 | UI estruturada | leitura/gravação por colaborador |
+| 🔴 | Dashboard | RF-16, RF-27, CA-10 | parcial, sem produtividade/mocks | dados agregados e filtros completos |
+| 🔴 | Relatórios | RF-24, RF-25 | UI/filtros estruturados | consulta/exportação completa |
+| 🟠 | Segurança | RNF-03/04/05/06 | sem credenciais fictícias; minimização visual | autorização e HTTPS em backend/deploy |
+| 🟠 | Usabilidade | RNF-12 | estados claros, foco, drawer e responsividade | validação final manual/a11y |
+
+Os contratos necessários, responsáveis externos e impactos dos bloqueios estão
+em [Integração](INTEGRACAO.md#dados-que-o-frontend-ainda-precisa).
+O frontend não pode validar credenciais, autorização ou sessão no lugar do servidor;
+por isso envio de autenticação e proteção real de rotas continuam pendentes.
+
+## Histórico de adequação aos requisitos
+
+- removidas métricas/rankings de produtividade e fallback automático para mocks;
+- indicadores do RF-27 representados sem inventar valores;
+- navegação por hash para Painel, Colaboradores, Tasks, Relatórios e Configurações;
+- telas de Login/Cadastro, Colaboradores, Tasks, Configurações e Relatórios;
+- componentes reutilizáveis `PageHeader`, `EmptyState` e `IntegrationNotice`;
+- drawer mobile com Escape e retorno de foco;
+- formulários e validações locais onde o comportamento é exclusivamente frontend;
+- testes para rotas, autenticação, tasks, relatórios e componentes afetados.
+
+A inspeção cruzou requisitos, `FrontEnd/src` e Markdown. Corrigiu descrições de
+SPA de página única, produtividade/ranking, demonstração e mocks automáticos;
+documentou `pages/`, `useHashRoute`, props atuais, `form-field`, drawer e testes.
+O guia de backend já delimitava corretamente responsabilidade e legado.
+Os índices e as decisões foram alinhados às entregas. O checklist documental
+foi concluído; integrações ficaram pendentes, assim como testes/build no ambiente
+daquela entrega. Resultados executáveis posteriores estão em [Auditoria](AUDITORIA.md).
+
+A entrega 3 separou agendamento/Visibility API de consulta, simplificou o serviço,
+extraiu transformações puras e preparação de dados dos componentes, removeu props
+sem uso e adicionou testes. A [matriz de refatoração](REFATORACAO.md#clean-code)
+preserva arquivo, problema, solução, motivo, impacto e validação.
+Nenhuma dessas entregas alterou backend, banco, Docker, infraestrutura ou CI/CD.

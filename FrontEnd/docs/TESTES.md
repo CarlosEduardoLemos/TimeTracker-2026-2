@@ -1,12 +1,14 @@
 # Guia de testes automatizados — TimeTrack Frontend
 
+[Voltar ao README](../README.md).
+
 ## Ferramentas
 
-- Vitest 3.2.x
+- Vitest 4.1.11
 - React Testing Library 16.x
 - jest-dom 6.x
 - jsdom 26.x
-- coverage-v8
+- @vitest/coverage-v8 4.1.11
 
 A cobertura inclui somente `src/**/*.{js,jsx}`, excluindo `src/test/`.
 Build e configurações não são contabilizados como código da aplicação React.
@@ -58,26 +60,31 @@ npm.cmd run build
 
 Os testes de `utils/report.js` foram removidos junto com o módulo, que não possuía consumidores no fluxo atual.
 
-## Execução em 23/09/2026
+## Resultados e limites da validação
 
-- Baseline: `npm.cmd test`, 19 arquivos e 70 testes aprovados.
-- Após mudanças: `npm.cmd run test:coverage`, 19 arquivos e 82 testes aprovados.
-- Cobertura V8 de src: linhas/statements 92,46%; branches 91,77%; funções 82,89%.
-- `npm.cmd run build`: aprovado, 866 módulos transformados.
-- Análise AST dos 50 módulos JS/JSX: imports resolvidos e nenhum import não usado.
-- Não há scripts lint/typecheck; não foram tratados como checks aprovados.
+Execuções históricas ficam em [Auditoria](AUDITORIA.md), com datas e ambientes.
+A revisão técnica mais recente registrada, em 25/09/2026, executou 89 testes em
+20 arquivos e build; isso não representa uma nova execução nesta consolidação.
 
-Novas regressões: tema salvo em entrada direta nas rotas, cards em loading/falha,
-propagação desses estados pelo painel, aviso de dados retidos após falha de refresh,
-cancelamento do lote e cancelamento com motivo customizado. Os mocks existentes
-de Recharts e rede continuam limitando o alcance: isto não valida layout real ou
-backend/banco. A cobertura geral não implica cobertura completa de TimelineCard,
-CollaboratorsPage ou bootstrap de main.jsx.
+As regressões de 23/09 cobriram tema salvo em entrada direta, loading/falha nos
+cards e propagação pelo painel, retenção de dados após refresh e cancelamento
+do lote, inclusive motivo customizado. Recharts/rede são mockados: testes jsdom
+não validam layout, servidor/banco, contraste completo ou leitor de tela.
+Na última cobertura registrada, TimelineCard/CollaboratorsPage não tinham
+execução direta e SettingsPage tinha cobertura parcial; bootstrap também não
+deve ser considerado integralmente coberto a partir do percentual geral.
 
-Ambiente: Node 24.18.0, npm 11.16.0. O primeiro teste no sandbox falhou porque
-esbuild não podia ler diretórios superiores ao carregar configuração. Testes e
-build passaram com a execução autorizada fora do sandbox, sem alterar configuração.
+Não existem scripts de lint/typecheck; build e testes não os substituem.
+O ambiente registrado era Node 24.18.0/npm 11.16.0. Bloqueios do esbuild no
+sandbox e limites de cada execução estão descritos junto aos resultados históricos.
 
-### Integração real pendente
+## Validação manual e integração real pendentes
 
-Quando os contratos backend estiverem disponíveis, adicionar testes de integração/E2E para login, autorização, associação, CRUD de tasks, jornada, filtros completos do RF-27 e exportação real.
+Revisar temas claro/escuro, mobile/tablet/desktop, telas baixas, alto zoom,
+teclado/foco/leitor de tela, contraste, gráfico e falhas de rede em navegador.
+Testar navegação direta e pelo histórico, skip link, carregamento lazy e
+restauração de rolagem do drawer.
+
+Quando os contratos backend estiverem disponíveis, adicionar integração/E2E
+para login, autorização, associação, CRUD de tasks, jornada, filtros completos
+do RF-27 e exportação real. As dependências estão em [Integração](INTEGRACAO.md).

@@ -1,310 +1,125 @@
 # TimeTracker — Frontend
 
-Frontend da aplicação **TimeTracker**, desenvolvido em **React 18** com **Vite**, **Tailwind CSS** e **Recharts**.
+Interface do Dashboard do Gestor, em React 18/JavaScript JSX, Vite, Tailwind CSS
+e Recharts. O painel é a única tela com consultas HTTP ativas. Login/cadastro,
+colaboradores, tasks, relatórios e configurações têm interfaces com integração
+pendente; envios ficam bloqueados sem contratos. Não há autenticação, proteção
+de rotas, dados operacionais simulados, ranking ou métricas de produtividade.
 
-O projeto é responsável pela interface utilizada no gerenciamento e visualização das informações da aplicação, incluindo painel, colaboradores, tarefas, relatórios, configurações, login e cadastro.
+## Documentação
 
----
+| Guia | Conteúdo |
+| --- | --- |
+| [Arquitetura e manutenção](docs/ARQUITETURA.md) | Estrutura, componentes/props, hooks, fluxo, estilos, acessibilidade e contribuição |
+| [Funcionalidades e requisitos](docs/FUNCIONALIDADES.md) | Sete rotas, estados, limitações e matriz RF/RNF/CA |
+| [Integração](docs/INTEGRACAO.md) | Contratos HTTP, configuração, persistência e problemas externos |
+| [Testes](docs/TESTES.md) | Ferramentas, comandos, cenários cobertos e validação pendente |
+| [Auditoria](docs/AUDITORIA.md) | Achados e resultados por data, riscos e mapa da consolidação documental |
+| [Refatoração e melhorias](docs/REFATORACAO.md) | Decisões, correções, remoções e histórico das entregas |
 
-## Tecnologias utilizadas
+Este é o índice principal. Guias descrevem o código existente; registros históricos
+identificam a data e os limites de cada revisão, sem certificar o estado de um deploy.
 
-| Tecnologia           |     Versão | Utilização                                                 |
-| -------------------- | ---------: | ---------------------------------------------------------- |
-| **React**            |     18.2.0 | Construção da interface e componentes da aplicação         |
-| **React DOM**        |     18.2.0 | Renderização da aplicação React no navegador               |
-| **JavaScript / JSX** | ES Modules | Desenvolvimento dos componentes, páginas, hooks e serviços |
-| **Vite**             |     6.4.3 | Servidor de desenvolvimento e build da aplicação           |
-| **Tailwind CSS**     |     3.4.17 | Estilização e responsividade                               |
-| **Recharts**         |     2.10.3 | Construção de gráficos e visualizações                     |
-| **PostCSS**          |     8.5.28 | Processamento dos arquivos CSS                             |
-| **Autoprefixer**     |    10.4.16 | Compatibilidade CSS entre navegadores                      |
+## Ambiente e início rápido
 
-### Testes
+Node.js 20.x, 22.x ou 24+ e npm. Ambiente das últimas validações registradas:
+Node 24.18.0 e npm 11.16.0. O lockfile do frontend é versionado para `npm ci`.
 
-| Tecnologia                | Versão | Utilização                                |
-| ------------------------- | -----: | ----------------------------------------- |
-| **Vitest**                |  4.1.11 | Execução dos testes automatizados         |
-| **React Testing Library** | 16.3.0 | Testes dos componentes React              |
-| **Jest DOM**              |  6.8.0 | Matchers adicionais para validação do DOM |
-| **User Event**            | 14.6.1 | Simulação de interações do usuário        |
-| **jsdom**                 | 26.1.0 | Simulação do ambiente de navegador        |
-| **V8 Coverage**           |  4.1.11 | Cobertura dos testes                      |
-
----
-
-## Estrutura do projeto
-
-```text
-FrontEnd/
-├── src/
-│   ├── components/
-│   ├── constants/
-│   ├── data/
-│   ├── hooks/
-│   ├── pages/
-│   ├── services/
-│   ├── test/
-│   ├── utils/
-│   ├── App.jsx
-│   ├── main.jsx
-│   └── index.css
-│
-├── docs/
-├── README.md
-├── index.html
-├── package.json
-├── postcss.config.js
-├── tailwind.config.js
-├── vite.config.js
-└── vitest.config.js
+```bash
+cd FrontEnd
+npm ci
+npm run dev
 ```
 
-### Diretórios principais
-
-* `components/`: componentes reutilizáveis da interface.
-* `pages/`: páginas principais da aplicação.
-* `hooks/`: hooks personalizados utilizados pelo frontend.
-* `services/`: comunicação com serviços externos e API.
-* `utils/`: funções auxiliares.
-* `constants/`: constantes compartilhadas.
-* `data/`: dados e configurações internas.
-* `test/`: configuração e utilitários relacionados aos testes.
-
----
-
-## Rotas
-
-Atualmente, a aplicação utiliza navegação baseada em **hash routing**.
-
-Rotas existentes:
-
-```text
-#/painel
-#/colaboradores
-#/tasks
-#/relatorios
-#/configuracoes
-#/login
-#/cadastro
-```
-
-O projeto não utiliza React Router atualmente.
-
----
-
-## Integração com a API
-
-A comunicação com o backend é centralizada em:
-
-```text
-src/services/
-```
-
-A URL base da API pode ser configurada utilizando a variável de ambiente:
+No PowerShell com scripts bloqueados, use `npm.cmd` em vez de `npm`.
+Crie `.env` a partir de [.env.example](.env.example) e ajuste:
 
 ```env
 VITE_API_URL=http://localhost:8000
 ```
 
-Existe um arquivo de exemplo:
+Em produção, configure a URL HTTPS antes do build. Variáveis `VITE_*` são
+públicas no bundle; não inclua senhas ou tokens. `.env.*` é ignorado, com
+exceção de `.env.example`. O endereço localhost é o padrão de desenvolvimento.
+Não há proxy de API: o navegador chama essa URL diretamente.
+
+O Vite usa porta 5173 e pode escolher outra se ocupada (`strictPort: false`).
+
+## Comandos
+
+| Comando | Finalidade |
+| --- | --- |
+| `npm run dev` | Servidor de desenvolvimento |
+| `npm run build` | Build de produção em `dist/`, sem sourcemaps |
+| `npm run preview` | Visualização local do build |
+| `npm test` | Suíte automatizada |
+| `npm run test:watch` | Testes em watch |
+| `npm run test:coverage` | Cobertura V8 de src |
+
+Não há scripts de lint/typecheck, formatter executável ou pipeline CI/CD.
+Build e testes não substituem essas análises nem validação em navegador/API real.
+
+## Tecnologias
+
+Versões declaradas no [package.json](package.json):
+
+| Tecnologia | Versão | Uso |
+| --- | --- | --- |
+| React / React DOM | 18.2.0 | Interface/renderização |
+| JavaScript / JSX | ES Modules | Componentes, páginas, hooks e serviços |
+| Vite / plugin React | 6.4.3 / 4.7.0 | Desenvolvimento e build |
+| Tailwind CSS | 3.4.17 | Estilos e responsividade |
+| Recharts | 2.10.3 | Gráficos |
+| PostCSS / Autoprefixer | 8.5.28 / 10.4.16 | Processamento e compatibilidade CSS |
+| Vitest / V8 Coverage | 4.1.11 | Testes/cobertura |
+| React Testing Library | 16.3.0 | Testes de componentes |
+| Jest DOM / User Event | 6.8.0 / 14.6.1 | Matchers e interações |
+| jsdom | 26.1.0 | Ambiente DOM de testes |
+
+## Estrutura e execução
 
 ```text
-.env.example
+FrontEnd/
+├── README.md
+├── docs/
+│   ├── ARQUITETURA.md
+│   ├── FUNCIONALIDADES.md
+│   ├── INTEGRACAO.md
+│   ├── TESTES.md
+│   ├── AUDITORIA.md
+│   └── REFATORACAO.md
+├── src/
+│   ├── components/   # UI reutilizável
+│   ├── pages/        # páginas completas
+│   ├── hooks/        # estado e efeitos
+│   ├── services/     # cliente HTTP
+│   ├── utils/        # funções puras
+│   ├── constants/    # rótulos e cores
+│   ├── data/         # navegação
+│   ├── test/         # setup dos testes (casos ficam junto dos módulos)
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── index.css
+├── index.html
+├── package.json, package-lock.json
+├── vite.config.js, vitest.config.js
+└── tailwind.config.js, postcss.config.js
 ```
 
-Para utilização local, crie um arquivo `.env` a partir dele e ajuste a URL da API conforme necessário.
+`main → App → páginas/componentes → hooks → services → API` separa interface,
+estado e rede. A navegação usa hash, sem React Router; a lista de rotas está em
+[Funcionalidades](docs/FUNCIONALIDADES.md#navegação). Páginas usam `React.lazy`
+e `Suspense`, com chunks próprios, além de chunks de React e gráficos.
+`ErrorBoundary` permite recarregar após falha de renderização e registra detalhes
+somente em desenvolvimento. `App` inicializa o tema inclusive em rotas diretas.
+O menu mobile fecha também pelo histórico e libera a rolagem.
 
-Em produção, configure `VITE_API_URL` com a URL HTTPS da API antes do build. Variáveis
-`VITE_*` são públicas no bundle: não coloque senhas ou tokens nelas. O padrão
-`http://localhost:8000` serve para desenvolvimento local.
+O cliente central `src/services/api.js` aplica timeout de 15 segundos inclusive
+ao JSON e valida campos consumidos. Falha não vira zero atividade. Polling
+reutiliza histórico válido; refresh manual reconsulta os sete dias para recuperar
+sincronizações tardias. Veja [fluxo e estados](docs/ARQUITETURA.md#fluxo-de-dados).
 
-Cada consulta tem limite de 15 segundos, incluindo leitura do JSON. Respostas
-incompatíveis com os campos consumidos são tratadas como falha, não como zero
-atividade. A atualização automática reutiliza o histórico; o botão de atualização
-manual reconsulta os sete dias para recuperar registros sincronizados com atraso.
-
----
-
-## Requisitos
-
-Para executar o frontend localmente:
-
-* Node.js 20.x, 22.x ou 24+ (compatibilidade das ferramentas; validado com 24.18.0)
-* npm
-
----
-
-## Instalação
-
-Acesse o diretório do frontend:
-
-```bash
-cd FrontEnd
-```
-
-Instale as dependências:
-
-```bash
-npm ci
-```
-
----
-
-## Executando o projeto
-
-Ambiente de desenvolvimento:
-
-```bash
-npm run dev
-```
-
-O Vite iniciará o servidor local de desenvolvimento.
-
----
-
-## Build de produção
-
-Para gerar o build:
-
-```bash
-npm run build
-```
-
-Para visualizar o build localmente:
-
-```bash
-npm run preview
-```
-
----
-
-## Testes
-
-Executar todos os testes:
-
-```bash
-npm test
-```
-
-Executar testes em modo watch:
-
-```bash
-npm run test:watch
-```
-
-Executar testes com cobertura:
-
-```bash
-npm run test:coverage
-```
-
----
-
-## Arquitetura
-
-A aplicação segue uma organização baseada em separação de responsabilidades:
-
-```text
-Interface
-   │
-   ▼
-Pages
-   │
-   ▼
-Components
-   │
-   ├── Hooks
-   ├── Utils
-   └── Data
-   │
-   ▼
-Services
-   │
-   ▼
-Backend API
-```
-
-Essa organização evita concentrar toda a lógica da aplicação em um único componente e facilita manutenção, testes e evolução do projeto.
-
----
-
-## Frontend atual
-
-A aplicação ativa utiliza:
-
-```text
-React 18
-   │
-   ├── JavaScript / JSX
-   ├── Tailwind CSS
-   ├── Recharts
-   │
-   ├── Vite
-   │   ├── PostCSS
-   │   └── Autoprefixer
-   │
-   └── Testes
-       ├── Vitest
-       ├── React Testing Library
-       └── jsdom
-```
-
----
-
-## Histórico do protótipo
-
-O protótipo Blazor da antiga pasta `legacy/` foi removido por não participar da
-aplicação React/Vite. Seu código permanece no histórico do Git.
-
----
-
-## Status
-
-O frontend possui atualmente estrutura para:
-
-* Dashboard
-* Colaboradores
-* Tasks
-* Relatórios
-* Configurações
-* Login
-* Cadastro
-
-Algumas funcionalidades dependem da disponibilidade dos respectivos contratos e endpoints no backend.
-
-Quando uma funcionalidade ainda não possui integração disponível, o frontend mantém o estado de integração pendente em vez de utilizar endpoints fictícios ou dados operacionais simulados.
-
-## Auditoria técnica
-
-Consulte [a organização e auditoria de 25/09/2026](docs/RELATORIO-AUDITORIA-FRONTEND.md)
-para correções, validações e limites desta revisão; o [índice técnico](docs/README.md)
-reúne arquitetura, componentes, contratos e manutenção. O lockfile do frontend
-é versionado para reproduzir a instalação. Não existem scripts de lint ou
-type-check neste projeto JavaScript; build e testes não substituem essas análises.
-
-O painel é a única tela com consultas HTTP ativas. Login/cadastro, associação,
-tasks, jornada e exportação completa continuam pendentes de contratos; os botões
-de envio permanecem bloqueados. Não existe autenticação nem proteção de rotas.
-O tema é inicializado em `App`, inclusive no acesso direto a essas telas.
-
-As páginas são carregadas sob demanda com `React.lazy` e `Suspense`. O
-`ErrorBoundary` de `main.jsx` oferece recuperação por recarregamento em falhas de
-renderização. Este README é o único Markdown na raiz; guias e relatórios ficam em
-`docs/`, com registros históricos identificados no índice.
-
-O Vite usa a porta 5173 e pode escolher outra se estiver ocupada (`strictPort: false`).
-Não há proxy de API: o navegador chama `VITE_API_URL` diretamente. O build gera
-`dist/`, sem sourcemaps, com chunks de gráficos e React. O projeto não configura
-service worker, manifest PWA, lint, formatter executável ou pipeline CI/CD.
-
-## Revisão completa de segurança e qualidade
-
-Consulte [a auditoria completa de 25/09/2026](docs/AUDITORIA-COMPLETA-2026-09-25.md)
-para os achados classificados, alterações e validação desta revisão. As ferramentas
-foram atualizadas para Vite 6.4.3, plugin React 4.7.0 e Vitest/coverage 4.1.11
-para corrigir advisories; as dependências de execução React/Recharts foram preservadas.
-
-Arquivos `.env.*` são ignorados, exceto `.env.example`. O ErrorBoundary registra
-detalhes somente em desenvolvimento. O menu mobile fecha também ao navegar pelo
-histórico, liberando a rolagem. No PowerShell com scripts bloqueados, use `npm.cmd`
-nos comandos acima.
+Não há manifest/service worker de PWA. O protótipo Blazor foi removido após
+confirmar ausência de consumidores; está disponível no histórico Git.
+Consulte as [convenções de contribuição](docs/ARQUITETURA.md#contribuicao)
+e mantenha contratos externos documentados sem inventar integrações.
