@@ -19,7 +19,11 @@ describe('useDashboardData', () => {
   it('carrega as três fontes e registra a atualização', async () => {
     const { result } = renderHook(() => useDashboardData('2026-09-25', ''));
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.data.availability).toEqual({ summary: true, users: true, realtime: true });
+    expect(result.current.data.availability).toEqual({
+      summary: true,
+      users: true,
+      realtime: true,
+    });
     expect(result.current.updatedAt).toBeInstanceOf(Date);
   });
 
@@ -27,8 +31,15 @@ describe('useDashboardData', () => {
     const { result } = renderHook(() => useDashboardData('2026-09-25', ''));
     await waitFor(() => expect(result.current.data?.summary).toEqual(summary));
     let finish;
-    api.summary.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
-    act(() => { result.current.refresh(); });
+    api.summary.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+    act(() => {
+      result.current.refresh();
+    });
     expect(result.current.refreshing).toBe(true);
     expect(result.current.data.summary).toEqual(summary);
     await act(async () => finish(summary));
@@ -41,7 +52,7 @@ describe('useDashboardData', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.data.availability.realtime).toBe(false);
     expect(result.current.data.availability.users).toBe(true);
-    expect(result.current.error).toMatch(/indisponíveis/);
+    expect(result.current.error).toMatch(/Atividade: API indisponível/);
   });
 
   it('rejects a valid summary for a different date', async () => {

@@ -10,25 +10,46 @@ export function fmtDuration(seconds = 0) {
 }
 
 export function validUsers(value) {
-  return Array.isArray(value) && value.every(user => user && typeof user.username === 'string' && user.username.length > 0);
+  return (
+    Array.isArray(value) &&
+    value.every((user) => user && typeof user.username === 'string' && user.username.length > 0)
+  );
 }
 
 export function validRealtime(value) {
-  return Array.isArray(value) && value.every(entry =>
-    entry && typeof entry.username === 'string' &&
-    ['online', 'ausente'].includes(entry.status) &&
-    Number.isFinite(entry.seconds_since_last_activity));
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (entry) =>
+        entry &&
+        typeof entry.username === 'string' &&
+        ['online', 'ausente'].includes(entry.status) &&
+        Number.isFinite(entry.seconds_since_last_activity),
+    )
+  );
 }
 
 export function validSummary(value) {
-  return value && /^\d{4}-\d{2}-\d{2}$/.test(value.date) && Array.isArray(value.users) &&
-    value.users.every(user =>
-      user && typeof user.username === 'string' &&
-      Number.isFinite(user.total_seconds) && user.total_seconds >= 0 &&
-      Array.isArray(user.by_category) &&
-      user.by_category.every(category =>
-        category && typeof category.category === 'string' &&
-        Number.isFinite(category.total_seconds) && category.total_seconds >= 0));
+  return (
+    value &&
+    /^\d{4}-\d{2}-\d{2}$/.test(value.date) &&
+    Array.isArray(value.users) &&
+    value.users.every(
+      (user) =>
+        user &&
+        typeof user.username === 'string' &&
+        Number.isFinite(user.total_seconds) &&
+        user.total_seconds >= 0 &&
+        Array.isArray(user.by_category) &&
+        user.by_category.every(
+          (category) =>
+            category &&
+            typeof category.category === 'string' &&
+            Number.isFinite(category.total_seconds) &&
+            category.total_seconds >= 0,
+        ),
+    )
+  );
 }
 
 export function totalSeconds(summary) {
@@ -36,8 +57,8 @@ export function totalSeconds(summary) {
 }
 
 export function deriveTeam(users = [], realtime = []) {
-  const byUsername = new Map(realtime.map(entry => [entry.username, entry]));
-  return users.map(user => {
+  const byUsername = new Map(realtime.map((entry) => [entry.username, entry]));
+  return users.map((user) => {
     const latest = byUsername.get(user.username) || null;
     return { ...user, realtime: latest, status: latest?.status || 'offline' };
   });
@@ -76,19 +97,22 @@ export function formatRelativeActivityTime(seconds) {
 export function safeIsoDate(value) {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return todayIso();
   const parsed = new Date(`${value}T12:00:00Z`);
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value ? value : todayIso();
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value
+    ? value
+    : todayIso();
 }
 
 export function filterRealtimePeople(people, username) {
   const list = Array.isArray(people) ? people : [];
-  return username ? list.filter(person => person.username === username) : list;
+  return username ? list.filter((person) => person.username === username) : list;
 }
 
 export function countPeopleByStatus(people, status) {
-  return (Array.isArray(people) ? people : []).filter(person => person.status === status).length;
+  return (Array.isArray(people) ? people : []).filter((person) => person.status === status).length;
 }
 
 export function formatDashboardReferenceDate(value) {
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
-    .format(new Date(`${safeIsoDate(value)}T12:00:00`)).toUpperCase();
+    .format(new Date(`${safeIsoDate(value)}T12:00:00`))
+    .toUpperCase();
 }

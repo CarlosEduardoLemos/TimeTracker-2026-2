@@ -1,23 +1,21 @@
-import { AVATAR_COLOR_PALETTE, USER_STATUS_LABELS } from "../constants/ui";
-import { formatRelativeActivityTime } from "../utils/dashboard";
-import { Card } from "./Card";
-import { SectionHeading } from "./SectionHeading";
+import { AVATAR_COLOR_PALETTE, USER_STATUS_LABELS } from '../constants/ui';
+import { formatRelativeActivityTime } from '../utils/dashboard';
+import { Card } from './Card';
+import { SectionHeading } from './SectionHeading';
 
 function buildPeopleRows(realtimePeople) {
   const people = Array.isArray(realtimePeople) ? realtimePeople : [];
 
   return people.map((person, index) => {
-    const username = String(person.username || "Desconhecido");
+    const username = String(person.username || 'Desconhecido');
 
     return {
       username,
       initials: username.slice(0, 2).toUpperCase(),
-      statusLabel: USER_STATUS_LABELS[person.status] || "Ausente",
-      isOnline: person.status === "online",
-      applicationName: person.process_name || "—",
-      lastActivityLabel: formatRelativeActivityTime(
-        person.seconds_since_last_activity,
-      ),
+      statusLabel: USER_STATUS_LABELS[person.status] || 'Ausente',
+      isOnline: person.status === 'online',
+      applicationName: person.process_name || '—',
+      lastActivityLabel: formatRelativeActivityTime(person.seconds_since_last_activity),
       avatarColor: AVATAR_COLOR_PALETTE[index % AVATAR_COLOR_PALETTE.length],
     };
   });
@@ -44,11 +42,21 @@ export function PeopleCard({ realtimePeople = [], loading = false, unavailable =
           <caption className="sr-only">Status atual da equipe</caption>
           <thead>
             <tr className="bg-slate-50 text-[10px] uppercase tracking-wide text-muted dark:bg-slate-800">
-              <th scope="col" className="px-5 py-2.5">Colaborador</th>
-              <th scope="col" className="px-5 py-2.5">Status</th>
-              <th scope="col" className="px-5 py-2.5">Task ativa</th>
-              <th scope="col" className="px-5 py-2.5">Aplicação atual</th>
-              <th scope="col" className="px-5 py-2.5">Última leitura</th>
+              <th scope="col" className="px-5 py-2.5">
+                Colaborador
+              </th>
+              <th scope="col" className="px-5 py-2.5">
+                Status
+              </th>
+              <th scope="col" className="px-5 py-2.5">
+                Task ativa
+              </th>
+              <th scope="col" className="px-5 py-2.5">
+                Aplicação atual
+              </th>
+              <th scope="col" className="px-5 py-2.5">
+                Última leitura
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -71,7 +79,9 @@ export function PeopleCard({ realtimePeople = [], loading = false, unavailable =
                   <td className="px-5 py-3">
                     <span
                       className={`flex items-center gap-1.5 font-bold ${
-                        person.isOnline ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"
+                        person.isOnline
+                          ? 'text-emerald-700 dark:text-emerald-400'
+                          : 'text-amber-700 dark:text-amber-400'
                       }`}
                     >
                       <i className="status-dot" aria-hidden="true" />
@@ -91,10 +101,10 @@ export function PeopleCard({ realtimePeople = [], loading = false, unavailable =
               <tr>
                 <td colSpan="5" className="px-5 py-8 text-center text-xs text-muted">
                   {loading
-                    ? "Consultando status da equipe…"
+                    ? 'Consultando status da equipe…'
                     : unavailable
-                      ? "Status da equipe temporariamente indisponível."
-                      : "Nenhum colaborador foi retornado para o filtro atual."}
+                      ? 'Status da equipe temporariamente indisponível.'
+                      : 'Nenhum colaborador foi retornado para o filtro atual.'}
                 </td>
               </tr>
             )}
@@ -102,7 +112,8 @@ export function PeopleCard({ realtimePeople = [], loading = false, unavailable =
         </table>
       </div>
       <p className="mt-3 text-[11px] text-muted">
-        Task ativa, início da task e tempo registrado na task atual dependem de dados ainda não fornecidos pela API.
+        Task ativa, início da task e tempo registrado na task atual dependem de dados ainda não
+        fornecidos pela API.
       </p>
     </Card>
   );

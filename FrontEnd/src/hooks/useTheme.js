@@ -15,5 +15,5 @@ export function useTheme() {
     document.documentElement.classList.toggle('dark', dark);
     localStorage.setItem(STORAGE_KEY, dark ? 'dark' : 'light');
   }, [dark]);
-  return [dark, () => setDark(value => !value)];
+  return [dark, () => setDark((value) => !value)];
 }

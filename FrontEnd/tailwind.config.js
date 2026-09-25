@@ -1,1 +1,17 @@
-export default {content:['./index.html','./src/**/*.{js,jsx}'],darkMode:['class','[data-theme="dark"]'],theme:{extend:{colors:{ink:'#20233b',muted:'var(--muted)',line:'#e9eaf2',brand:'var(--brand)',page:'var(--page)'},fontFamily:{sans:['system-ui','sans-serif']}}},plugins:[]};
+export default {
+  content: ['./index.html', './src/**/*.{js,jsx}'],
+  darkMode: ['class', '[data-theme="dark"]'],
+  theme: {
+    extend: {
+      colors: {
+        ink: '#20233b',
+        muted: 'var(--muted)',
+        line: '#e9eaf2',
+        brand: 'var(--brand)',
+        page: 'var(--page)',
+      },
+      fontFamily: { sans: ['system-ui', 'sans-serif'] },
+    },
+  },
+  plugins: [],
+};

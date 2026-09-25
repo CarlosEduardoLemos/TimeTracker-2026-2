@@ -10,18 +10,27 @@ Execute na pasta `FrontEnd` com as dependências do `package-lock.json` instalad
 cd FrontEnd
 npm ci
 npm.cmd test
+npm.cmd run lint
+npm.cmd run format:check
 npm.cmd run build
+$env:PLAYWRIGHT_CHANNEL = 'chrome' # se usar Chrome instalado em vez do Chromium do Playwright
+npm.cmd run test:e2e
 ```
 
-Para desenvolvimento, `npm.cmd run test:watch` mantém Vitest em observação. `npm.cmd run test:coverage` gera cobertura V8 em texto e HTML; o script existe, mas uma meta numérica de cobertura não foi definida. `git diff --check` verifica whitespace no diff e `git status --short` permite confirmar que só `FrontEnd/` foi alterado. `npm.cmd run dev` inicia Vite na porta 5173; `npm.cmd run preview` serve o build para inspeção.
+Para desenvolvimento, `npm.cmd run test:watch` mantém Vitest em observação. `npm.cmd run test:coverage` gera cobertura V8 em texto e HTML; uma meta numérica não foi definida. `npm.cmd run format` aplica Prettier no código; documentação e artefatos estão em `.prettierignore`. `git diff --check` verifica whitespace e `git status --short` confirma o escopo. `npm.cmd run dev` inicia Vite na porta 5173; os comandos do Vite usam `--configLoader runner` para compatibilidade com o Windows deste ambiente.
 
-`vitest.config.js` usa `jsdom`, plugin React e `src/test/setup.js` com `@testing-library/jest-dom`. O script inclui `--configLoader runner`, necessário para a execução usada no ambiente Windows desta revisão. A cobertura configura `src/**/*.{js,jsx}` e exclui `src/test/**`.
+`vitest.config.js` usa `jsdom`, plugin React e `src/test/setup.js` com `@testing-library/jest-dom`; só inclui `src/**/*.test.{js,jsx}`. A cobertura configura `src/**/*.{js,jsx}` e exclui `src/test/**`. Playwright gera o build, sobe o preview, executa os testes no Chrome/Chromium e encerra o servidor. O executor fixa `VITE_API_URL=http://localhost:8000` nos E2E simulados; com `RUN_REAL_API=1`, respeita a origem configurada. Para instalar o Chromium gerenciado pelo Playwright, execute `npx playwright install chromium`; em máquina com Chrome instalado, defina `PLAYWRIGHT_CHANNEL=chrome`. `PLAYWRIGHT_CHANNEL` pode ser removida quando o Chromium gerenciado estiver disponível.
+
+Para executar o teste de leitura com FastAPI real, inicie a API e o banco de dados separadamente, configure `VITE_API_URL` para a origem correta, defina `RUN_REAL_API=1` e rode `npm.cmd run test:e2e:real`. O teste não altera configuração nem cria registros: verifica painel, CORS observado no navegador, GET de configurações e erros de página. Exporte CSV/PDF com dados reais e confira conteúdo manualmente; o E2E regular valida o mecanismo de download com respostas HTTP simuladas.
 
 ## Resultado automatizado registrado
 
 | Verificação | Resultado | O que comprova |
 | --- | --- | --- |
-| `npm.cmd test` | **86 testes passaram em 21 arquivos** em 25/09/2026 | Comportamentos cobertos pelos mocks e por jsdom |
+| `npm.cmd test` | **88 testes passaram em 21 arquivos** em 25/09/2026 | Comportamentos cobertos pelos mocks e por jsdom |
+| `npm.cmd run lint` | **Concluído** | Regras JS, React, Hooks e JSX a11y |
+| `npm.cmd run format:check` | **Concluído** | Código sob Prettier consistente |
+| `npm.cmd run test:e2e` no Chrome | **20 passaram; 1 teste real ignorado sem `RUN_REAL_API`** | Fluxos no navegador, cinco larguras, ampliação CSS e análise WCAG automatizada |
 | `npm.cmd run build` | **Concluído** pelo Vite 6.4.3 | Imports, JSX, CSS e geração dos chunks das páginas |
 | `git diff --check` | **Sem erros** | Ausência de erros de whitespace no diff |
 | `git status --short` | **Somente `FrontEnd/`** | Escopo das alterações registradas no Git |
@@ -48,7 +57,7 @@ Build bem sucedido não comprova disponibilidade da API, layout em navegador ou 
 | `src/components/ActivityChart.test.jsx`, `PeopleCard.test.jsx`, `Header.test.jsx`, `ReportsAndAgent.test.jsx` | Componentes preservados fora do painel atual; estados, acessibilidade e controles desses componentes isolados |
 | `src/utils/dashboard.test.js` | Formatação de tempo/data, soma, filtros e contagens sem alterar a lista original |
 
-Os testes de componentes preservados não significam que gráfico semanal, timeline ou exportação completa estejam ativos na aplicação. Não há teste direto de `CollaboratorsPage`; `SettingsPage` é exercitada por `frontendRevision.test.jsx`, mas ainda não cobre todas as mudanças de campo e retorno de leitura. Veja [Pendências](PENDENCIAS.md).
+Os testes de componentes preservados não significam que gráfico semanal, timeline ou exportação completa estejam ativos na aplicação. Playwright cobre retry de Colaboradores, leitura e gravação de Configurações, CSV/PDF, menu móvel, estados offline e erro do servidor. O teste de FastAPI real foi ignorado porque a API não respondeu em `http://localhost:8000` durante esta revisão. Veja [Pendências](PENDENCIAS.md).
 
 ## Cenários críticos a manter em futuras mudanças
 
@@ -69,10 +78,10 @@ Os itens abaixo **não foram comprovados** pelos testes automatizados. Executar 
 | --- | --- |
 | Navegação | Acesso direto por hash, voltar/avançar, 404, título da aba, carregamento de chunks e link de salto |
 | Teclado/leitor de tela | Ordem de Tab, foco visível, Escape no menu, anúncio de erros/loading, leitura dos cabeçalhos e `caption` de tabelas |
-| Responsividade | Larguras mobile/tablet/desktop, telas baixas, rolagem horizontal de tabelas, zoom de 200% e tema claro/escuro |
+| Responsividade | Inspecionar dispositivos reais e zoom nativo de 200%; Playwright já verificou 375×667, 390×844, 768×1024, 1366×768 e 1920×1080, além de ampliação CSS de 200% |
 | Dados | Resumo com e sem registros, filtro de usuário, falha isolada de uma fonte, retry de Colaboradores, refresh do painel e mudança de data |
 | Configurações | Leitura, valores inválidos, salvamento, erro 4xx/5xx, queda de rede e saída durante operação |
 | Exportação | CSV/PDF reais, nome e conteúdo do arquivo, falha/timeout, ausência de usuários e cancelamento ao sair |
 | Console e rede | Exceções de renderização, rejeições não tratadas, requests inesperados e mensagens de CORS |
 
-Os testes usam mocks de `fetch` e jsdom; não avaliam banco de dados, autorização do backend, CORS de implantação, contraste medido, downloads reais ou leitor de tela. E2E, lint e typecheck não estão configurados no `package.json` atual.
+Vitest usa mocks de `fetch` e jsdom. Playwright usa Chrome com respostas HTTP simuladas e downloads reais do navegador, mas não valida banco, autorização, CORS de implantação nem conteúdo produzido pelo FastAPI. axe-core detecta apenas parte dos problemas de acessibilidade; leitor de tela e inspeção humana continuam necessários. Não há `typecheck`, pois o código permanece em JavaScript/JSX.

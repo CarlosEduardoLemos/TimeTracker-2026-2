@@ -34,7 +34,7 @@ O menu principal mostra Painel, Colaboradores, Tasks, Relatórios e Configuraç�
 | Tempo registrado | Soma de `total_seconds` dos usuários no resumo da data selecionada | Tempo agregado de atividades, sem classificar produtividade por task |
 | Usuários cadastrados | Sem filtro, tamanho de `/users/`; com filtro, contagem do `username` selecionado nessa lista | Não é equipe vinculada a gestor; independe da disponibilidade do realtime |
 
-Se usuários ou realtime falharem, contagens de estado aparecem como indisponíveis, e não como zero. Se o resumo falhar ou vier com data diferente, o tempo registrado e as categorias ficam indisponíveis. Um resumo válido com lista vazia produz zero de tempo e mensagem “Sem registros na data selecionada”.
+Se usuários ou realtime falharem, contagens de estado aparecem como indisponíveis, e não como zero. Se o resumo falhar ou vier com data diferente, o tempo registrado e as categorias ficam indisponíveis. O alerta identifica a fonte e informa o motivo da falha quando disponível, incluindo o `detail` da API. Um resumo válido com lista vazia produz zero de tempo e mensagem “Sem registros na data selecionada”.
 
 O indicador **Usuários cadastrados** usa somente `/users/`, inclusive quando há usuário selecionado. Uma falha isolada do realtime não altera essa contagem.
 
@@ -60,7 +60,7 @@ O campo global de inatividade **não** configura o limite individual previsto em
 
 ## Relatórios (`#/relatorios`)
 
-A página oferece uma data e, quando `/users/` responde validamente, um filtro opcional de usuário. A falha da lista desabilita apenas esse filtro; a exportação geral continua disponível. Os botões chamam `/dashboard/export/csv` ou `/dashboard/export/pdf` com a data e, se escolhido, `username`. Durante o download há indicação de progresso e não se inicia outro. HTTP com falha, tipo de conteúdo incompatível ou arquivo vazio gera mensagem de erro. A operação é cancelada ao sair da página.
+A página oferece uma data e, quando `/users/` responde validamente, um filtro opcional de usuário. A falha da lista desabilita apenas esse filtro, mostra o motivo e permite tentar novamente; a exportação geral continua disponível. Os botões chamam `/dashboard/export/csv` ou `/dashboard/export/pdf` com a data e, se escolhido, `username`. Durante o download há indicação de progresso e não se inicia outro. HTTP com falha, tipo de conteúdo incompatível ou arquivo vazio gera mensagem de erro. A operação é cancelada ao sair da página.
 
 O **CSV atual** contém as colunas `username`, `category`, `total_seconds` e uma linha por categoria retornada para cada usuário. Sem registros, pode conter apenas o cabeçalho. O **PDF atual** contém a data, o total e as categorias de cada usuário retornado. A interface salva o arquivo como `resumo_<data>.csv` ou `.pdf`. Esses arquivos são exportações do resumo diário parcial, não relatórios completos de RF-24/RF-25: não contêm período, task, aplicação, classificação dentro/fora do escopo, jornada ou possível hora extra.
 
@@ -70,7 +70,7 @@ As rotas mostram o bloqueio de autenticação e um retorno ao painel. Não há f
 
 ## Acessibilidade e apresentação
 
-O layout adapta menu e colunas a mobile, tablet e desktop. Há link para pular ao conteúdo, foco visível, labels nos controles, cabeçalhos e `caption` de tabela, mensagens de erro/status anunciáveis, navegação do diálogo móvel por teclado e redução de movimento quando solicitada pelo sistema. Tabelas extensas permitem rolagem horizontal com foco. Essas medidas estão implementadas no código; a validação manual restante está em [Testes](TESTES.md).
+O layout adapta menu e colunas a mobile, tablet e desktop. Há link para pular ao conteúdo, foco visível, labels nos controles, cabeçalhos e `caption` de tabela, mensagens de erro/status anunciáveis, navegação do diálogo móvel por teclado e redução de movimento quando solicitada pelo sistema. Tabelas extensas permitem rolagem horizontal com foco. O Chrome validou as larguras 375, 390, 768, 1366 e 1920 px; axe-core não detectou violações WCAG nos cenários testados após ajuste de contraste. A validação manual restante está em [Testes](TESTES.md).
 
 ## Correspondência com os requisitos do produto
 

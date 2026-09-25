@@ -33,9 +33,13 @@ describe('estados de integração', () => {
 
   it('ignora uma resposta antiga após mudar a data', async () => {
     let finishOld;
-    api.summary.mockImplementation(date => date === '2026-09-24'
-      ? new Promise(resolve => { finishOld = resolve; })
-      : Promise.resolve({ date, users: [] }));
+    api.summary.mockImplementation((date) =>
+      date === '2026-09-24'
+        ? new Promise((resolve) => {
+            finishOld = resolve;
+          })
+        : Promise.resolve({ date, users: [] }),
+    );
     api.users.mockResolvedValue([]);
     api.realtime.mockResolvedValue([]);
     const { result, rerender } = renderHook(({ date }) => useDashboardData(date, ''), {
@@ -66,10 +70,15 @@ describe('estados de integração', () => {
 
   it('rejects an invalid settings response after saving', async () => {
     api.settings.mockResolvedValue({ capture_interval_seconds: 10, idle_timeout_seconds: 300 });
-    api.saveSettings.mockResolvedValue({ capture_interval_seconds: null, idle_timeout_seconds: 300 });
+    api.saveSettings.mockResolvedValue({
+      capture_interval_seconds: null,
+      idle_timeout_seconds: 300,
+    });
     render(<SettingsPage />);
     fireEvent.click(await screen.findByRole('button', { name: 'Salvar configurações' }));
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Resposta inválida da API'));
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('Resposta inválida da API'),
+    );
     expect(screen.queryByText('Configurações salvas.')).not.toBeInTheDocument();
   });
 

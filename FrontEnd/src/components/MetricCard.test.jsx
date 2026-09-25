@@ -1,9 +1,9 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import { MetricCard } from "./MetricCard";
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { MetricCard } from './MetricCard';
 
-describe("MetricCard", () => {
-  it("renders the metric while keeping the decorative icon hidden from accessibility", () => {
+describe('MetricCard', () => {
+  it('renders the metric while keeping the decorative icon hidden from accessibility', () => {
     render(
       <MetricCard
         icon="◷"
@@ -14,9 +14,9 @@ describe("MetricCard", () => {
       />,
     );
 
-    expect(screen.getByText("Tempo monitorado")).toBeInTheDocument();
-    expect(screen.getByText("6h 42min")).toBeInTheDocument();
-    expect(screen.getByText("dados da API")).toBeInTheDocument();
-    expect(screen.getByText("◷")).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByText('Tempo monitorado')).toBeInTheDocument();
+    expect(screen.getByText('6h 42min')).toBeInTheDocument();
+    expect(screen.getByText('dados da API')).toBeInTheDocument();
+    expect(screen.getByText('◷')).toHaveAttribute('aria-hidden', 'true');
   });
 });

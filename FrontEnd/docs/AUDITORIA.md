@@ -24,7 +24,7 @@ Este registro foi complementado após a consolidação inicial dos guias. O inve
 | Associação e equipe (RF-03/RF-05/RF-16) | `/users/` lista usuários globais; `/activities/realtime` informa leitura recente | Código e vínculo de equipe, lista restrita e conexão real do agente |
 | Tasks (RF-06/RF-11) | Página de dependência, sem formulário local | Modelo, CRUD, associações, escopo e autorização |
 | Jornada (RF-20/RF-22) | Dois valores globais em `/config/` | Jornada por colaborador e identificação de possível hora extra |
-| Dashboard (RF-27) | Resumo diário, última leitura, categorias e estados aproximados | Task ativa, tempo produtivo, ranking, série histórica e timeline com fonte confiável |
+| Dashboard (RF-27) | Resumo diário, última leitura, categorias e estados aproximados | Task ativa, tempo produtivo, série histórica e timeline com fonte confiável; rankings e comparações são proibidos pelo requisito atual |
 | Relatórios (RF-24/RF-25) | Exportação CSV/PDF do resumo de um dia | Filtros de período/task e conteúdo completo por aplicação, escopo e jornada |
 
 O backend expõe categorias e regras de categorização, mas não há contrato que as transforme em aplicações produtivas de uma task. Por isso não foram usadas para simular escopo de trabalho. O resumo diário soma duração de registros; a palavra “produtividade” na descrição do endpoint não altera o conteúdo efetivamente retornado.
@@ -91,15 +91,17 @@ Componentes sem uso no caminho atual, mas com possível função nas integraçõ
 
 ## Qualidade, UX e acessibilidade
 
-As correções práticas abrangeram carregamento, falha parcial, retry, cancelamento, validação de data/resposta, download, foco de tabelas, semântica de métricas e rota inexistente. O menu móvel já possuía controle de foco e rolagem; os testes existentes foram preservados. `index.css` mantém contraste por tema, foco visível e redução de movimento. Não foi adicionada biblioteca de lint/formatador sem uma necessidade concreta de instalação nesta entrega. O projeto continua sem E2E e sem validação visual automatizada.
+As correções iniciais abrangeram carregamento, falha parcial, retry, cancelamento, validação de data/resposta, download, foco de tabelas, semântica de métricas e rota inexistente. O menu móvel já possuía controle de foco e rolagem; os testes existentes foram preservados. A revisão posterior de qualidade, navegador e contraste está registrada em [Alterações de 25/09/2026](ALTERACOES.md).
 
-O comportamento em navegador real, leitor de tela e diferentes resoluções permanece pendente. O teste automatizado comprova apenas o comportamento observado em jsdom e mocks; veja o roteiro em [Testes](TESTES.md).
+Playwright agora valida os fluxos principais no Chrome com API simulada e axe-core verifica regras WCAG detectáveis automaticamente. Leitor de tela, zoom nativo e backend real ainda requerem inspeção; veja [Testes](TESTES.md).
 
 ## Validação
 
-- `npm.cmd test`: **86 testes passaram em 21 arquivos**.
+- `npm.cmd test`: **88 testes passaram em 21 arquivos** após a revisão posterior.
+- `npm.cmd run lint` e `npm.cmd run format:check`: **concluídos**.
+- `npm.cmd run test:e2e` com Chrome: **20 passaram; 1 teste opt-in do backend real foi ignorado**.
 - `npm.cmd run build`: **concluído**, com chunks por página.
 - `git diff --check`: sem erros de whitespace; Git informou apenas conversão futura de LF para CRLF no checkout Windows.
 - `git status --short`: apenas caminhos sob `FrontEnd/` foram modificados ou removidos.
 
-O ambiente jsdom não substitui inspeção visual, console de navegador, responsividade real ou teste contra backend em execução. Essas verificações continuam em [Testes](TESTES.md). Contratos externos e próximos passos estão em [Pendências](PENDENCIAS.md).
+As verificações em Chrome cobrem as larguras definidas e os fluxos simulados, mas não substituem leitor de tela ou teste contra backend em execução. Próximos passos estão em [Pendências](PENDENCIAS.md).

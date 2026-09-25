@@ -1,23 +1,13 @@
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { getSummaryTotalSeconds } from "../utils/dashboard";
-import { Card } from "./Card";
-import { SectionHeading } from "./SectionHeading";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { getSummaryTotalSeconds } from '../utils/dashboard';
+import { Card } from './Card';
+import { SectionHeading } from './SectionHeading';
 
-const WEEKDAY_FORMATTER = new Intl.DateTimeFormat("pt-BR", { weekday: "short" });
+const WEEKDAY_FORMATTER = new Intl.DateTimeFormat('pt-BR', { weekday: 'short' });
 
 function buildRegisteredTimeChartData(weeklySummaries) {
   return weeklySummaries.map((summary) => ({
-    day: WEEKDAY_FORMATTER
-      .format(new Date(`${summary.date}T12:00:00`))
-      .replace(".", ""),
+    day: WEEKDAY_FORMATTER.format(new Date(`${summary.date}T12:00:00`)).replace('.', ''),
     registeredHours:
       summary.unavailable === true
         ? null
@@ -27,9 +17,7 @@ function buildRegisteredTimeChartData(weeklySummaries) {
 }
 
 function getChartMaximum(chartData) {
-  const values = chartData
-    .map(({ registeredHours }) => registeredHours)
-    .filter(Number.isFinite);
+  const values = chartData.map(({ registeredHours }) => registeredHours).filter(Number.isFinite);
 
   return Math.max(1, ...values);
 }
@@ -58,20 +46,17 @@ export function ActivityChart({ weeklySummaries = [], loading = false, unavailab
         <>
           <div className="mt-5 h-[190px]" aria-hidden="true">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={chartData}
-                margin={{ top: 12, right: 4, left: -24, bottom: 0 }}
-              >
+              <BarChart data={chartData} margin={{ top: 12, right: 4, left: -24, bottom: 0 }}>
                 <CartesianGrid stroke="#94a3b8" strokeOpacity={0.18} vertical={false} />
                 <XAxis
                   dataKey="day"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "var(--muted)", fontSize: 11 }}
+                  tick={{ fill: 'var(--muted)', fontSize: 11 }}
                 />
                 <YAxis hide domain={[0, Math.ceil(chartMaximum)]} />
                 <Tooltip
-                  cursor={{ fill: "rgba(100, 116, 139, 0.08)" }}
+                  cursor={{ fill: 'rgba(100, 116, 139, 0.08)' }}
                   content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
                     const chartItem = payload[0].payload;
@@ -104,11 +89,7 @@ export function ActivityChart({ weeklySummaries = [], loading = false, unavailab
               {chartData.map(({ day, registeredHours, unavailable }) => (
                 <tr key={day}>
                   <th scope="row">{day}</th>
-                  <td>
-                    {unavailable
-                      ? "Indisponível"
-                      : `${registeredHours.toFixed(1)} horas`}
-                  </td>
+                  <td>{unavailable ? 'Indisponível' : `${registeredHours.toFixed(1)} horas`}</td>
                 </tr>
               ))}
             </tbody>
@@ -117,15 +98,16 @@ export function ActivityChart({ weeklySummaries = [], loading = false, unavailab
       ) : (
         <div className="mt-5 grid h-[190px] place-items-center rounded-lg bg-slate-50 px-4 text-center text-xs text-muted dark:bg-slate-800/60">
           {loading
-            ? "Consultando tempo registrado…"
+            ? 'Consultando tempo registrado…'
             : unavailable
-              ? "Tempo registrado temporariamente indisponível."
-              : "Nenhum tempo registrado foi retornado para o período disponível."}
+              ? 'Tempo registrado temporariamente indisponível.'
+              : 'Nenhum tempo registrado foi retornado para o período disponível.'}
         </div>
       )}
 
       <p className="mt-3 text-[11px] leading-relaxed text-muted">
-        O gráfico obrigatório de tempo por task será habilitado quando a API disponibilizar os registros associados às tasks.
+        O gráfico obrigatório de tempo por task será habilitado quando a API disponibilizar os
+        registros associados às tasks.
       </p>
     </Card>
   );

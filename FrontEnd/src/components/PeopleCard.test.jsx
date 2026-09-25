@@ -1,72 +1,75 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import { PeopleCard } from "./PeopleCard";
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { PeopleCard } from './PeopleCard';
 
-describe("PeopleCard", () => {
+describe('PeopleCard', () => {
   it.each([
-    [{ loading: true }, "Consultando status da equipe…"],
-    [{ unavailable: true }, "Status da equipe temporariamente indisponível."],
-  ])("does not report an empty team for %j", (props, message) => {
+    [{ loading: true }, 'Consultando status da equipe…'],
+    [{ unavailable: true }, 'Status da equipe temporariamente indisponível.'],
+  ])('does not report an empty team for %j', (props, message) => {
     render(<PeopleCard {...props} />);
     expect(screen.getByText(message)).toBeInTheDocument();
     expect(screen.queryByText(/Nenhum colaborador foi retornado/)).not.toBeInTheDocument();
   });
 
-  it("renders only requirement-aligned real-time fields", () => {
+  it('renders only requirement-aligned real-time fields', () => {
     const realtimePeople = [
       {
-        username: "carlos",
-        hostname: "WORK-01",
-        process_name: "Code.exe",
-        window_title: "conteúdo que não deve ser exibido",
-        category: "Desenvolvimento",
-        status: "online",
+        username: 'carlos',
+        hostname: 'WORK-01',
+        process_name: 'Code.exe',
+        window_title: 'conteúdo que não deve ser exibido',
+        category: 'Desenvolvimento',
+        status: 'online',
         seconds_since_last_activity: 45,
       },
     ];
 
     render(<PeopleCard realtimePeople={realtimePeople} />);
 
-    expect(screen.getByText("carlos")).toBeInTheDocument();
-    expect(screen.getByText("CA")).toBeInTheDocument();
-    expect(screen.getByText("Code.exe")).toBeInTheDocument();
-    expect(screen.getByText("Online")).toBeInTheDocument();
-    expect(screen.getByText("há 45s")).toBeInTheDocument();
-    expect(screen.queryByText("WORK-01")).not.toBeInTheDocument();
-    expect(screen.queryByText("conteúdo que não deve ser exibido")).not.toBeInTheDocument();
-    expect(screen.queryByText("Desenvolvimento")).not.toBeInTheDocument();
+    expect(screen.getByText('carlos')).toBeInTheDocument();
+    expect(screen.getByText('CA')).toBeInTheDocument();
+    expect(screen.getByText('Code.exe')).toBeInTheDocument();
+    expect(screen.getByText('Online')).toBeInTheDocument();
+    expect(screen.getByText('há 45s')).toBeInTheDocument();
+    expect(screen.queryByText('WORK-01')).not.toBeInTheDocument();
+    expect(screen.queryByText('conteúdo que não deve ser exibido')).not.toBeInTheDocument();
+    expect(screen.queryByText('Desenvolvimento')).not.toBeInTheDocument();
   });
 
-  it("maps the backend ausente status explicitly", () => {
+  it('maps the backend ausente status explicitly', () => {
     render(
       <PeopleCard
         realtimePeople={[
           {
-            username: "ana",
-            process_name: "Excel.exe",
-            status: "ausente",
+            username: 'ana',
+            process_name: 'Excel.exe',
+            status: 'ausente',
             seconds_since_last_activity: 300,
           },
         ]}
       />,
     );
 
-    expect(screen.getByText("Ausente")).toBeInTheDocument();
+    expect(screen.getByText('Ausente')).toBeInTheDocument();
   });
 
-  it("provides table semantics for assistive technologies", () => {
+  it('provides table semantics for assistive technologies', () => {
     render(<PeopleCard realtimePeople={[]} />);
 
-    expect(screen.getByRole("table", { name: "Status atual da equipe" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Colaborador" })).toHaveAttribute("scope", "col");
+    expect(screen.getByRole('table', { name: 'Status atual da equipe' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Colaborador' })).toHaveAttribute(
+      'scope',
+      'col',
+    );
   });
 
-  it("renders an empty state without falling back to demo users", () => {
+  it('renders an empty state without falling back to demo users', () => {
     render(<PeopleCard realtimePeople={[]} />);
 
     expect(
-      screen.getByText("Nenhum colaborador foi retornado para o filtro atual."),
+      screen.getByText('Nenhum colaborador foi retornado para o filtro atual.'),
     ).toBeInTheDocument();
-    expect(screen.queryByText("Ana Carolina")).not.toBeInTheDocument();
+    expect(screen.queryByText('Ana Carolina')).not.toBeInTheDocument();
   });
 });

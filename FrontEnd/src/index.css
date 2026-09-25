@@ -14,24 +14,61 @@
   --muted: #94a3b8;
 }
 
-* { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; background: var(--page); font-family: system-ui, sans-serif; }
-button, input, select, textarea { font: inherit; }
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--page);
+  font-family: system-ui, sans-serif;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
 
-.primary-button { @apply rounded-lg bg-brand px-4 py-2.5 text-xs font-bold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50; }
-.secondary-button { @apply rounded-lg border border-line bg-white px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300; }
-.form-field { @apply block w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white; }
-.card { @apply rounded-xl border border-line bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900; }
-.muted { @apply text-slate-500 dark:text-slate-400; }
-.skip-link { @apply fixed left-4 top-4 z-50 -translate-y-24 rounded-lg bg-slate-900 px-4 py-2 text-white focus:translate-y-0; }
-.status-dot { @apply inline-block h-2 w-2 rounded-full bg-current; }
+.primary-button {
+  @apply rounded-lg bg-brand px-4 py-2.5 text-xs font-bold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50;
+}
+.secondary-button {
+  @apply rounded-lg border border-line bg-white px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300;
+}
+.form-field {
+  @apply block w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white;
+}
+.card {
+  @apply rounded-xl border border-line bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900;
+}
+.muted {
+  @apply text-slate-600 dark:text-slate-400;
+}
+.dark a.text-brand {
+  @apply text-indigo-300;
+}
+.skip-link {
+  @apply fixed left-4 top-4 z-50 -translate-y-24 rounded-lg bg-slate-900 px-4 py-2 text-white focus:translate-y-0;
+}
+.status-dot {
+  @apply inline-block h-2 w-2 rounded-full bg-current;
+}
 
-a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
-textarea:focus-visible, [tabindex='0']:focus-visible {
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex='0']:focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+  * {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
 }

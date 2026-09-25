@@ -8,7 +8,10 @@ afterEach(() => {
 
 describe('cliente da API', () => {
   it('codifica o usuário no filtro do resumo', async () => {
-    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ date: '2026-09-25', users: [] }) }));
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ date: '2026-09-25', users: [] }),
+    }));
     vi.stubGlobal('fetch', fetchMock);
     await api.summary('2026-09-25', 'ana & joão');
     const url = new URL(fetchMock.mock.calls[0][0]);
@@ -19,30 +22,106 @@ describe('cliente da API', () => {
 
   it('informa erro HTTP sem ler o corpo da resposta', async () => {
     const json = vi.fn();
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 403, json })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 403, json })),
+    );
     await expect(api.users()).rejects.toThrow('API respondeu 403');
-    expect(json).not.toHaveBeenCalled();
+    expect(json).toHaveBeenCalledOnce();
+  });
+
+  it('preserva status e detail do FastAPI', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        json: async () => ({ detail: 'Regra não encontrada' }),
+      })),
+    );
+    await expect(api.users()).rejects.toMatchObject({
+      name: 'ApiError',
+      type: 'client',
+      status: 404,
+      statusText: 'Not Found',
+      detail: 'Regra não encontrada',
+      message: 'Regra não encontrada',
+    });
+  });
+
+  it('identifica validação, erro de servidor, rede e JSON inválido', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: false,
+        status: 422,
+        json: async () => ({ detail: [{ msg: 'valor inválido' }] }),
+      })),
+    );
+    await expect(api.users()).rejects.toMatchObject({ type: 'client', message: 'valor inválido' });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 503, json: async () => ({}) })),
+    );
+    await expect(api.users()).rejects.toMatchObject({ type: 'server', status: 503 });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new TypeError('Failed to fetch');
+      }),
+    );
+    await expect(api.users()).rejects.toMatchObject({
+      type: 'network',
+      message: 'Não foi possível conectar à API',
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => {
+          throw new SyntaxError('JSON');
+        },
+      })),
+    );
+    await expect(api.users()).rejects.toMatchObject({ type: 'invalid-response' });
   });
 
   it('cancela uma consulta ao receber um sinal externo', async () => {
-    vi.stubGlobal('fetch', vi.fn((_url, { signal }) => new Promise((_resolve, reject) => {
-      signal.addEventListener('abort', () => reject(signal.reason), { once: true });
-    })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url, { signal }) =>
+          new Promise((_resolve, reject) => {
+            signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+          }),
+      ),
+    );
     const controller = new AbortController();
-    const pending = expect(api.users(controller.signal)).rejects.toThrow('substituída');
+    const pending = expect(api.users(controller.signal)).rejects.toMatchObject({
+      type: 'canceled',
+      message: 'Consulta substituída',
+    });
     controller.abort(new Error('Consulta substituída'));
     await pending;
   });
 
   it('mantém timeout ativo até terminar de ler o corpo', async () => {
     vi.useFakeTimers();
-    vi.stubGlobal('fetch', vi.fn(async (_url, { signal }) => ({
-      ok: true,
-      json: () => new Promise((_resolve, reject) => {
-        signal.addEventListener('abort', () => reject(signal.reason), { once: true });
-      }),
-    })));
-    const pending = expect(api.users()).rejects.toThrow('Tempo de resposta');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url, { signal }) => ({
+        ok: true,
+        json: () =>
+          new Promise((_resolve, reject) => {
+            signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+          }),
+      })),
+    );
+    const pending = expect(api.users()).rejects.toMatchObject({
+      type: 'timeout',
+      message: 'Tempo de resposta da API esgotado',
+    });
     await vi.advanceTimersByTimeAsync(15000);
     await pending;
     expect(vi.getTimerCount()).toBe(0);
@@ -66,11 +145,16 @@ describe('cliente da API', () => {
   });
 
   it('rejects an HTML response in place of a CSV export', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => ({
-      ok: true,
-      headers: { get: () => 'text/html; charset=utf-8' },
-      blob: vi.fn(),
-    })));
-    await expect(api.exportFile('csv', '2026-09-25')).rejects.toThrow('Formato de resposta inválido');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        headers: { get: () => 'text/html; charset=utf-8' },
+        blob: vi.fn(),
+      })),
+    );
+    await expect(api.exportFile('csv', '2026-09-25')).rejects.toThrow(
+      'Formato de resposta inválido',
+    );
   });
 });

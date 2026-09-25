@@ -39,7 +39,7 @@ Este documento descreve o código executado atualmente em `FrontEnd/`. [Funciona
 | `GET /config/` | Nenhum | `{ capture_interval_seconds, idle_timeout_seconds, updated_at? }` | Configurações |
 | `PUT /config/` | JSON com os dois inteiros positivos | Mesmo objeto de configuração | Configurações |
 
-`api.js` rejeita HTTP não bem sucedido com o código de status, usa timeout de 15 segundos inclusive durante a leitura do corpo e aceita um `AbortSignal` externo por chamada. A data de resumo/exportação precisa ser uma data real em `AAAA-MM-DD`. O download aceita apenas `csv`/`pdf`; se o servidor informar um tipo de conteúdo diferente do esperado, rejeita a resposta. `ReportsPage` também rejeita blob vazio. JSON malformado ou estruturas inesperadas são tratados como indisponibilidade pelas páginas/hook, conforme a fonte.
+`api.js` produz `ApiError` com `type`, `status`, `statusText`, `detail` e `cause`. O corpo JSON de falhas HTTP é lido para exibir `detail` do FastAPI; sem `detail`, a mensagem usa o status. `type` distingue `client` (4xx), `server` (5xx), `network`, `timeout`, `canceled` e `invalid-response`. Detalhes de validação em lista são resumidos pelas mensagens `msg`; o texto exibido é limitado a 500 caracteres. O timeout de 15 segundos cobre inclusive a leitura do corpo, e cada chamada aceita `AbortSignal` externo. A data de resumo/exportação precisa ser real em `AAAA-MM-DD`. O download aceita apenas `csv`/`pdf`, valida o tipo de conteúdo e `ReportsPage` rejeita blob vazio.
 
 Não há cabeçalho de autenticação, cookie de sessão administrado pela aplicação, cache persistente de dados da API nem endpoint criado localmente. O backend também expõe categorias e regras, mas a interface atual não as consome: essas categorias não equivalem a aplicações produtivas de uma task.
 
@@ -49,7 +49,7 @@ Não há cabeçalho de autenticação, cookie de sessão administrado pela aplic
 2. O hook cancela a consulta anterior, incrementa um identificador de sequência e solicita resumo, usuários e realtime em paralelo com `Promise.allSettled`.
 3. `validSummary`, `validUsers` e `validRealtime` verificam a estrutura necessária à interface. O resumo também precisa corresponder à data solicitada. Cada fonte recebe sua própria flag em `availability`.
 4. Mudança de filtro limpa os dados anteriores. Uma atualização do mesmo filtro mantém os dados durante `refreshing`. Uma resposta cancelada ou de sequência antiga não substitui a atual.
-5. Se alguma fonte falhar ou vier inválida, aparece alerta genérico e apenas a parte dependente dessa fonte fica indisponível. Lista vazia válida permanece distinta de falha. `updatedAt` indica a última consulta em que ao menos uma fonte foi válida.
+5. Se alguma fonte falhar ou vier inválida, `requestFailure` compõe um alerta com a fonte e o motivo; apenas a parte dependente dessa fonte fica indisponível. Lista vazia válida permanece distinta de falha. `updatedAt` indica a última consulta em que ao menos uma fonte foi válida.
 6. Há atualização manual e consulta a cada 30 segundos enquanto a aba está visível. Ao voltar para a aba, ocorre atualização imediata. O intervalo e o listener são limpos quando o hook desmonta.
 
 `deriveTeam` une `/users/` com `/activities/realtime` por `username`. O backend devolve `online` ou `ausente` somente para usuários com leitura nos últimos 15 minutos. Para usuário cadastrado sem entrada nessa janela, o frontend deriva `offline` e apresenta “Sem leitura recente”. Isso não comprova desconexão do agente. O filtro de data afeta somente `/dashboard/summary`; o filtro de usuário é enviado ao resumo e aplicado localmente à lista de última atividade. `categoryTotals` soma a duração de cada categoria dos usuários presentes no resumo; não há cálculo de produtividade por task.
@@ -58,13 +58,17 @@ Não há cabeçalho de autenticação, cookie de sessão administrado pela aplic
 
 - **Colaboradores:** consulta usuários e realtime em paralelo, valida cada resposta e permite tentar novamente. Se apenas realtime falhar, a lista de usuários ainda aparece com última atividade indisponível. Uma nova consulta cancela a anterior; saída da página também cancela.
 - **Configurações:** lê antes de exibir o formulário. Os dois valores precisam ser inteiros positivos seguros tanto na resposta de leitura quanto na de gravação. Durante o `PUT`, campos e botão são desabilitados; uma resposta inválida não produz sucesso. Há retry da leitura e cancelamento da operação ao sair.
-- **Relatórios:** lê usuários para preencher o filtro opcional. Falha nessa lista preserva a exportação geral. Cada download usa o filtro selecionado, impede outro download simultâneo, cancela ao sair e cria temporariamente uma URL de objeto para salvar `resumo_<data>.csv` ou `.pdf`.
+- **Relatórios:** lê usuários para preencher o filtro opcional. Falha nessa lista mostra o motivo e permite retry, preservando a exportação geral. Cada download usa o filtro selecionado, impede outro download simultâneo, cancela ao sair e cria temporariamente uma URL de objeto para salvar `resumo_<data>.csv` ou `.pdf`.
 
 ## Interface, acessibilidade e responsividade
 
 O layout usa `sm`, `lg` e `xl` do Tailwind. O menu lateral fixo aparece no desktop; no mobile, o botão abre um diálogo com foco inicial, ciclo de Tab, fechamento por Escape ou clique externo, bloqueio da rolagem do fundo e restauração do foco. O link “Pular para o conteúdo principal” foca o `<main>` sem trocar o hash. Filtros têm labels; erros usam `role="alert"`, carregamento usa `role="status"`, e tabelas largas têm `caption` e contêiner focalizável para rolagem horizontal. `index.css` oferece foco visível e respeita `prefers-reduced-motion`.
 
-Esses recursos têm testes automatizados, mas contraste, zoom, leitor de tela e comportamento visual em navegador ainda requerem inspeção manual. Consulte [Testes](TESTES.md).
+Playwright executa os fluxos principais no Chrome, testa larguras de 375 a 1920 px e ampliação CSS de 200%; axe-core verifica violações WCAG detectáveis automaticamente em quatro telas e no menu móvel escuro. O painel recebeu `min-w-0` para conter a tabela rolável no mobile; textos secundários e links escuros receberam contraste maior. Leitor de tela, zoom nativo e backend real ainda exigem inspeção. Consulte [Testes](TESTES.md).
+
+## Qualidade automatizada
+
+`eslint.config.js` combina regras de JavaScript, React, Hooks e JSX a11y. `react/prop-types` fica desativada porque o projeto não usa PropTypes, `react-hooks/set-state-in-effect` porque a leitura inicial ocorre em efeitos, e `jsx-a11y/no-noninteractive-tabindex` porque os contêineres das tabelas precisam receber foco para rolagem por teclado. Prettier formata código e configuração; `.prettierignore` exclui documentação e arquivos gerados. `vitest.config.js` inclui apenas testes em `src`, separando-os do Playwright. O script `e2e/run.mjs` gera o build, sobe o preview local, executa Chrome e encerra o servidor. `e2e/real-api.spec.js` só roda com `RUN_REAL_API=1` e FastAPI disponível. Consulte [Alterações](ALTERACOES.md) para o inventário dos arquivos.
 
 ## Código preservado fora do caminho atual
 

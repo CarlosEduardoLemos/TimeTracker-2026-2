@@ -1,4 +1,4 @@
-import { Component } from "react";
+import { Component } from 'react';
 
 /**
  * Última barreira de proteção da interface.
@@ -20,7 +20,7 @@ export class ErrorBoundary extends Component {
   componentDidCatch(error, errorInfo) {
     // Exceções podem incluir dados recebidos da API; detalhes ficam no desenvolvimento.
     if (import.meta.env.DEV) {
-      console.error("Erro inesperado na interface do TimeTracker.", error, errorInfo);
+      console.error('Erro inesperado na interface do TimeTracker.', error, errorInfo);
     }
   }
 

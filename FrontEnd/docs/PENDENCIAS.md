@@ -11,7 +11,7 @@ Nenhuma das ações desta seção pode ser concluída com segurança apenas alte
 | Alta | `AuthPage`, `App` e todas as páginas não identificam um gestor | Cadastro, login, sessão e autorização de leituras e escritas no servidor | Não há como conferir identidade ou isolar dados com uma senha apenas no navegador |
 | Alta | `DashboardPage`, `CollaboratorsPage` e `ReportsPage` consomem usuários globais | Associação do colaborador ao gestor, código de associação previsto em RF-03/RF-04 e consultas restritas ao gestor autenticado | `/users/` devolve todos os usuários; filtro local não é controle de acesso |
 | Alta | `TasksPage` não lista, cria nem edita tasks (RF-06/RF-11) | Persistência e contratos para descrição, colaboradores associados, aplicações do escopo e autorização | Não há modelo/rota de task nem associação de atividade a task no backend atual |
-| Alta | Painel não mostra task ativa, tempo produtivo, ranking, horas extras ou timeline RF-27 | Registros e consultas por task com início/fim, estado ativo/inativo, aplicação, classificação de escopo e jornada | `DailySummaryResponse` só contém data, usuário, total e categoria; métricas adicionais seriam inventadas |
+| Alta | Painel não mostra task ativa, tempo produtivo, horas extras ou timeline RF-27 | Registros e consultas por task com início/fim, estado ativo/inativo, aplicação, classificação de escopo e jornada | `DailySummaryResponse` só contém data, usuário, total e categoria; métricas adicionais seriam inventadas. O frontend não deve exibir rankings, notas ou comparações entre colaboradores. |
 | Alta | Qualquer página pode solicitar dados globais e `PUT /config/` não exige gestor | Autenticação/autorização das rotas existentes; política CORS adequada ao ambiente | Segurança de consulta/gravação precisa ser imposta no servidor; ocultar botão no frontend não protege a API |
 | Média | `SettingsPage` edita apenas valores globais, enquanto RF-20/RF-21 exigem parâmetros por colaborador | Contratos de jornada e limite de inatividade associados ao colaborador | O objeto `/config/` contém somente dois inteiros globais |
 | Média | Status de atividade no painel não acompanha o limite salvo em `SettingsPage` | `crud.get_realtime_view` precisa usar a configuração apropriada; hoje usa `MAX_IDLE_SECONDS` da configuração do processo | Atualizar o formulário não altera o cálculo do backend |
@@ -34,16 +34,15 @@ Essas observações foram feitas por leitura; não houve alteração, migração
 
 | Prioridade | Local | Trabalho recomendado | Condição para executar |
 | --- | --- | --- | --- |
-| Média | Telas ativas e `src/index.css` | Verificar visualmente foco, contraste, zoom, rolagem horizontal, telas baixas e layout mobile/tablet/desktop | Navegador real e tamanhos de tela definidos |
-| Média | `ReportsPage`, `SettingsPage`, `CollaboratorsPage` | Executar fluxos reais com API disponível e indisponível; conferir download, erros de rede, atualização e retry | Ambiente de integração com backend e dados reais |
+| Média | Telas ativas e `src/index.css` | Fazer inspeção humana com leitor de tela, teclado e zoom nativo de 200%, inclusive em dispositivos reais. Playwright já verificou foco do menu, ampliação CSS, contraste com axe-core e larguras 375/390/768/1366/1920 px. | Leitor de tela e navegadores/dispositivos adicionais disponíveis |
+| Média | `e2e/real-api.spec.js` e telas com API | Executar fluxo de leitura real contra FastAPI e conferir CORS, conteúdo de CSV/PDF, quedas/reinício e dados reais. O teste está pronto e opt-in; `http://localhost:8000/config/` não respondeu neste ambiente. | FastAPI e banco em execução com dados de teste; `RUN_REAL_API=1` |
 | Média | `FrontEnd` como aplicação instalável | Decidir se o “Dashboard PWA” dos requisitos exige instalação e funcionamento offline. Atualmente não há manifest nem service worker | Definir comportamento desejado; não simular dados offline sem contrato/política |
-| Média | Testes automatizados | Cobrir diretamente lista/erro/retry de Colaboradores e validações/salvamento de Configurações conforme mudanças futuras | Usar casos comportamentais relevantes; não ampliar apenas percentual |
+| Média | `src/pages/CollaboratorsPage.jsx`, `SettingsPage.jsx` | Ampliar testes diretos de resposta antiga, validação e salvamento apenas quando esses fluxos mudarem. Playwright já cobre retry de Colaboradores e GET/PUT de Configurações. | Mudança funcional que justifique nova regressão |
 | Baixa | Código preservado sem consumidor em `src/components`, `useAutoRefresh` e utilitários auxiliares | Reutilizar ou remover após definir quais visualizações futuras terão dados reais | Contratos e desenho das telas futuras esclarecidos |
-| Baixa | Qualidade de código | Avaliar ESLint/formatador e script específico; atualizar `package-lock.json` junto com qualquer dependência | Ganho de manutenção justificado e instalação disponível |
 
 ### Ordem sugerida
 
-1. Concluir verificação manual de navegação e acessibilidade.
+1. Concluir inspeção com leitor de tela, zoom nativo e integração com FastAPI real.
 2. No backend, definir autenticação/autorização e associação de equipe antes de integrar fluxos de gestor.
 3. Definir contratos de task e registros por task; só então implementar criação, seleção e métricas de produtividade.
 4. Definir jornada e relatórios completos; integrar filtros e exportação com testes de fluxo.

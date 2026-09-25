@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../services/api';
 import { validRealtime, validSummary, validUsers } from '../utils/dashboard';
+import { requestFailure } from '../utils/requestFailure';
 
 const initial = { loading: true, refreshing: false, error: null, data: null, updatedAt: null };
 
@@ -18,7 +19,7 @@ export function useDashboardData(date, username) {
     const query = `${date}|${username}`;
     const changed = previousQuery.current !== query;
     previousQuery.current = query;
-    setState(previous => ({
+    setState((previous) => ({
       ...previous,
       data: changed ? null : previous.data,
       updatedAt: changed ? null : previous.updatedAt,
@@ -33,14 +34,24 @@ export function useDashboardData(date, username) {
     ]);
     if (controller.signal.aborted || current !== sequence.current) return;
     const availability = {
-      summary: summary.status === 'fulfilled' && validSummary(summary.value) && summary.value.date === date,
+      summary:
+        summary.status === 'fulfilled' &&
+        validSummary(summary.value) &&
+        summary.value.date === date,
       users: users.status === 'fulfilled' && validUsers(users.value),
       realtime: realtime.status === 'fulfilled' && validRealtime(realtime.value),
     };
-    setState(previous => ({
+    setState((previous) => ({
       loading: false,
       refreshing: false,
-      error: Object.values(availability).some(value => !value) ? 'Alguns dados estão temporariamente indisponíveis.' : null,
+      error:
+        [
+          requestFailure(summary, availability.summary, 'Resumo'),
+          requestFailure(users, availability.users, 'Usuários'),
+          requestFailure(realtime, availability.realtime, 'Atividade'),
+        ]
+          .filter(Boolean)
+          .join('; ') || null,
       data: {
         summary: availability.summary ? summary.value : null,
         users: availability.users ? users.value : [],
@@ -53,7 +64,9 @@ export function useDashboardData(date, username) {
 
   useEffect(() => {
     load();
-    const refreshVisible = () => { if (!document.hidden) load(); };
+    const refreshVisible = () => {
+      if (!document.hidden) load();
+    };
     const interval = setInterval(refreshVisible, 30000);
     document.addEventListener('visibilitychange', refreshVisible);
     return () => {

@@ -17,7 +17,13 @@ npm.cmd run dev
 
 ```powershell
 npm.cmd test
+npm.cmd run lint
+npm.cmd run format:check
 npm.cmd run build
+$env:PLAYWRIGHT_CHANNEL = 'chrome' # Chrome local; omita se instalou o Chromium do Playwright
+npm.cmd run test:e2e
 ```
 
-As telas disponíveis e seus limites estão em [Funcionalidades](docs/FUNCIONALIDADES.md). A [Arquitetura](docs/ARQUITETURA.md) descreve o fluxo de dados; [Auditoria](docs/AUDITORIA.md), [Pendências](docs/PENDENCIAS.md) e [Testes](docs/TESTES.md) registram decisões e validação desta revisão.
+`npm.cmd run format` aplica Prettier. Para usar o Chromium gerenciado, execute `npx playwright install chromium` antes dos testes E2E. Um teste separado consulta FastAPI real: inicie API e banco, defina `RUN_REAL_API=1` e execute `npm.cmd run test:e2e:real`; consulte [Testes](docs/TESTES.md) para o preparo.
+
+As telas disponíveis e seus limites estão em [Funcionalidades](docs/FUNCIONALIDADES.md). A [Arquitetura](docs/ARQUITETURA.md) descreve o fluxo de dados; [Alterações](docs/ALTERACOES.md), [Auditoria](docs/AUDITORIA.md), [Pendências](docs/PENDENCIAS.md) e [Testes](docs/TESTES.md) registram decisões e validação.
