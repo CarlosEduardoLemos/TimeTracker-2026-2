@@ -3,6 +3,26 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Sidebar } from "./Sidebar";
 
 describe("Sidebar", () => {
+  it("closes the mobile menu and releases scrolling on history navigation", () => {
+    render(<Sidebar activeSection="painel" />);
+    const previousOverflow = document.body.style.overflow;
+    const openButton = screen.getByRole("button", { name: "Abrir menu" });
+    fireEvent.click(openButton);
+    fireEvent(window, new HashChangeEvent("hashchange"));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(document.body.style.overflow).toBe(previousOverflow);
+    expect(openButton).toHaveFocus();
+  });
+
+  it("recovers keyboard focus if it moves outside the open dialog", () => {
+    render(<Sidebar activeSection="painel" />);
+    const openButton = screen.getByRole("button", { name: "Abrir menu" });
+    fireEvent.click(openButton);
+    openButton.focus();
+    fireEvent.keyDown(window, { key: "Tab" });
+    expect(screen.getByRole("button", { name: "Fechar menu" })).toHaveFocus();
+  });
+
   it("restores focus when navigation closes the mobile menu", () => {
     render(<Sidebar activeSection="painel" />);
     const openButton = screen.getByRole("button", { name: "Abrir menu" });

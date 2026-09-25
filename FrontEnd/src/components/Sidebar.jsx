@@ -32,6 +32,11 @@ export function Sidebar({ activeSection, items = defaultNavItems }) {
     document.body.style.overflow = "hidden";
     closeButtonRef.current?.focus();
 
+    const closeOnNavigation = () => {
+      setMobileOpen(false);
+      openButtonRef.current?.focus();
+    };
+
     const onKeyDown = (event) => {
       if (event.key === "Escape") {
         setMobileOpen(false);
@@ -50,7 +55,10 @@ export function Sidebar({ activeSection, items = defaultNavItems }) {
       const firstElement = focusableElements[0];
       const lastElement = focusableElements.at(-1);
 
-      if (event.shiftKey && document.activeElement === firstElement) {
+      if (!mobilePanelRef.current?.contains(document.activeElement)) {
+        event.preventDefault();
+        firstElement.focus();
+      } else if (event.shiftKey && document.activeElement === firstElement) {
         event.preventDefault();
         lastElement.focus();
       } else if (!event.shiftKey && document.activeElement === lastElement) {
@@ -60,8 +68,10 @@ export function Sidebar({ activeSection, items = defaultNavItems }) {
     };
 
     window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("hashchange", closeOnNavigation);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("hashchange", closeOnNavigation);
       document.body.style.overflow = previousOverflow;
     };
   }, [mobileOpen]);

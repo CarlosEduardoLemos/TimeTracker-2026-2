@@ -18,7 +18,10 @@ export class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("Erro inesperado na interface do TimeTracker.", error, errorInfo);
+    // Exceções podem incluir dados recebidos da API; detalhes ficam no desenvolvimento.
+    if (import.meta.env.DEV) {
+      console.error("Erro inesperado na interface do TimeTracker.", error, errorInfo);
+    }
   }
 
   render() {

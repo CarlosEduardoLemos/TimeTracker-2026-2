@@ -2,9 +2,9 @@ import { API_STATUS_LABELS } from "../constants/ui";
 import { safeIsoDate } from "../utils/dashboard";
 
 function getStatusTone(apiStatus) {
-  if (apiStatus === "online") return "text-emerald-600";
+  if (apiStatus === "online") return "text-emerald-700 dark:text-emerald-400";
   if (apiStatus === "offline") return "text-red-600 dark:text-red-300";
-  return "text-amber-600";
+  return "text-amber-700 dark:text-amber-400";
 }
 
 export function Header({

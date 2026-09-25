@@ -2,8 +2,9 @@
 
 Documentação técnica da aplicação React em `FrontEnd/src/`.
 
-Ponto de entrada: [README principal](../README.md). Organização e validação mais
-recentes: [relatório de 25/09/2026](RELATORIO-AUDITORIA-FRONTEND.md).
+Ponto de entrada: [README principal](../README.md). Revisão mais recente:
+[auditoria completa de 25/09/2026](AUDITORIA-COMPLETA-2026-09-25.md).
+Organização anterior: [relatório de 25/09/2026](RELATORIO-AUDITORIA-FRONTEND.md).
 
 | Documento | Conteúdo |
 | --- | --- |

@@ -43,7 +43,7 @@ export function PeopleCard({ realtimePeople = [], loading = false, unavailable =
         <table className="w-full min-w-[720px] border-collapse text-left">
           <caption className="sr-only">Status atual da equipe</caption>
           <thead>
-            <tr className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-400 dark:bg-slate-800">
+            <tr className="bg-slate-50 text-[10px] uppercase tracking-wide text-muted dark:bg-slate-800">
               <th scope="col" className="px-5 py-2.5">Colaborador</th>
               <th scope="col" className="px-5 py-2.5">Status</th>
               <th scope="col" className="px-5 py-2.5">Task ativa</th>
@@ -71,7 +71,7 @@ export function PeopleCard({ realtimePeople = [], loading = false, unavailable =
                   <td className="px-5 py-3">
                     <span
                       className={`flex items-center gap-1.5 font-bold ${
-                        person.isOnline ? "text-emerald-600" : "text-amber-600"
+                        person.isOnline ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"
                       }`}
                     >
                       <i className="status-dot" aria-hidden="true" />

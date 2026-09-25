@@ -31,7 +31,14 @@ Tailwind CSS é a base visual. `src/index.css` contém variáveis, classes reuti
 
 - foco visível global não deve ser removido;
 - controles somente com ícone exigem nome acessível;
-- drawer mobile suporta `Escape`, retorno de foco ao fechar por botão/link e bloqueio da rolagem ao fundo;
+- drawer mobile suporta `Escape`, retorno de foco ao fechar por botão/link/histórico e bloqueio da rolagem ao fundo;
 - estados de integração/erro usam texto, não somente cor;
 - `prefers-reduced-motion` reduz animações/transições;
 - gráficos devem possuir contexto textual e não depender exclusivamente de cor para transmitir significado.
+
+## Contraste (revisão de 25/09/2026)
+
+O token `muted` usa `--muted`: #475569 no tema claro e #94a3b8 no escuro.
+Cabeçalhos secundários, placeholders e eixo do gráfico usam esse token. Status
+verde/âmbar usam tons 700 no claro e 400 no escuro. A revisão corrigiu combinações
+de texto abaixo de 4,5:1; a validação completa de estados exige navegador real.

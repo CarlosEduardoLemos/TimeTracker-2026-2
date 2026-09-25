@@ -13,7 +13,7 @@ O projeto é responsável pela interface utilizada no gerenciamento e visualiza�
 | **React**            |     18.2.0 | Construção da interface e componentes da aplicação         |
 | **React DOM**        |     18.2.0 | Renderização da aplicação React no navegador               |
 | **JavaScript / JSX** | ES Modules | Desenvolvimento dos componentes, páginas, hooks e serviços |
-| **Vite**             |     5.4.21 | Servidor de desenvolvimento e build da aplicação           |
+| **Vite**             |     6.4.3 | Servidor de desenvolvimento e build da aplicação           |
 | **Tailwind CSS**     |     3.4.17 | Estilização e responsividade                               |
 | **Recharts**         |     2.10.3 | Construção de gráficos e visualizações                     |
 | **PostCSS**          |     8.5.28 | Processamento dos arquivos CSS                             |
@@ -23,12 +23,12 @@ O projeto é responsável pela interface utilizada no gerenciamento e visualiza�
 
 | Tecnologia                | Versão | Utilização                                |
 | ------------------------- | -----: | ----------------------------------------- |
-| **Vitest**                |  3.2.7 | Execução dos testes automatizados         |
+| **Vitest**                |  4.1.11 | Execução dos testes automatizados         |
 | **React Testing Library** | 16.3.0 | Testes dos componentes React              |
 | **Jest DOM**              |  6.8.0 | Matchers adicionais para validação do DOM |
 | **User Event**            | 14.6.1 | Simulação de interações do usuário        |
 | **jsdom**                 | 26.1.0 | Simulação do ambiente de navegador        |
-| **V8 Coverage**           |  3.2.7 | Cobertura dos testes                      |
+| **V8 Coverage**           |  4.1.11 | Cobertura dos testes                      |
 
 ---
 
@@ -129,7 +129,7 @@ manual reconsulta os sete dias para recuperar registros sincronizados com atraso
 
 Para executar o frontend localmente:
 
-* Node.js 20 ou superior
+* Node.js 20.x, 22.x ou 24+ (compatibilidade das ferramentas; validado com 24.18.0)
 * npm
 
 ---
@@ -296,3 +296,15 @@ O Vite usa a porta 5173 e pode escolher outra se estiver ocupada (`strictPort: f
 Não há proxy de API: o navegador chama `VITE_API_URL` diretamente. O build gera
 `dist/`, sem sourcemaps, com chunks de gráficos e React. O projeto não configura
 service worker, manifest PWA, lint, formatter executável ou pipeline CI/CD.
+
+## Revisão completa de segurança e qualidade
+
+Consulte [a auditoria completa de 25/09/2026](docs/AUDITORIA-COMPLETA-2026-09-25.md)
+para os achados classificados, alterações e validação desta revisão. As ferramentas
+foram atualizadas para Vite 6.4.3, plugin React 4.7.0 e Vitest/coverage 4.1.11
+para corrigir advisories; as dependências de execução React/Recharts foram preservadas.
+
+Arquivos `.env.*` são ignorados, exceto `.env.example`. O ErrorBoundary registra
+detalhes somente em desenvolvimento. O menu mobile fecha também ao navegar pelo
+histórico, liberando a rolagem. No PowerShell com scripts bloqueados, use `npm.cmd`
+nos comandos acima.

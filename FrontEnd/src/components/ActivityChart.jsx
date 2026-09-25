@@ -67,7 +67,7 @@ export function ActivityChart({ weeklySummaries = [], loading = false, unavailab
                   dataKey="day"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "#8d91a1", fontSize: 11 }}
+                  tick={{ fill: "var(--muted)", fontSize: 11 }}
                 />
                 <YAxis hide domain={[0, Math.ceil(chartMaximum)]} />
                 <Tooltip

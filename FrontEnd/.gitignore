@@ -69,9 +69,8 @@ bld/
 # ============================================================================
 
 .env
-.env.local
-.env.*.local
-.env.production
+.env.*
+!.env.example
 
 # Configurações de IDE
 .vscode/
