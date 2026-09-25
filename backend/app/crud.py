@@ -8,7 +8,9 @@ from dotenv import load_dotenv
 from . import models, schemas
 from .utils import MAX_IDLE_SECONDS
 
-REALTIME_WINDOW_MINUTES = 15  # janela considerada "ativa" no painel
+REALTIME_DISPLAY_WINDOW_HOURS = 24  # até quando um colaborador some da lista por falta de dados
+IDLE_AFTER_SECONDS = 300     # >5min sem novo evento -> "ausente"
+OFFLINE_AFTER_SECONDS = 900  # >15min sem novo evento -> "offline" (mas ainda aparece na lista)
 
 # Users
 def get_or_create_user(db: Session, username: str) -> models.User:
@@ -174,45 +176,47 @@ def create_activity_log(
 
 # Realtime View
 def get_realtime_view(db: Session) -> list[schemas.RealtimeEntry]:
-    cutoff = (
+    display_cutoff = (
         datetime.now(timezone.utc)
-        - timedelta(minutes=REALTIME_WINDOW_MINUTES)
+        - timedelta(hours=REALTIME_DISPLAY_WINDOW_HOURS)
     )
-
-    # Last user activity
+    
+    # Última atividade de cada usuário (subquery pelo maior captured_at)
     latest_ids = (
         db.query(
             models.ActivityLog.user_id,
-            func.max(models.ActivityLog.captured_at)
-                .label("last_captured_at"),
-          )
-          .filter(models.ActivityLog.captured_at >= cutoff)
-          .group_by(models.ActivityLog.user_id)
-          .subquery()
+            func.max(models.ActivityLog.captured_at).label("last_captured_at"),
+        )
+        .filter(models.ActivityLog.captured_at >= display_cutoff)
+        .group_by(models.ActivityLog.user_id)
+        .subquery()
     )
 
     rows = (
         db.query(models.ActivityLog, models.User, models.Category)
-          .join(latest_ids, and_(
+        .join(latest_ids, and_(
             models.ActivityLog.user_id == latest_ids.c.user_id,
             models.ActivityLog.captured_at == latest_ids.c.last_captured_at,
-          ))
-          .join(models.User, models.User.id == models.ActivityLog.user_id)
-          .outerjoin(models.Category,
-                     models.Category.id == models.ActivityLog.category_id
-          )
-          .all()
+        ))
+        .join(models.User, models.User.id == models.ActivityLog.user_id)
+        .outerjoin(models.Category, 
+                   models.Category.id == models.ActivityLog.category_id)
+        .all()
     )
 
     now = datetime.now(timezone.utc)
+
     result = []
 
     for log, user, category in rows:
         seconds_since = int((now - log.captured_at).total_seconds())
-        status = (
-            "ausente" if (log.is_idle or seconds_since > MAX_IDLE_SECONDS)
-            else "online"
-        )
+
+        if log.is_idle or seconds_since > OFFLINE_AFTER_SECONDS:
+            status = "offline"
+        elif seconds_since > IDLE_AFTER_SECONDS:
+            status = "ausente"
+        else:
+            status = "online"
 
         result.append(
             schemas.RealtimeEntry(
