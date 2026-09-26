@@ -3,15 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --brand: #6956e9;
-  --page: #f7f8fc;
-  --muted: #475569;
+  color-scheme: light;
+  --brand: #5b4be0;
+  --page: #f6f7fb;
+  --ink: #20233b;
+  --muted: #596579;
+  --line: #e6e8f0;
+  --focus: #6956e9;
 }
 
 [data-theme='dark'] {
   color-scheme: dark;
   --page: #020617;
+  --ink: #f8fafc;
   --muted: #94a3b8;
+  --line: #334155;
 }
 
 * { box-sizing: border-box; }
@@ -21,14 +27,17 @@ html {
   background: var(--page);
 }
 
+#root { min-height: 100vh; }
+
 body {
   margin: 0;
   min-width: 320px;
   background:
     radial-gradient(circle at top right, rgb(105 86 233 / 0.08), transparent 28rem),
     var(--page);
-  color: #20233b;
+  color: var(--ink);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.5;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
@@ -59,10 +68,22 @@ button:disabled { cursor: not-allowed; }
 }
 
 .card {
-  @apply rounded-xl border border-line bg-white p-5 shadow-sm transition-shadow duration-200 dark:border-slate-700 dark:bg-slate-900;
+  @apply rounded-2xl border border-line bg-white p-5 shadow-sm transition-shadow duration-200 dark:border-slate-700 dark:bg-slate-900;
 }
 
 .card:hover { @apply shadow-md; }
+
+.sidebar-link {
+  @apply rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors;
+}
+
+.sidebar-link[aria-current='page'] {
+  @apply bg-indigo-50 text-brand dark:bg-indigo-950/50 dark:text-indigo-300;
+}
+
+.sidebar-link:not([aria-current='page']) {
+  @apply text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white;
+}
 
 .muted { @apply text-slate-600 dark:text-slate-400; }
 
@@ -98,7 +119,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [tabindex='0']:focus-visible {
-  outline: 2px solid var(--brand);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
@@ -113,6 +134,7 @@ textarea:focus-visible,
 @media (max-width: 639px) {
   .card { padding: 1rem; }
   .control { max-width: 100%; }
+  h1 { line-height: 1.2; }
 }
 
 @media (prefers-reduced-motion: reduce) {

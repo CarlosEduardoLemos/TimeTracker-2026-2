@@ -16,20 +16,33 @@ Frontend do **TimeTrack**, responsável pela interface web do Dashboard PWA. A a
 
 ### Interface e visual
 - **Tailwind CSS 3.4.17** — classes utilitárias e composição visual.
-- **CSS global (`src/index.css`)** — tokens visuais, componentes compartilhados, estados de foco, responsividade e preferências de movimento.
+- **CSS global (`src/index.css`)** — tokens de cor, componentes compartilhados, estados de foco, responsividade e suporte a movimento reduzido.
 - **PostCSS 8.5.28** — processamento do CSS.
 - **Autoprefixer 10.4.16** — compatibilidade de propriedades CSS.
 - **Recharts 2.10.3** — gráficos e visualizações do dashboard.
 
+### Recursos do navegador
+- **Fetch API** — chamadas HTTP encapsuladas em `src/services/api.js`.
+- **AbortController** — cancelamento de consultas quando filtros mudam ou páginas são desmontadas.
+- **URLSearchParams** — montagem segura de parâmetros da API.
+- **localStorage e `prefers-color-scheme`** — persistência e detecção da preferência de tema.
+- **Blob e URL de objeto** — download dos relatórios CSV e PDF devolvidos pela API.
+- **Hash da URL (`location.hash`)** — navegação interna, implementada em `src/hooks/useHashRoute.js`.
+
+Não há React Router, biblioteca de formulários, biblioteca de ícones ou gerenciador externo de estado. O estado das telas é mantido com os hooks do React; os ícones usados são SVG inline.
+
 ### Qualidade e testes
 - **Vitest 4.1.11** — testes unitários e de componentes.
+- **@vitest/coverage-v8 4.1.11** — geração de cobertura para Vitest usando V8.
 - **React Testing Library 16.3.0** — renderização e testes de comportamento da interface.
 - **@testing-library/jest-dom 6.8.0** — matchers para DOM.
 - **@testing-library/user-event 14.6.1** — simulação de interações do usuário.
 - **jsdom 26.1.0** — ambiente de navegador para os testes.
 - **Playwright 1.63.0** — testes end-to-end.
 - **@axe-core/playwright 4.13.0** — validações automatizadas de acessibilidade.
+- **@vitejs/plugin-react 4.7.0** — integração de React e JSX com Vite.
 - **ESLint 9.39.5** — análise estática do código.
+- **@eslint/js e globals** — regras base e globais de ambiente para a configuração flat do ESLint.
 - **eslint-plugin-react, eslint-plugin-react-hooks e eslint-plugin-jsx-a11y** — regras específicas para React, hooks e acessibilidade.
 - **Prettier 3.9.9** — formatação padronizada.
 
@@ -52,12 +65,16 @@ FrontEnd/
 ├── .env.example
 ├── index.html
 ├── package.json
-├── tailwind.config.js
+├── package-lock.json     # Lockfile para instalação reproduzível com npm ci
 ├── vite.config.js
-└── vitest.config.js
+├── vitest.config.js
+├── playwright.config.js
+├── tailwind.config.js
+├── postcss.config.js
+└── eslint.config.js
 ```
 
-Testes específicos de componentes permanecem próximos ao código que validam. O teste transversal de revisão do frontend fica em `src/test/`, evitando misturar uma suíte de integração entre os arquivos de páginas.
+Testes específicos de componentes permanecem próximos ao código que validam. O teste transversal de revisão do frontend fica em `src/test/`. Arquivos gerados por build, cobertura e Playwright (`dist/`, `coverage/`, `test-output/` e `test-results/`) são saídas locais e estão no `.gitignore`; não fazem parte da árvore de código-fonte.
 
 ## Executar
 

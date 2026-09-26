@@ -14,18 +14,20 @@ function Navigation({ route, onNavigate }) {
       <a
         href="#/painel"
         onClick={onNavigate}
-        className="text-xl font-extrabold text-ink dark:text-white"
+        className="w-fit text-xl font-extrabold tracking-tight text-ink dark:text-white"
+        aria-label="TimeTrack, ir para o painel"
       >
         time<span className="text-brand">track</span>
       </a>
-      <nav aria-label="Menu principal" className="mt-8 grid gap-1">
+      <p className="mt-1 text-xs muted">Acompanhamento de atividades</p>
+      <nav aria-label="Menu principal" className="mt-8 grid gap-1.5">
         {items.map(([id, label]) => (
           <a
             key={id}
             href={`#/${id}`}
             onClick={onNavigate}
             aria-current={route === id ? 'page' : undefined}
-            className={`rounded-lg px-3 py-3 text-sm font-semibold ${route === id ? 'bg-indigo-50 text-brand dark:bg-indigo-950/50' : 'muted hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+            className="sidebar-link"
           >
             {label}
           </a>
@@ -102,12 +104,14 @@ export function Sidebar({ route, activeSection }) {
       <button
         ref={trigger}
         onClick={() => setOpen(true)}
-        className="fixed left-4 top-4 z-30 h-10 w-10 rounded-lg border bg-white text-slate-900 lg:hidden"
+        className="icon-control fixed left-4 top-4 z-30 bg-white text-slate-900 lg:hidden dark:bg-slate-900 dark:text-white"
         aria-label="Abrir menu"
         aria-expanded={open}
         aria-controls="mobile-menu"
       >
-        ☰
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none">
+          <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="1.8" />
+        </svg>
       </button>
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-line bg-white p-5 dark:border-slate-700 dark:bg-slate-900 lg:flex">
         <Navigation route={selected} />
@@ -130,10 +134,13 @@ export function Sidebar({ route, activeSection }) {
           >
             <button
               onClick={close}
-              className="mb-5 self-end rounded-lg border px-3 py-1 text-sm"
+              className="secondary-button mb-5 self-end"
               aria-label="Fechar menu"
             >
-              Fechar
+              <span>Fechar</span>
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="ml-2 h-4 w-4" fill="none">
+                <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" />
+              </svg>
             </button>
             <Navigation route={selected} onNavigate={close} />
           </aside>
