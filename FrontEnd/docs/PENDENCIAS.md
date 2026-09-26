@@ -213,12 +213,12 @@ As descrições históricas de Sprint 1/2 e EP-01 mencionam dados simulados e mo
 ### F-04 — Componentes preservados sem uso na aplicação ativa — Baixa
 
 - **Problema/requisito:** decidir reaproveitamento/remoção conforme desenho futuro de RF-27, sem implementar visualizações fictícias.
-- **Frontend afetado:** `ActivityChart`, `Header`, `PeopleCard`, `ReportsAndAgent`, `TimelineCard`, `useAutoRefresh` e componentes auxiliares.
+- **Frontend afetado:** `ActivityChart`, `Header`, `PeopleCard`, `ReportsAndAgent`, `useAutoRefresh` e componentes auxiliares.
 - **Backend relacionado:** novas fontes de I-05/I-06 e definições de produto.
 - **Atual/impacto:** fora da árvore ativa; vários possuem consumidores em testes. Busca de imports/entradas confirmou que não são carregados no build atual. Não há ganho de bundle ao removê-los.
 - **Definição necessária:** confirmar visualizações futuras e política de preservação; depois reaproveitar ou remover arquivos e testes que percam finalidade.
 - **Workaround frontend:** componentes, hook, constantes e testes agora estão isolados em `src/legacy/`; continuam sem conexão com a aplicação ativa ou com dados inexistentes.
-- **Motivo do bloqueio:** remover código explicitamente preservado pela auditoria anterior sem decisão sobre seu destino seria mudança sem benefício funcional comprovado.
+- **Motivo do bloqueio:** os arquivos preservados têm consumidores nos testes existentes ou nas dependências dos componentes testados; sua remoção exige decidir também o destino desses testes.
 
 ## Ordem de execução
 

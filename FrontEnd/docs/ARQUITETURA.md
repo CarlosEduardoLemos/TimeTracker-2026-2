@@ -84,7 +84,7 @@ Playwright executa os fluxos principais no Chrome, testa larguras de 375 a 1920 
 
 ## Código preservado fora do caminho atual
 
-`src/legacy/` reúne `ActivityChart`, `Header`, `PeopleCard`, `ReportsAndAgent`, `TimelineCard`, `Card`, `SectionHeading`, `EmptyState`, `useAutoRefresh` e suas constantes de interface. Algumas funções de `shared/lib/dashboard.js` também são usadas apenas por esse código ou seus testes, sem consumidor na árvore ativa de `App`. Eles não comprovam que histórico semanal, timeline, task ativa ou controle de polling por checkbox estejam disponíveis hoje. Permanecem para decisão posterior sobre reutilização; veja [Pendências](PENDENCIAS.md).
+`src/legacy/` reúne `ActivityChart`, `Header`, `PeopleCard`, `ReportsAndAgent`, `Card`, `SectionHeading`, `useAutoRefresh` e suas constantes de interface. Esses arquivos têm consumidores nos testes existentes ou nas dependências dos componentes testados. Algumas funções de `shared/lib/dashboard.js` também são usadas apenas por esse código ou seus testes, sem consumidor na árvore ativa de `App`. Eles não comprovam que histórico semanal, timeline, task ativa ou controle de polling por checkbox estejam disponíveis hoje. Permanecem para decisão posterior sobre reutilização; veja [Pendências](PENDENCIAS.md).
 
 ## Ao alterar um contrato
 
