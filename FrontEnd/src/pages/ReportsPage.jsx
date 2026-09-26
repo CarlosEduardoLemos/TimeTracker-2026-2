@@ -12,6 +12,7 @@ export function ReportsPage() {
   const [usersError, setUsersError] = useState('');
   const [exporting, setExporting] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const activeExport = useRef(null);
   const activeUsers = useRef(null);
 
@@ -44,10 +45,11 @@ export function ReportsPage() {
   }, [loadUsers]);
 
   async function download(format) {
-    if (exporting) return;
+    if (activeExport.current) return;
     const controller = new AbortController();
     activeExport.current = controller;
     setError('');
+    setSuccess('');
     setExporting(format);
     try {
       const blob = await api.exportFile(format, date, username, controller.signal);
@@ -61,9 +63,14 @@ export function ReportsPage() {
       anchor.click();
       anchor.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setSuccess(`Download de ${format.toUpperCase()} iniciado.`);
     } catch (cause) {
-      if (!controller.signal.aborted) setError(`Não foi possível exportar: ${cause.message}`);
+      if (!controller.signal.aborted)
+        setError(
+          `Não foi possível exportar: ${cause instanceof Error ? cause.message : 'Falha desconhecida'}`,
+        );
     } finally {
+      if (activeExport.current === controller) activeExport.current = null;
       if (!controller.signal.aborted) setExporting('');
     }
   }
@@ -85,8 +92,13 @@ export function ReportsPage() {
               className="form-field mt-1"
               value={date}
               max={todayIso()}
+              disabled={!!exporting}
               onChange={(event) => {
-                if (event.target.value) setDate(event.target.value);
+                if (event.target.value) {
+                  setDate(event.target.value);
+                  setError('');
+                  setSuccess('');
+                }
               }}
             />
           </label>
@@ -95,10 +107,17 @@ export function ReportsPage() {
             <select
               className="form-field mt-1"
               value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              disabled={!users}
+              onChange={(event) => {
+                setUsername(event.target.value);
+                setError('');
+                setSuccess('');
+              }}
+              disabled={loadingUsers || !users || !!exporting}
             >
               <option value="">Todos os usuários</option>
+              {username && !(users || []).some((user) => user.username === username) && (
+                <option value={username}>{username} (selecionado)</option>
+              )}
               {(users || []).map((user) => (
                 <option key={user.username} value={user.username}>
                   {user.full_name || user.username}
@@ -107,9 +126,18 @@ export function ReportsPage() {
             </select>
           </label>
         </div>
+        {loadingUsers && (
+          <p role="status" className="mt-3 text-sm muted">
+            Carregando usuários…
+          </p>
+        )}
+        {!loadingUsers && users?.length === 0 && (
+          <p className="mt-3 text-sm muted">Nenhum usuário cadastrado.</p>
+        )}
         {!loadingUsers && !users && (
-          <p role="alert" className="mt-3 text-sm text-amber-800">
-            A lista de usuários não carregou: {usersError}. A exportação geral continua disponível.{' '}
+          <p role="alert" className="mt-3 text-sm text-amber-800 dark:text-amber-200">
+            A lista de usuários não carregou: {usersError}. A exportação com os filtros atuais
+            continua disponível.{' '}
             <button type="button" className="font-semibold underline" onClick={loadUsers}>
               Tentar novamente
             </button>
@@ -137,8 +165,13 @@ export function ReportsPage() {
           </p>
         )}
         {error && (
-          <p role="alert" className="mt-3 text-sm text-red-700">
+          <p role="alert" className="mt-3 text-sm text-red-700 dark:text-red-300">
             {error}
+          </p>
+        )}
+        {success && (
+          <p role="status" className="mt-3 text-sm text-emerald-700 dark:text-emerald-300">
+            {success}
           </p>
         )}
       </section>

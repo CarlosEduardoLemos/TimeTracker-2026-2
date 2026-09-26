@@ -1,3 +1,5 @@
+import { isIsoDate } from '../utils/dashboard';
+
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 const TIMEOUT = 15000;
 
@@ -45,8 +47,14 @@ async function request(path, { signal, ...options } = {}, read = (response) => r
   const abort = () => controller.abort(signal.reason);
   if (signal?.aborted) abort();
   else signal?.addEventListener('abort', abort, { once: true });
-  const timeout = setTimeout(() => controller.abort('timeout'), TIMEOUT);
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    if (controller.signal.aborted) return;
+    timedOut = true;
+    controller.abort();
+  }, TIMEOUT);
   try {
+    controller.signal.throwIfAborted();
     const response = await fetch(`${API_BASE_URL}${path}`, {
       ...options,
       signal: controller.signal,
@@ -54,9 +62,12 @@ async function request(path, { signal, ...options } = {}, read = (response) => r
         ? { 'Content-Type': 'application/json', ...options.headers }
         : options.headers,
     });
+    controller.signal.throwIfAborted();
     if (!response.ok) throw await httpError(response);
     try {
-      return await read(response);
+      const value = await read(response);
+      controller.signal.throwIfAborted();
+      return value;
     } catch (cause) {
       if (
         !controller.signal.aborted &&
@@ -68,7 +79,7 @@ async function request(path, { signal, ...options } = {}, read = (response) => r
     }
   } catch (cause) {
     if (controller.signal.aborted) {
-      if (controller.signal.reason === 'timeout') {
+      if (timedOut) {
         throw new ApiError('Tempo de resposta da API esgotado', { type: 'timeout', cause });
       }
       throw new ApiError(
@@ -92,11 +103,7 @@ async function request(path, { signal, ...options } = {}, read = (response) => r
 }
 
 function summaryPath(date, username = '') {
-  const parsed =
-    typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)
-      ? new Date(`${date}T12:00:00Z`)
-      : null;
-  if (!parsed || Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) {
+  if (!isIsoDate(date)) {
     throw new Error('Selecione uma data válida');
   }
   const query = new URLSearchParams({ date });
@@ -120,7 +127,7 @@ export const api = {
     return request(exportPath(format, date, username), { signal }, (response) => {
       const expectedType = format === 'csv' ? 'text/csv' : 'application/pdf';
       const contentType = response.headers?.get('content-type');
-      if (contentType && !contentType.toLowerCase().startsWith(expectedType)) {
+      if (contentType && contentType.split(';')[0].trim().toLowerCase() !== expectedType) {
         throw new ApiError('Formato de resposta inválido', { type: 'invalid-response' });
       }
       return response.blob();

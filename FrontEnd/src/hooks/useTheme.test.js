@@ -12,6 +12,21 @@ describe('useTheme', () => {
     vi.restoreAllMocks();
   });
 
+  it('continua renderizando e alternando quando o navegador bloqueia armazenamento', () => {
+    window.matchMedia = vi.fn(() => ({ matches: true }));
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new DOMException('Blocked', 'SecurityError');
+    });
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Quota', 'QuotaExceededError');
+    });
+    const { result } = renderHook(() => useTheme());
+    expect(result.current[0]).toBe(true);
+    act(() => result.current[1]());
+    expect(document.documentElement.dataset.theme).toBe('light');
+    expect(document.documentElement).not.toHaveClass('dark');
+  });
+
   it('initializes with false (light) by default when localStorage is empty and system is light', () => {
     window.matchMedia = vi.fn().mockImplementation((query) => ({
       matches: false,

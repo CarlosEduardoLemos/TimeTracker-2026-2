@@ -48,3 +48,23 @@ test('foco do menu e conteúdo continuam acessíveis no mobile escuro', async ({
     })),
   ).toEqual([]);
 });
+
+test('erros e retry da exportação têm contraste acessível no tema escuro', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('timetracker-theme', 'dark'));
+  await page.route('http://localhost:8000/users/', (route) =>
+    route.fulfill({ status: 503, json: { detail: 'Indisponível' } }),
+  );
+  await page.route('http://localhost:8000/dashboard/export/csv?**', (route) =>
+    route.fulfill({ status: 500, json: { detail: 'Falha na exportação' } }),
+  );
+  await page.goto('/#/relatorios');
+  await expect(page.getByRole('alert')).toContainText('A lista de usuários não carregou');
+  await page.getByRole('button', { name: 'Exportar CSV' }).click();
+  await expect(page.getByRole('alert').last()).toContainText('Falha na exportação');
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+    .analyze();
+  expect(
+    results.violations.map(({ id, nodes }) => ({ id, targets: nodes.map(({ target }) => target) })),
+  ).toEqual([]);
+});

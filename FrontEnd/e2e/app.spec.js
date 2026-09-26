@@ -125,7 +125,20 @@ test('baixa CSV e PDF no navegador', async ({ page }) => {
       new RegExp(`^resumo_\\d{4}-\\d{2}-\\d{2}\\.${format.toLowerCase()}$`),
     );
     expect(await download.failure()).toBeNull();
+    await expect(page.getByRole('status')).toHaveText(`Download de ${format} iniciado.`);
   }
+});
+
+test('menu móvel mantém o último link acessível em orientação horizontal', async ({ page }) => {
+  await page.setViewportSize({ width: 667, height: 320 });
+  await page.goto('/#/painel');
+  await page.getByRole('button', { name: 'Abrir menu' }).click();
+  const dialog = page.getByRole('dialog');
+  const account = dialog.getByRole('link', { name: 'Criar conta' });
+  await account.scrollIntoViewIfNeeded();
+  await expect(account).toBeInViewport();
+  await account.click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Criar conta');
 });
 
 test('menu móvel aceita teclado e tema escuro', async ({ page }) => {

@@ -17,7 +17,7 @@ function Navigation({ route, onNavigate }) {
         className="w-fit text-xl font-extrabold tracking-tight text-ink dark:text-white"
         aria-label="TimeTrack, ir para o painel"
       >
-        time<span className="text-brand">track</span>
+        time<span className="text-brand dark:text-indigo-300">track</span>
       </a>
       <p className="mt-1 text-xs muted">Acompanhamento de atividades</p>
       <nav aria-label="Menu principal" className="mt-8 grid gap-1.5">
@@ -113,7 +113,7 @@ export function Sidebar({ route, activeSection }) {
           <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="1.8" />
         </svg>
       </button>
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-line bg-white p-5 dark:border-slate-700 dark:bg-slate-900 lg:flex">
+      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col overflow-y-auto border-r border-line bg-white p-5 dark:border-slate-700 dark:bg-slate-900 lg:flex">
         <Navigation route={selected} />
       </aside>
       {open && (
@@ -130,7 +130,7 @@ export function Sidebar({ route, activeSection }) {
             role="dialog"
             aria-modal="true"
             aria-label="Menu principal mobile"
-            className="flex h-full w-72 max-w-[90vw] flex-col bg-white p-5 dark:bg-slate-900"
+            className="flex h-full w-72 max-w-[90vw] flex-col overflow-y-auto bg-white p-5 dark:bg-slate-900"
           >
             <button
               onClick={close}

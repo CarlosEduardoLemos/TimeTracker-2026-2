@@ -37,11 +37,12 @@ export function useDashboardData(date, username) {
       summary:
         summary.status === 'fulfilled' &&
         validSummary(summary.value) &&
-        summary.value.date === date,
+        summary.value.date === date &&
+        (!username || summary.value.users.every((user) => user.username === username)),
       users: users.status === 'fulfilled' && validUsers(users.value),
       realtime: realtime.status === 'fulfilled' && validRealtime(realtime.value),
     };
-    setState((previous) => ({
+    setState({
       loading: false,
       refreshing: false,
       error:
@@ -58,8 +59,8 @@ export function useDashboardData(date, username) {
         realtime: availability.realtime ? realtime.value : [],
         availability,
       },
-      updatedAt: Object.values(availability).some(Boolean) ? new Date() : previous.updatedAt,
-    }));
+      updatedAt: Object.values(availability).some(Boolean) ? new Date() : null,
+    });
   }, [date, username]);
 
   useEffect(() => {

@@ -7,6 +7,7 @@ Frontend do **TimeTrack**, responsável pela interface web do Dashboard PWA. A a
 ## Tecnologias e recursos
 
 ### Runtime e aplicação
+
 - **React 18.2.0** — biblioteca principal para construção da interface.
 - **React DOM 18.2.0** — renderização da aplicação no navegador.
 - **JavaScript + JSX** — linguagem e sintaxe dos componentes.
@@ -15,6 +16,7 @@ Frontend do **TimeTrack**, responsável pela interface web do Dashboard PWA. A a
 - **React.lazy/Suspense** — carregamento sob demanda das páginas.
 
 ### Interface e visual
+
 - **Tailwind CSS 3.4.17** — classes utilitárias e composição visual.
 - **CSS global (`src/index.css`)** — tokens de cor, componentes compartilhados, estados de foco, responsividade e suporte a movimento reduzido.
 - **PostCSS 8.5.28** — processamento do CSS.
@@ -22,6 +24,7 @@ Frontend do **TimeTrack**, responsável pela interface web do Dashboard PWA. A a
 - **Recharts 2.10.3** — gráficos e visualizações do dashboard.
 
 ### Recursos do navegador
+
 - **Fetch API** — chamadas HTTP encapsuladas em `src/services/api.js`.
 - **AbortController** — cancelamento de consultas quando filtros mudam ou páginas são desmontadas.
 - **URLSearchParams** — montagem segura de parâmetros da API.
@@ -32,6 +35,7 @@ Frontend do **TimeTrack**, responsável pela interface web do Dashboard PWA. A a
 Não há React Router, biblioteca de formulários, biblioteca de ícones ou gerenciador externo de estado. O estado das telas é mantido com os hooks do React; os ícones usados são SVG inline.
 
 ### Qualidade e testes
+
 - **Vitest 4.1.11** — testes unitários e de componentes.
 - **@vitest/coverage-v8 4.1.11** — geração de cobertura para Vitest usando V8.
 - **React Testing Library 16.3.0** — renderização e testes de comportamento da interface.

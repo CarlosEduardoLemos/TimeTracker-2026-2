@@ -16,6 +16,31 @@ beforeEach(() => {
 });
 
 describe('useDashboardData', () => {
+  it('não apresenta o resumo de outro usuário como se correspondesse ao filtro', async () => {
+    api.summary.mockResolvedValue({
+      date: '2026-09-25',
+      users: [{ username: 'bia', total_seconds: 60, by_category: [] }],
+    });
+    const { result } = renderHook(() => useDashboardData('2026-09-25', 'ana'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.data.summary).toBeNull();
+    expect(result.current.error).toContain('Resumo: resposta inválida');
+  });
+
+  it('limpa o horário quando todas as fontes falham e os dados são removidos', async () => {
+    const { result } = renderHook(() => useDashboardData('2026-09-25', ''));
+    await waitFor(() => expect(result.current.updatedAt).toBeInstanceOf(Date));
+    api.summary.mockRejectedValue(new Error('offline'));
+    api.users.mockRejectedValue(new Error('offline'));
+    api.realtime.mockRejectedValue(new Error('offline'));
+    await act(async () => result.current.refresh());
+    expect(result.current.updatedAt).toBeNull();
+    expect(result.current.data.availability).toEqual({
+      summary: false,
+      users: false,
+      realtime: false,
+    });
+  });
   it('carrega as três fontes e registra a atualização', async () => {
     const { result } = renderHook(() => useDashboardData('2026-09-25', ''));
     await waitFor(() => expect(result.current.loading).toBe(false));

@@ -20,6 +20,21 @@ const fullData = {
 beforeEach(() => vi.clearAllMocks());
 
 describe('DashboardPage', () => {
+  it('preserva o filtro visível quando a lista de usuários fica indisponível', () => {
+    useDashboardData.mockReturnValue({ data: fullData, loading: false, refresh: vi.fn() });
+    const { rerender } = render(<DashboardPage />);
+    fireEvent.change(screen.getByLabelText('Usuário'), { target: { value: 'ana' } });
+    useDashboardData.mockReturnValue({
+      data: { ...fullData, users: [], availability: { ...fullData.availability, users: false } },
+      loading: false,
+      error: 'Usuários: offline',
+      refresh: vi.fn(),
+    });
+    rerender(<DashboardPage />);
+    expect(screen.getByLabelText('Usuário')).toHaveValue('ana');
+    expect(screen.getByRole('option', { name: 'ana (selecionado)' })).toBeInTheDocument();
+    expect(useDashboardData.mock.calls.at(-1)[1]).toBe('ana');
+  });
   it('mostra carregamento antes da primeira resposta', () => {
     useDashboardData.mockReturnValue({
       data: null,

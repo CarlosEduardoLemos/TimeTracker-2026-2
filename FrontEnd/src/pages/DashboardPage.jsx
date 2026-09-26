@@ -70,6 +70,9 @@ export function DashboardPage({ dark, toggleTheme }) {
             disabled={!available.users}
           >
             <option value="">Todos os usuários</option>
+            {username && !(data?.users || []).some((user) => user.username === username) && (
+              <option value={username}>{username} (selecionado)</option>
+            )}
             {(data?.users || []).map((user) => (
               <option key={user.username} value={user.username}>
                 {user.full_name || user.username}

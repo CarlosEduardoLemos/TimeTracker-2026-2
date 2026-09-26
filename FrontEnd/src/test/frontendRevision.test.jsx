@@ -22,7 +22,7 @@ afterEach(() => vi.restoreAllMocks());
 
 describe('estados de integração', () => {
   it('não mostra zero de usuários online quando o realtime falha', async () => {
-    api.summary.mockResolvedValue({ date: '2026-09-25', users: [] });
+    api.summary.mockImplementation(async (date) => ({ date, users: [] }));
     api.users.mockResolvedValue([{ username: 'ana', full_name: 'Ana' }]);
     api.realtime.mockRejectedValue(new Error('offline'));
     render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
@@ -52,7 +52,7 @@ describe('estados de integração', () => {
   });
 
   it('marca um resumo malformado como indisponível sem quebrar o painel', async () => {
-    api.summary.mockResolvedValue({ date: '2026-09-25', users: [null] });
+    api.summary.mockImplementation(async (date) => ({ date, users: [null] }));
     api.users.mockResolvedValue([]);
     api.realtime.mockResolvedValue([]);
     render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);

@@ -4,15 +4,15 @@ Este é o inventário das telas que a aplicação **executa hoje**. Os requisito
 
 ## Rotas e navegação
 
-| Hash | Conteúdo atual | Fonte de dados |
-| --- | --- | --- |
-| `#/painel` ou hash vazio | Indicadores, última atividade e categorias do resumo diário | Três endpoints de leitura |
-| `#/colaboradores` | Usuários globais cadastrados, com última atividade quando disponível | `/users/`, `/activities/realtime` |
-| `#/tasks` | Explicação da dependência de contratos de task | Nenhuma consulta |
-| `#/relatorios` | Exportação do resumo diário CSV/PDF | `/users/`, `/dashboard/export/*` |
-| `#/configuracoes` | Dois parâmetros globais do sistema | `GET`/`PUT /config/` |
-| `#/login`, `#/cadastro` | Aviso de autenticação indisponível e retorno ao painel | Nenhuma consulta |
-| Qualquer outro hash | Página não encontrada e link para o painel | Nenhuma consulta |
+| Hash                     | Conteúdo atual                                                       | Fonte de dados                    |
+| ------------------------ | -------------------------------------------------------------------- | --------------------------------- |
+| `#/painel` ou hash vazio | Indicadores, última atividade e categorias do resumo diário          | Três endpoints de leitura         |
+| `#/colaboradores`        | Usuários globais cadastrados, com última atividade quando disponível | `/users/`, `/activities/realtime` |
+| `#/tasks`                | Explicação da dependência de contratos de task                       | Nenhuma consulta                  |
+| `#/relatorios`           | Exportação do resumo diário CSV/PDF                                  | `/users/`, `/dashboard/export/*`  |
+| `#/configuracoes`        | Dois parâmetros globais do sistema                                   | `GET`/`PUT /config/`              |
+| `#/login`, `#/cadastro`  | Aviso de autenticação indisponível e retorno ao painel               | Nenhuma consulta                  |
+| Qualquer outro hash      | Página não encontrada e link para o painel                           | Nenhuma consulta                  |
 
 O menu principal mostra Painel, Colaboradores, Tasks, Relatórios e Configurações. Há um link “Criar conta”, mas a rota de cadastro explica que a função ainda não existe. A navegação por hash permite acesso direto às páginas, e o título da aba muda conforme a rota. O tema claro/escuro é mantido entre visitas por `localStorage`; sem escolha anterior, segue a preferência do sistema.
 
@@ -26,13 +26,13 @@ O menu principal mostra Painel, Colaboradores, Tasks, Relatórios e Configuraç�
 
 ### Indicadores exibidos
 
-| Indicador | Cálculo e fonte | Limite da interpretação |
-| --- | --- | --- |
-| Online | Contagem de usuários da lista, filtrados se necessário, cujo status realtime é `online` | Status de leitura calculado pelo backend; não é prova de conexão autenticada do agente |
-| Ausentes | Contagem com status realtime `ausente` | Indica leitura recente marcada como ociosa ou acima do limite do backend |
-| Sem leitura recente | Usuários cadastrados que não aparecem na resposta realtime | Derivado no frontend da janela de 15 minutos; não equivale a offline de rede |
-| Tempo registrado | Soma de `total_seconds` dos usuários no resumo da data selecionada | Tempo agregado de atividades, sem classificar produtividade por task |
-| Usuários cadastrados | Sem filtro, tamanho de `/users/`; com filtro, contagem do `username` selecionado nessa lista | Não é equipe vinculada a gestor; independe da disponibilidade do realtime |
+| Indicador            | Cálculo e fonte                                                                              | Limite da interpretação                                                                |
+| -------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Online               | Contagem de usuários da lista, filtrados se necessário, cujo status realtime é `online`      | Status de leitura calculado pelo backend; não é prova de conexão autenticada do agente |
+| Ausentes             | Contagem com status realtime `ausente`                                                       | Indica leitura recente marcada como ociosa ou acima do limite do backend               |
+| Sem leitura recente  | Usuários cadastrados que não aparecem na resposta realtime                                   | Derivado no frontend da janela de 15 minutos; não equivale a offline de rede           |
+| Tempo registrado     | Soma de `total_seconds` dos usuários no resumo da data selecionada                           | Tempo agregado de atividades, sem classificar produtividade por task                   |
+| Usuários cadastrados | Sem filtro, tamanho de `/users/`; com filtro, contagem do `username` selecionado nessa lista | Não é equipe vinculada a gestor; independe da disponibilidade do realtime              |
 
 Se usuários ou realtime falharem, contagens de estado aparecem como indisponíveis, e não como zero. Se o resumo falhar ou vier com data diferente, o tempo registrado e as categorias ficam indisponíveis. O alerta identifica a fonte e informa o motivo da falha quando disponível, incluindo o `detail` da API. Um resumo válido com lista vazia produz zero de tempo e mensagem “Sem registros na data selecionada”.
 
@@ -60,7 +60,7 @@ O campo global de inatividade **não** configura o limite individual previsto em
 
 ## Relatórios (`#/relatorios`)
 
-A página oferece uma data e, quando `/users/` responde validamente, um filtro opcional de usuário. A falha da lista desabilita apenas esse filtro, mostra o motivo e permite tentar novamente; a exportação geral continua disponível. Os botões chamam `/dashboard/export/csv` ou `/dashboard/export/pdf` com a data e, se escolhido, `username`. Durante o download há indicação de progresso e não se inicia outro. HTTP com falha, tipo de conteúdo incompatível ou arquivo vazio gera mensagem de erro. A operação é cancelada ao sair da página.
+A página oferece uma data e, quando `/users/` responde validamente, um filtro opcional de usuário. A consulta anuncia carregamento e distingue lista vazia de erro. Falha da lista desabilita apenas esse filtro, preserva a seleção, mostra motivo e retry; a exportação com os filtros atuais continua disponível. Os botões chamam `/dashboard/export/csv` ou `/dashboard/export/pdf` com a data e, se escolhido, `username`. Durante o download há indicação de progresso, filtros ficam bloqueados e não se inicia outro envio, mesmo em ações no mesmo evento. A conclusão anuncia “Download de CSV/PDF iniciado”, sem confirmar salvamento em disco. HTTP com falha, tipo de conteúdo incompatível ou arquivo vazio gera erro. Alterar filtros limpa feedback anterior; sair cancela a operação.
 
 O **CSV atual** contém as colunas `username`, `category`, `total_seconds` e uma linha por categoria retornada para cada usuário. Sem registros, pode conter apenas o cabeçalho. O **PDF atual** contém a data, o total e as categorias de cada usuário retornado. A interface salva o arquivo como `resumo_<data>.csv` ou `.pdf`. Esses arquivos são exportações do resumo diário parcial, não relatórios completos de RF-24/RF-25: não contêm período, task, aplicação, classificação dentro/fora do escopo, jornada ou possível hora extra.
 
@@ -74,12 +74,12 @@ O layout adapta menu e colunas a mobile, tablet e desktop. Há link para pular a
 
 ## Correspondência com os requisitos do produto
 
-| Requisito do projeto | Situação do frontend atual |
-| --- | --- |
-| RF-02, RF-03 | Login/cadastro e código de associação indisponíveis por falta de contratos e autorização |
-| RF-05, RF-16 | Há listagem global e status de leitura aproximado; equipe associada e conexão real indisponíveis |
-| RF-06, RF-11 | Criação/edição de task e escopo indisponíveis |
-| RF-20, RF-21 | Apenas configuração global da API; jornada e limite por colaborador indisponíveis |
-| RF-22, RF-24, RF-25, RF-27 | Resumo e exportação diária parciais; métricas, filtros e timeline completos indisponíveis |
+| Requisito do projeto       | Situação do frontend atual                                                                       |
+| -------------------------- | ------------------------------------------------------------------------------------------------ |
+| RF-02, RF-03               | Login/cadastro e código de associação indisponíveis por falta de contratos e autorização         |
+| RF-05, RF-16               | Há listagem global e status de leitura aproximado; equipe associada e conexão real indisponíveis |
+| RF-06, RF-11               | Criação/edição de task e escopo indisponíveis                                                    |
+| RF-20, RF-21               | Apenas configuração global da API; jornada e limite por colaborador indisponíveis                |
+| RF-22, RF-24, RF-25, RF-27 | Resumo e exportação diária parciais; métricas, filtros e timeline completos indisponíveis        |
 
 Os RF relacionados ao Agente Desktop e ao histórico da System Tray estão fora da responsabilidade deste frontend. Detalhes técnicos dos contratos existentes estão em [Arquitetura](ARQUITETURA.md).

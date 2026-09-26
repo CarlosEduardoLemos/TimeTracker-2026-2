@@ -12,32 +12,32 @@ Este documento descreve o código executado atualmente em `FrontEnd/`. [Funciona
 
 ## Mapa do código
 
-| Caminho | Responsabilidade atual |
-| --- | --- |
-| `src/services/api.js` | Origem da API, `fetch`, timeout, cancelamento, parâmetros e download. É o único cliente HTTP usado pelas páginas. |
-| `src/hooks/useDashboardData.js` | Estado e atualização das três fontes do painel: resumo, usuários e realtime. |
-| `src/utils/dashboard.js` | Validação dos objetos recebidos e cálculo/apresentação de duração, categorias e status derivados. |
-| `src/pages/DashboardPage.jsx` | Filtros, indicadores e tabelas do painel. |
-| `src/pages/CollaboratorsPage.jsx` | Listagem global de usuários combinada, quando possível, com última atividade. |
-| `src/pages/SettingsPage.jsx` | Leitura e atualização dos dois parâmetros globais de `/config/`. |
-| `src/pages/ReportsPage.jsx` | Seleção de data/usuário e download do resumo diário em CSV/PDF. |
-| `src/pages/AuthPage.jsx`, `TasksPage.jsx` | Mensagens de indisponibilidade; não coletam credenciais nem dados de task. |
-| `src/components/Sidebar.jsx` | Navegação desktop e diálogo móvel. |
-| `src/index.css`, `tailwind.config.js` | Estilos base, tokens de cor, tema, foco e adaptação de layout. |
+| Caminho                                   | Responsabilidade atual                                                                                            |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `src/services/api.js`                     | Origem da API, `fetch`, timeout, cancelamento, parâmetros e download. É o único cliente HTTP usado pelas páginas. |
+| `src/hooks/useDashboardData.js`           | Estado e atualização das três fontes do painel: resumo, usuários e realtime.                                      |
+| `src/utils/dashboard.js`                  | Validação dos objetos recebidos e cálculo/apresentação de duração, categorias e status derivados.                 |
+| `src/pages/DashboardPage.jsx`             | Filtros, indicadores e tabelas do painel.                                                                         |
+| `src/pages/CollaboratorsPage.jsx`         | Listagem global de usuários combinada, quando possível, com última atividade.                                     |
+| `src/pages/SettingsPage.jsx`              | Leitura e atualização dos dois parâmetros globais de `/config/`.                                                  |
+| `src/pages/ReportsPage.jsx`               | Seleção de data/usuário e download do resumo diário em CSV/PDF.                                                   |
+| `src/pages/AuthPage.jsx`, `TasksPage.jsx` | Mensagens de indisponibilidade; não coletam credenciais nem dados de task.                                        |
+| `src/components/Sidebar.jsx`              | Navegação desktop e diálogo móvel.                                                                                |
+| `src/index.css`, `tailwind.config.js`     | Estilos base, tokens de cor, tema, foco e adaptação de layout.                                                    |
 
 ## Cliente HTTP
 
 `VITE_API_URL` em `.env` determina a origem da API; na ausência dela, o cliente usa `http://localhost:8000`. `.env.example` documenta esse valor. O serviço remove uma barra final da origem e monta os caminhos abaixo. O valor de `username` é codificado por `URLSearchParams`.
 
-| Método e rota consumida | Parâmetros/corpo | Resposta contratada pelo backend | Consumidor |
-| --- | --- | --- | --- |
-| `GET /users/` | Nenhum | Array de `UserOut`: `id`, `username`, `full_name?`, `department?`, `created_at` | Painel, Colaboradores, Relatórios |
-| `GET /activities/realtime` | Nenhum | Array de `RealtimeEntry`: `username`, `hostname`, `process_name`, `window_title?`, `category?`, `is_idle`, `seconds_since_last_activity`, `status` | Painel, Colaboradores |
-| `GET /dashboard/summary` | `date` obrigatório em `AAAA-MM-DD`; `username` opcional | `{ date, users: [{ username, total_seconds, by_category: [{ category, color, total_seconds }] }] }` | Painel |
-| `GET /dashboard/export/csv` | Mesmos filtros do resumo | `text/csv`, colunas `username,category,total_seconds` | Relatórios |
-| `GET /dashboard/export/pdf` | Mesmos filtros do resumo | `application/pdf`, total e categorias de cada usuário | Relatórios |
-| `GET /config/` | Nenhum | `{ capture_interval_seconds, idle_timeout_seconds, updated_at? }` | Configurações |
-| `PUT /config/` | JSON com os dois inteiros positivos | Mesmo objeto de configuração | Configurações |
+| Método e rota consumida     | Parâmetros/corpo                                        | Resposta contratada pelo backend                                                                                                                   | Consumidor                        |
+| --------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| `GET /users/`               | Nenhum                                                  | Array de `UserOut`: `id`, `username`, `full_name?`, `department?`, `created_at`                                                                    | Painel, Colaboradores, Relatórios |
+| `GET /activities/realtime`  | Nenhum                                                  | Array de `RealtimeEntry`: `username`, `hostname`, `process_name`, `window_title?`, `category?`, `is_idle`, `seconds_since_last_activity`, `status` | Painel, Colaboradores             |
+| `GET /dashboard/summary`    | `date` obrigatório em `AAAA-MM-DD`; `username` opcional | `{ date, users: [{ username, total_seconds, by_category: [{ category, color, total_seconds }] }] }`                                                | Painel                            |
+| `GET /dashboard/export/csv` | Mesmos filtros do resumo                                | `text/csv`, colunas `username,category,total_seconds`                                                                                              | Relatórios                        |
+| `GET /dashboard/export/pdf` | Mesmos filtros do resumo                                | `application/pdf`, total e categorias de cada usuário                                                                                              | Relatórios                        |
+| `GET /config/`              | Nenhum                                                  | `{ capture_interval_seconds, idle_timeout_seconds, updated_at? }`                                                                                  | Configurações                     |
+| `PUT /config/`              | JSON com os dois inteiros positivos                     | Mesmo objeto de configuração                                                                                                                       | Configurações                     |
 
 `api.js` produz `ApiError` com `type`, `status`, `statusText`, `detail` e `cause`. O corpo JSON de falhas HTTP é lido para exibir `detail` do FastAPI; sem `detail`, a mensagem usa o status. `type` distingue `client` (4xx), `server` (5xx), `network`, `timeout`, `canceled` e `invalid-response`. Detalhes de validação em lista são resumidos pelas mensagens `msg`; o texto exibido é limitado a 500 caracteres. O timeout de 15 segundos cobre inclusive a leitura do corpo, e cada chamada aceita `AbortSignal` externo. A data de resumo/exportação precisa ser real em `AAAA-MM-DD`. O download aceita apenas `csv`/`pdf`, valida o tipo de conteúdo e `ReportsPage` rejeita blob vazio.
 
@@ -47,9 +47,9 @@ Não há cabeçalho de autenticação, cookie de sessão administrado pela aplic
 
 1. `DashboardPage` inicia com a data local do navegador e usuário vazio. A mudança de data ou usuário altera os argumentos de `useDashboardData`.
 2. O hook cancela a consulta anterior, incrementa um identificador de sequência e solicita resumo, usuários e realtime em paralelo com `Promise.allSettled`.
-3. `validSummary`, `validUsers` e `validRealtime` verificam a estrutura necessária à interface. O resumo também precisa corresponder à data solicitada. Cada fonte recebe sua própria flag em `availability`.
+3. `validSummary`, `validUsers` e `validRealtime` verificam a estrutura necessária à interface: nomes não vazios e únicos por fonte, campos textuais exibidos e durações inteiras seguras não negativas. Campos de texto opcionais aceitam ausência/nulo. O resumo também precisa corresponder à data e ao usuário solicitados; resposta vazia continua válida. Cada fonte recebe sua própria flag em `availability`.
 4. Mudança de filtro limpa os dados anteriores. Uma atualização do mesmo filtro mantém os dados durante `refreshing`. Uma resposta cancelada ou de sequência antiga não substitui a atual.
-5. Se alguma fonte falhar ou vier inválida, `requestFailure` compõe um alerta com a fonte e o motivo; apenas a parte dependente dessa fonte fica indisponível. Lista vazia válida permanece distinta de falha. `updatedAt` indica a última consulta em que ao menos uma fonte foi válida.
+5. Se alguma fonte falhar ou vier inválida, `requestFailure` compõe um alerta com a fonte e o motivo; apenas a parte dependente dessa fonte fica indisponível. Lista vazia válida permanece distinta de falha. `updatedAt` acompanha os dados disponíveis e fica nulo quando todas as fontes falham e seus dados são removidos. O filtro selecionado permanece visível mesmo se a lista falhar ou deixar de conter aquele usuário.
 6. Há atualização manual e consulta a cada 30 segundos enquanto a aba está visível. Ao voltar para a aba, ocorre atualização imediata. O intervalo e o listener são limpos quando o hook desmonta.
 
 `deriveTeam` une `/users/` com `/activities/realtime` por `username`. O backend devolve `online` ou `ausente` somente para usuários com leitura nos últimos 15 minutos. Para usuário cadastrado sem entrada nessa janela, o frontend deriva `offline` e apresenta “Sem leitura recente”. Isso não comprova desconexão do agente. O filtro de data afeta somente `/dashboard/summary`; o filtro de usuário é enviado ao resumo e aplicado localmente à lista de última atividade. `categoryTotals` soma a duração de cada categoria dos usuários presentes no resumo; não há cálculo de produtividade por task.
@@ -58,7 +58,9 @@ Não há cabeçalho de autenticação, cookie de sessão administrado pela aplic
 
 - **Colaboradores:** consulta usuários e realtime em paralelo, valida cada resposta e permite tentar novamente. Se apenas realtime falhar, a lista de usuários ainda aparece com última atividade indisponível. Uma nova consulta cancela a anterior; saída da página também cancela.
 - **Configurações:** lê antes de exibir o formulário. Os dois valores precisam ser inteiros positivos seguros tanto na resposta de leitura quanto na de gravação. Durante o `PUT`, campos e botão são desabilitados; uma resposta inválida não produz sucesso. Há retry da leitura e cancelamento da operação ao sair.
-- **Relatórios:** lê usuários para preencher o filtro opcional. Falha nessa lista mostra o motivo e permite retry, preservando a exportação geral. Cada download usa o filtro selecionado, impede outro download simultâneo, cancela ao sair e cria temporariamente uma URL de objeto para salvar `resumo_<data>.csv` ou `.pdf`.
+- **Relatórios:** lê usuários para preencher o filtro opcional, com loading e estado vazio. Falha nessa lista mostra motivo e retry, preservando o usuário selecionado e a exportação com os filtros atuais. Cada download bloqueia imediatamente outro envio por referência síncrona, desabilita filtros durante o preparo, cancela ao sair e cria temporariamente uma URL de objeto para salvar `resumo_<data>.csv` ou `.pdf`. O sucesso anuncia download iniciado, sem afirmar que o usuário salvou o arquivo.
+
+O cancelamento interrompe a espera do cliente; não garante reversão de uma gravação que o servidor já tenha processado. O cliente também recusa sinais já cancelados antes de chamar `fetch` e resultados recebidos depois do cancelamento; timeout é identificado pela origem interna do cancelamento, não pelo texto do motivo externo. `isIsoDate` é compartilhado entre sanitização, validação de resumo e parâmetros HTTP. A preferência de tema funciona em memória quando o navegador impede acesso ou gravação em `localStorage`.
 
 ## Interface, acessibilidade e responsividade
 
@@ -68,7 +70,7 @@ Playwright executa os fluxos principais no Chrome, testa larguras de 375 a 1920 
 
 ## Qualidade automatizada
 
-`eslint.config.js` combina regras de JavaScript, React, Hooks e JSX a11y. `react/prop-types` fica desativada porque o projeto não usa PropTypes, `react-hooks/set-state-in-effect` porque a leitura inicial ocorre em efeitos, e `jsx-a11y/no-noninteractive-tabindex` porque os contêineres das tabelas precisam receber foco para rolagem por teclado. Prettier formata código e configuração; `.prettierignore` exclui documentação e arquivos gerados. `vitest.config.js` inclui apenas testes em `src`, separando-os do Playwright. O script `e2e/run.mjs` gera o build, sobe o preview local, executa Chrome e encerra o servidor. `e2e/real-api.spec.js` só roda com `RUN_REAL_API=1` e FastAPI disponível. Consulte [Alterações](ALTERACOES.md) para o inventário dos arquivos.
+`eslint.config.js` combina regras de JavaScript, React, Hooks e JSX a11y. `react/prop-types` fica desativada porque o projeto não usa PropTypes, `react-hooks/set-state-in-effect` porque a leitura inicial ocorre em efeitos, e `jsx-a11y/no-noninteractive-tabindex` porque os contêineres das tabelas precisam receber foco para rolagem por teclado. Prettier formata código, configuração e Markdown; `.prettierignore` exclui lockfile e arquivos gerados. `vitest.config.js` inclui apenas testes em `src`, separando-os do Playwright. O script `e2e/run.mjs` gera o build, sobe o preview local, executa Chrome e encerra o servidor. `e2e/real-api.spec.js` só roda com `RUN_REAL_API=1` e FastAPI disponível. Consulte [Alterações](ALTERACOES.md) para o inventário dos arquivos.
 
 ## Código preservado fora do caminho atual
 

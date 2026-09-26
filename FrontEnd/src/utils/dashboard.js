@@ -11,20 +11,36 @@ export function fmtDuration(seconds = 0) {
 
 export function validUsers(value) {
   return (
+    uniqueUsers(value) &&
+    value.every((user) => optionalText(user.full_name) && optionalText(user.department))
+  );
+}
+
+function optionalText(value) {
+  return value == null || typeof value === 'string';
+}
+
+function uniqueUsers(value) {
+  return (
     Array.isArray(value) &&
-    value.every((user) => user && typeof user.username === 'string' && user.username.length > 0)
+    value.every((user) => user && typeof user.username === 'string' && user.username.length > 0) &&
+    new Set(value.map((user) => user.username)).size === value.length
   );
 }
 
 export function validRealtime(value) {
   return (
-    Array.isArray(value) &&
+    uniqueUsers(value) &&
     value.every(
       (entry) =>
         entry &&
-        typeof entry.username === 'string' &&
         ['online', 'ausente'].includes(entry.status) &&
-        Number.isFinite(entry.seconds_since_last_activity),
+        Number.isSafeInteger(entry.seconds_since_last_activity) &&
+        entry.seconds_since_last_activity >= 0 &&
+        optionalText(entry.process_name) &&
+        optionalText(entry.window_title) &&
+        optionalText(entry.hostname) &&
+        optionalText(entry.category),
     )
   );
 }
@@ -32,20 +48,20 @@ export function validRealtime(value) {
 export function validSummary(value) {
   return (
     value &&
-    /^\d{4}-\d{2}-\d{2}$/.test(value.date) &&
-    Array.isArray(value.users) &&
+    isIsoDate(value.date) &&
+    uniqueUsers(value.users) &&
     value.users.every(
       (user) =>
         user &&
         typeof user.username === 'string' &&
-        Number.isFinite(user.total_seconds) &&
+        Number.isSafeInteger(user.total_seconds) &&
         user.total_seconds >= 0 &&
         Array.isArray(user.by_category) &&
         user.by_category.every(
           (category) =>
             category &&
             typeof category.category === 'string' &&
-            Number.isFinite(category.total_seconds) &&
+            Number.isSafeInteger(category.total_seconds) &&
             category.total_seconds >= 0,
         ),
     )
@@ -94,12 +110,14 @@ export function formatRelativeActivityTime(seconds) {
   return `há ${hours}h${minutes ? ` ${minutes}min` : ''}`;
 }
 
-export function safeIsoDate(value) {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return todayIso();
+export function isIsoDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const parsed = new Date(`${value}T12:00:00Z`);
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value
-    ? value
-    : todayIso();
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+
+export function safeIsoDate(value) {
+  return isIsoDate(value) ? value : todayIso();
 }
 
 export function filterRealtimePeople(people, username) {

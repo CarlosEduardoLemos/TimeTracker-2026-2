@@ -24,6 +24,7 @@ export function SettingsPage() {
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
   const active = useRef(null);
+  const saving = useRef(false);
 
   const load = useCallback(async () => {
     active.current?.abort();
@@ -40,7 +41,9 @@ export function SettingsPage() {
       setStatus('ready');
     } catch (cause) {
       if (controller.signal.aborted) return;
-      setError(`Não foi possível carregar: ${cause.message}`);
+      setError(
+        `Não foi possível carregar: ${cause instanceof Error ? cause.message : 'Falha desconhecida'}`,
+      );
       setStatus('error');
     }
   }, []);
@@ -52,16 +55,18 @@ export function SettingsPage() {
 
   async function save(event) {
     event.preventDefault();
-    if (status === 'saving' || !form) return;
+    if (saving.current || !form) return;
     const payload = {
       capture_interval_seconds: Number(form.capture_interval_seconds),
       idle_timeout_seconds: Number(form.idle_timeout_seconds),
     };
     if (!validSettings(payload)) {
+      setStatus('ready');
       setError('Informe números inteiros maiores que zero.');
       return;
     }
     const controller = new AbortController();
+    saving.current = true;
     active.current = controller;
     setStatus('saving');
     setError('');
@@ -73,8 +78,12 @@ export function SettingsPage() {
       setStatus('saved');
     } catch (cause) {
       if (controller.signal.aborted) return;
-      setError(`Não foi possível salvar: ${cause.message}`);
+      setError(
+        `Não foi possível salvar: ${cause instanceof Error ? cause.message : 'Falha desconhecida'}`,
+      );
       setStatus('ready');
+    } finally {
+      saving.current = false;
     }
   }
 
@@ -109,6 +118,7 @@ export function SettingsPage() {
                   value={form.capture_interval_seconds}
                   onChange={(event) => {
                     setStatus('ready');
+                    setError('');
                     setForm({ ...form, capture_interval_seconds: event.target.value });
                   }}
                 />
@@ -124,6 +134,7 @@ export function SettingsPage() {
                   value={form.idle_timeout_seconds}
                   onChange={(event) => {
                     setStatus('ready');
+                    setError('');
                     setForm({ ...form, idle_timeout_seconds: event.target.value });
                   }}
                 />

@@ -7,6 +7,52 @@ afterEach(() => {
 });
 
 describe('cliente da API', () => {
+  it('não envia uma consulta cujo sinal já foi cancelado, mesmo com motivo timeout', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const controller = new AbortController();
+    controller.abort('timeout');
+    await expect(api.users(controller.signal)).rejects.toMatchObject({ type: 'canceled' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('descarta leitura concluída depois do cancelamento externo', async () => {
+    let finish;
+    const controller = new AbortController();
+    const json = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: true, json })),
+    );
+    const pending = expect(api.users(controller.signal)).rejects.toMatchObject({
+      type: 'canceled',
+    });
+    await vi.waitFor(() => expect(json).toHaveBeenCalledOnce());
+    controller.abort();
+    finish([]);
+    await pending;
+  });
+
+  it('rejeita um tipo MIME com sufixo enganoso', async () => {
+    const blob = vi.fn();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        headers: { get: () => 'text/csv-invalid' },
+        blob,
+      })),
+    );
+    await expect(api.exportFile('csv', '2026-09-25')).rejects.toMatchObject({
+      type: 'invalid-response',
+    });
+    expect(blob).not.toHaveBeenCalled();
+  });
   it('codifica o usuário no filtro do resumo', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: true,
