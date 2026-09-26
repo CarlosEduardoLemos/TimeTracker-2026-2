@@ -1,5 +1,5 @@
 import { AVATAR_COLOR_PALETTE, USER_STATUS_LABELS } from '../constants/ui';
-import { formatRelativeActivityTime } from '../utils/dashboard';
+import { formatRelativeActivityTime } from '../../shared/lib/dashboard';
 import { Card } from './Card';
 import { SectionHeading } from './SectionHeading';
 

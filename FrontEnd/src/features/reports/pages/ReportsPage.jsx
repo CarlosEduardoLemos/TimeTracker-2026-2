@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api } from '../services/api';
-import { todayIso, validUsers } from '../utils/dashboard';
-import { PageHeader } from '../components/PageHeader';
-import { IntegrationNotice } from '../components/IntegrationNotice';
+import { api } from '../../../shared/api/api';
+import { todayIso, validUsers } from '../../../shared/lib/dashboard';
+import { PageHeader } from '../../../shared/components/PageHeader';
+import { IntegrationNotice } from '../../../shared/components/IntegrationNotice';
 
 export function ReportsPage() {
   const [date, setDate] = useState(todayIso());

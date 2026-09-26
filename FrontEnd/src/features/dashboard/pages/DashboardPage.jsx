@@ -1,14 +1,14 @@
 ﻿import { useMemo, useState } from 'react';
 import { useDashboardData } from '../hooks/useDashboardData';
-import { MetricCard } from '../components/MetricCard';
-import { PageHeader } from '../components/PageHeader';
+import { MetricCard } from '../../../shared/components/MetricCard';
+import { PageHeader } from '../../../shared/components/PageHeader';
 import {
   categoryTotals,
   deriveTeam,
   fmtDuration,
   todayIso,
   totalSeconds,
-} from '../utils/dashboard';
+} from '../../../shared/lib/dashboard';
 
 export function DashboardPage({ dark, toggleTheme }) {
   const [date, setDate] = useState(todayIso());

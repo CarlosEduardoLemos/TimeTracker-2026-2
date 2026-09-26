@@ -1,12 +1,12 @@
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DashboardPage } from '../pages/DashboardPage';
-import { ReportsPage } from '../pages/ReportsPage';
-import { SettingsPage } from '../pages/SettingsPage';
-import { api } from '../services/api';
-import { useDashboardData } from '../hooks/useDashboardData';
+import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
+import { ReportsPage } from '../features/reports/pages/ReportsPage';
+import { SettingsPage } from '../features/settings/pages/SettingsPage';
+import { api } from '../shared/api/api';
+import { useDashboardData } from '../features/dashboard/hooks/useDashboardData';
 
-vi.mock('../services/api', () => ({
+vi.mock('../shared/api/api', () => ({
   api: {
     summary: vi.fn(),
     users: vi.fn(),

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api } from '../services/api';
-import { deriveTeam, validRealtime, validUsers } from '../utils/dashboard';
-import { requestFailure } from '../utils/requestFailure';
-import { PageHeader } from '../components/PageHeader';
-import { IntegrationNotice } from '../components/IntegrationNotice';
+import { api } from '../../../shared/api/api';
+import { deriveTeam, validRealtime, validUsers } from '../../../shared/lib/dashboard';
+import { requestFailure } from '../../../shared/lib/requestFailure';
+import { PageHeader } from '../../../shared/components/PageHeader';
+import { IntegrationNotice } from '../../../shared/components/IntegrationNotice';
 
 export function CollaboratorsPage() {
   const [state, setState] = useState({ loading: true, users: null, realtime: null, error: null });

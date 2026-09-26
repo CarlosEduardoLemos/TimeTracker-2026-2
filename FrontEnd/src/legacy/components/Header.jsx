@@ -1,5 +1,5 @@
 import { API_STATUS_LABELS } from '../constants/ui';
-import { safeIsoDate } from '../utils/dashboard';
+import { safeIsoDate } from '../../shared/lib/dashboard';
 
 function getStatusTone(apiStatus) {
   if (apiStatus === 'online') return 'text-emerald-700 dark:text-emerald-400';

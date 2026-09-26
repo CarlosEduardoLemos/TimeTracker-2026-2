@@ -6,14 +6,14 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     include: ['src/**/*.test.{js,jsx}'],
-    setupFiles: ['./src/test/setup.js'],
+    setupFiles: ['./src/testing/setup.js'],
     globals: true,
     css: true,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
       include: ['src/**/*.{js,jsx}'],
-      exclude: ['src/test/**'],
+      exclude: ['src/testing/**'],
     },
   },
 });

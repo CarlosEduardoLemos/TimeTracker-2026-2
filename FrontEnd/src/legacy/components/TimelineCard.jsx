@@ -1,4 +1,4 @@
-import { formatDuration } from '../utils/dashboard';
+import { formatDuration } from '../../shared/lib/dashboard';
 import { Card } from './Card';
 import { SectionHeading } from './SectionHeading';
 

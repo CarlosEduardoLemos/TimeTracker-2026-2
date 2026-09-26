@@ -1,4 +1,4 @@
-import { IntegrationNotice } from '../components/IntegrationNotice';
+import { IntegrationNotice } from '../../../shared/components/IntegrationNotice';
 
 export function AuthPage({ mode = 'login' }) {
   const register = mode === 'cadastro';

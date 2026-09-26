@@ -1,5 +1,7 @@
 # Melhorias do frontend — 25/09/2026
 
+Os caminhos nas revisões históricas abaixo correspondem à estrutura existente na época. A refatoração de 26/09/2026 está registrada no final deste documento; os caminhos atuais estão em [Arquitetura](ARQUITETURA.md).
+
 ## Escopo
 
 Esta revisão alterou somente `FrontEnd/`. `backend/` e `requisitos/` foram consultados; nenhuma alteração foi feita neles. Dependências externas e verificações que exigem serviços ausentes estão em [Pendências](PENDENCIAS.md).
@@ -72,3 +74,17 @@ A revisão atual mantém os contratos e altera exclusivamente `FrontEnd`. O esta
 Não foram removidos componentes preservados pela auditoria anterior: não são importados pela aplicação ativa e vários possuem testes consumidores; não há economia de bundle ao excluí-los. Nenhum endpoint, campo, métrica, login ou task foi inventado. Mocks existem somente nos testes.
 
 O healthcheck `GET http://localhost:8000/` não respondeu nesta revisão. Não foram iniciados backend, banco ou seeds. O E2E real permanece opt-in, e cancelamento de PUT no cliente não garante rollback de gravação processada pelo servidor.
+
+## Refatoração da estrutura — 26/09/2026
+
+Reorganizados 52 arquivos de código e testes por responsabilidade, preservando o comportamento e os contratos existentes:
+
+| Destino         | Arquivos e responsabilidade                                                                                                         |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `src/app/`      | `App`, `ErrorBoundary`, `layout/Sidebar`, hooks de rota e tema e `styles/index.css`                                                 |
+| `src/features/` | Páginas de acesso, colaboradores, painel, relatórios, configurações e tasks; hook `useDashboardData` junto do painel                |
+| `src/shared/`   | `api/api.js`, componentes `MetricCard`, `PageHeader`, `IntegrationNotice` e funções de `lib/` usadas por diferentes funcionalidades |
+| `src/legacy/`   | Componentes, hook `useAutoRefresh` e constantes preservados fora da aplicação ativa, com seus testes                                |
+| `src/testing/`  | Setup do Vitest e teste transversal `frontendRevision.test.jsx`                                                                     |
+
+Atualizados imports relativos, imports dinâmicos das páginas, mocks e configuração de setup/cobertura do Vitest. Os testes específicos acompanham o código; os padrões recursivos de Vite, Tailwind e ESLint continuam abrangendo a nova árvore. README, arquitetura, inventário dos testes e a pendência F-04 documentam os novos locais. Não foram adicionadas dependências ou arquivos de reexportação. Consulte [Testes](TESTES.md) para a validação desta refatoração.

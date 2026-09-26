@@ -7,23 +7,33 @@ Este documento descreve o código executado atualmente em `FrontEnd/`. [Funciona
 - React 18 com JavaScript/JSX, Vite 6, Tailwind CSS 3 e CSS local. Vitest e React Testing Library são usados nos testes. `recharts` permanece instalado porque existe um componente de gráfico preservado, mas o painel atual não o renderiza.
 - `index.html` declara `lang="pt-BR"`, viewport e `#root`. `src/main.jsx` monta `App` sob `React.StrictMode` e `ErrorBoundary`.
 - `ErrorBoundary` mostra uma mensagem e opção de recarregar após exceção de renderização. Falhas HTTP são tratadas nas páginas e no hook de dados; a barreira não as substitui. Detalhes da exceção só são registrados no console durante desenvolvimento.
-- `src/App.jsx` compõe `Sidebar`, conteúdo principal e páginas carregadas com `React.lazy`/`Suspense`. `src/hooks/useHashRoute.js` observa `hashchange`. Hash vazio abre o painel; hash desconhecido produz a página não encontrada. `#/login` e `#/cadastro` usam o layout próprio de `AuthPage`.
+- `src/app/App.jsx` compõe `Sidebar`, conteúdo principal e páginas carregadas com `React.lazy`/`Suspense`. `src/app/hooks/useHashRoute.js` observa `hashchange`. Hash vazio abre o painel; hash desconhecido produz a página não encontrada. `#/login` e `#/cadastro` usam o layout próprio de `AuthPage`.
 - `App` ajusta `document.title` por rota e mantém uma única instância de `useTheme`. O hook usa a chave `timetracker-theme` no `localStorage`; sem preferência salva, consulta `prefers-color-scheme`.
 
 ## Mapa do código
 
-| Caminho                                   | Responsabilidade atual                                                                                            |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `src/services/api.js`                     | Origem da API, `fetch`, timeout, cancelamento, parâmetros e download. É o único cliente HTTP usado pelas páginas. |
-| `src/hooks/useDashboardData.js`           | Estado e atualização das três fontes do painel: resumo, usuários e realtime.                                      |
-| `src/utils/dashboard.js`                  | Validação dos objetos recebidos e cálculo/apresentação de duração, categorias e status derivados.                 |
-| `src/pages/DashboardPage.jsx`             | Filtros, indicadores e tabelas do painel.                                                                         |
-| `src/pages/CollaboratorsPage.jsx`         | Listagem global de usuários combinada, quando possível, com última atividade.                                     |
-| `src/pages/SettingsPage.jsx`              | Leitura e atualização dos dois parâmetros globais de `/config/`.                                                  |
-| `src/pages/ReportsPage.jsx`               | Seleção de data/usuário e download do resumo diário em CSV/PDF.                                                   |
-| `src/pages/AuthPage.jsx`, `TasksPage.jsx` | Mensagens de indisponibilidade; não coletam credenciais nem dados de task.                                        |
-| `src/components/Sidebar.jsx`              | Navegação desktop e diálogo móvel.                                                                                |
-| `src/index.css`, `tailwind.config.js`     | Estilos base, tokens de cor, tema, foco e adaptação de layout.                                                    |
+A organização segue as responsabilidades abaixo:
+
+- `app/`: composição das páginas, layout, navegação por hash, tema, barreira de erro e estilos globais. `src/main.jsx` permanece como entrada do Vite.
+- `features/`: funcionalidades `auth`, `collaborators`, `dashboard`, `reports`, `settings` e `tasks`. Cada uma contém suas páginas; o hook exclusivo do painel fica em `features/dashboard/hooks/`.
+- `shared/`: cliente HTTP, componentes usados nas telas e funções comuns de validação/apresentação. `shared/lib/dashboard.js` atende painel, colaboradores, relatórios e cliente HTTP, por isso permanece compartilhado.
+- `legacy/`: componentes, hook e constantes preservados fora da árvore ativa, com seus testes. A mudança de pasta não altera a decisão de reutilizar ou remover esse código.
+- `testing/`: setup do Vitest e testes que atravessam mais de uma funcionalidade; testes específicos ficam junto do arquivo testado.
+
+`app` pode importar `features` e `shared`; cada funcionalidade pode importar `shared` e seus próprios arquivos. `shared` não deve depender de `app` ou `features`. A aplicação ativa não importa `legacy`; o código preservado pode usar `shared`. Use imports diretos, incluindo os imports dinâmicos das páginas, sem arquivos de reexportação. Crie subpastas de componentes ou hooks dentro de uma funcionalidade quando houver código com essa responsabilidade.
+
+| Caminho                                                                          | Responsabilidade atual                                                                                            |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `src/shared/api/api.js`                                                          | Origem da API, `fetch`, timeout, cancelamento, parâmetros e download. É o único cliente HTTP usado pelas páginas. |
+| `src/features/dashboard/hooks/useDashboardData.js`                               | Estado e atualização das três fontes do painel: resumo, usuários e realtime.                                      |
+| `src/shared/lib/dashboard.js`                                                    | Validação dos objetos recebidos e cálculo/apresentação de duração, categorias e status derivados.                 |
+| `src/features/dashboard/pages/DashboardPage.jsx`                                 | Filtros, indicadores e tabelas do painel.                                                                         |
+| `src/features/collaborators/pages/CollaboratorsPage.jsx`                         | Listagem global de usuários combinada, quando possível, com última atividade.                                     |
+| `src/features/settings/pages/SettingsPage.jsx`                                   | Leitura e atualização dos dois parâmetros globais de `/config/`.                                                  |
+| `src/features/reports/pages/ReportsPage.jsx`                                     | Seleção de data/usuário e download do resumo diário em CSV/PDF.                                                   |
+| `src/features/auth/pages/AuthPage.jsx`, `src/features/tasks/pages/TasksPage.jsx` | Mensagens de indisponibilidade; não coletam credenciais nem dados de task.                                        |
+| `src/app/layout/Sidebar.jsx`                                                     | Navegação desktop e diálogo móvel.                                                                                |
+| `src/app/styles/index.css`, `tailwind.config.js`                                 | Estilos base, tokens de cor, tema, foco e adaptação de layout.                                                    |
 
 ## Cliente HTTP
 
@@ -74,8 +84,8 @@ Playwright executa os fluxos principais no Chrome, testa larguras de 375 a 1920 
 
 ## Código preservado fora do caminho atual
 
-`ActivityChart`, `Header`, `PeopleCard`, `ReportsAndAgent`, `TimelineCard`, `Card`, `SectionHeading`, `EmptyState`, `useAutoRefresh` e algumas funções de `utils/dashboard.js` são usados apenas por componentes preservados ou testes, sem consumidor na árvore ativa de `App`. Eles não comprovam que histórico semanal, timeline, task ativa ou controle de polling por checkbox estejam disponíveis hoje. Permanecem para decisão posterior sobre reutilização, pois a intenção futura é plausível; veja [Pendências](PENDENCIAS.md).
+`src/legacy/` reúne `ActivityChart`, `Header`, `PeopleCard`, `ReportsAndAgent`, `TimelineCard`, `Card`, `SectionHeading`, `EmptyState`, `useAutoRefresh` e suas constantes de interface. Algumas funções de `shared/lib/dashboard.js` também são usadas apenas por esse código ou seus testes, sem consumidor na árvore ativa de `App`. Eles não comprovam que histórico semanal, timeline, task ativa ou controle de polling por checkbox estejam disponíveis hoje. Permanecem para decisão posterior sobre reutilização; veja [Pendências](PENDENCIAS.md).
 
 ## Ao alterar um contrato
 
-Conferir a rota e o schema no backend antes de modificar `api.js`; ajustar a validação correspondente em `utils/dashboard.js` ou na página consumidora; preservar estados de carregamento, vazio e falha; acrescentar regressão apenas para o comportamento novo ou corrigido. Atualizar [Funcionalidades](FUNCIONALIDADES.md) quando a tela mudar, [Pendências](PENDENCIAS.md) quando um bloqueio for resolvido ou surgir, e [Testes](TESTES.md) com a evidência realmente executada. Não tratar componentes isolados ou descrições de requisitos como prova de um endpoint existente.
+Conferir a rota e o schema no backend antes de modificar `shared/api/api.js`; ajustar a validação correspondente em `shared/lib/dashboard.js` ou na página consumidora; preservar estados de carregamento, vazio e falha; acrescentar regressão apenas para o comportamento novo ou corrigido. Atualizar [Funcionalidades](FUNCIONALIDADES.md) quando a tela mudar, [Pendências](PENDENCIAS.md) quando um bloqueio for resolvido ou surgir, e [Testes](TESTES.md) com a evidência realmente executada. Não tratar componentes isolados ou descrições de requisitos como prova de um endpoint existente.

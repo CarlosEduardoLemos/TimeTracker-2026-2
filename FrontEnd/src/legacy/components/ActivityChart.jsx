@@ -1,5 +1,5 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { getSummaryTotalSeconds } from '../utils/dashboard';
+import { getSummaryTotalSeconds } from '../../shared/lib/dashboard';
 import { Card } from './Card';
 import { SectionHeading } from './SectionHeading';
 

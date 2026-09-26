@@ -1,9 +1,9 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ReportsPage } from './ReportsPage';
-import { api } from '../services/api';
+import { api } from '../../../shared/api/api';
 
-vi.mock('../services/api', () => ({ api: { users: vi.fn(), exportFile: vi.fn() } }));
+vi.mock('../../../shared/api/api', () => ({ api: { users: vi.fn(), exportFile: vi.fn() } }));
 beforeEach(() => {
   vi.resetAllMocks();
   api.users.mockResolvedValue([]);

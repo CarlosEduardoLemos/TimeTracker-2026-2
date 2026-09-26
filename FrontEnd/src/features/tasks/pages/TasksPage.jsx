@@ -1,5 +1,5 @@
-import { PageHeader } from '../components/PageHeader';
-import { IntegrationNotice } from '../components/IntegrationNotice';
+import { PageHeader } from '../../../shared/components/PageHeader';
+import { IntegrationNotice } from '../../../shared/components/IntegrationNotice';
 
 export function TasksPage() {
   return (

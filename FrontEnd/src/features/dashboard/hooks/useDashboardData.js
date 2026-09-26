@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api } from '../services/api';
-import { validRealtime, validSummary, validUsers } from '../utils/dashboard';
-import { requestFailure } from '../utils/requestFailure';
+import { api } from '../../../shared/api/api';
+import { validRealtime, validSummary, validUsers } from '../../../shared/lib/dashboard';
+import { requestFailure } from '../../../shared/lib/requestFailure';
 
 const initial = { loading: true, refreshing: false, error: null, data: null, updatedAt: null };
 

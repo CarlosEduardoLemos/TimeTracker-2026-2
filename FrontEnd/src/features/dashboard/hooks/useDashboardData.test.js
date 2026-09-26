@@ -1,9 +1,9 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useDashboardData } from './useDashboardData';
-import { api } from '../services/api';
+import { api } from '../../../shared/api/api';
 
-vi.mock('../services/api', () => ({
+vi.mock('../../../shared/api/api', () => ({
   api: { summary: vi.fn(), users: vi.fn(), realtime: vi.fn() },
 }));
 

@@ -1,9 +1,9 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SettingsPage } from './SettingsPage';
-import { api } from '../services/api';
+import { api } from '../../../shared/api/api';
 
-vi.mock('../services/api', () => ({ api: { settings: vi.fn(), saveSettings: vi.fn() } }));
+vi.mock('../../../shared/api/api', () => ({ api: { settings: vi.fn(), saveSettings: vi.fn() } }));
 const settings = { capture_interval_seconds: 10, idle_timeout_seconds: 300 };
 beforeEach(() => {
   vi.resetAllMocks();

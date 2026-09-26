@@ -18,19 +18,19 @@ Frontend do **TimeTrack**, responsável pela interface web do Dashboard PWA. A a
 ### Interface e visual
 
 - **Tailwind CSS 3.4.17** — classes utilitárias e composição visual.
-- **CSS global (`src/index.css`)** — tokens de cor, componentes compartilhados, estados de foco, responsividade e suporte a movimento reduzido.
+- **CSS global (`src/app/styles/index.css`)** — tokens de cor, componentes compartilhados, estados de foco, responsividade e suporte a movimento reduzido.
 - **PostCSS 8.5.28** — processamento do CSS.
 - **Autoprefixer 10.4.16** — compatibilidade de propriedades CSS.
 - **Recharts 2.10.3** — gráficos e visualizações do dashboard.
 
 ### Recursos do navegador
 
-- **Fetch API** — chamadas HTTP encapsuladas em `src/services/api.js`.
+- **Fetch API** — chamadas HTTP encapsuladas em `src/shared/api/api.js`.
 - **AbortController** — cancelamento de consultas quando filtros mudam ou páginas são desmontadas.
 - **URLSearchParams** — montagem segura de parâmetros da API.
 - **localStorage e `prefers-color-scheme`** — persistência e detecção da preferência de tema.
 - **Blob e URL de objeto** — download dos relatórios CSV e PDF devolvidos pela API.
-- **Hash da URL (`location.hash`)** — navegação interna, implementada em `src/hooks/useHashRoute.js`.
+- **Hash da URL (`location.hash`)** — navegação interna, implementada em `src/app/hooks/useHashRoute.js`.
 
 Não há React Router, biblioteca de formulários, biblioteca de ícones ou gerenciador externo de estado. O estado das telas é mantido com os hooks do React; os ícones usados são SVG inline.
 
@@ -52,20 +52,34 @@ Não há React Router, biblioteca de formulários, biblioteca de ícones ou gere
 
 ## Organização
 
-A pasta mantém cada responsabilidade em seu local:
+A estrutura separa a composição da aplicação, as funcionalidades e os recursos compartilhados:
 
 ```text
 FrontEnd/
 ├── docs/                 # Documentação específica do frontend
 ├── e2e/                  # Testes end-to-end
 ├── src/
-│   ├── components/       # Componentes reutilizáveis da interface
-│   ├── constants/        # Constantes visuais e de domínio do frontend
-│   ├── hooks/            # Hooks reutilizáveis
-│   ├── pages/            # Telas e páginas da aplicação
-│   ├── services/         # Comunicação com a API
-│   ├── test/             # Setup e testes transversais
-│   └── utils/            # Funções auxiliares e transformação de dados
+│   ├── app/              # App, ErrorBoundary, navegação, tema e estilos
+│   │   ├── hooks/
+│   │   ├── layout/
+│   │   └── styles/
+│   ├── features/         # Páginas e lógica de cada funcionalidade
+│   │   ├── auth/pages/
+│   │   ├── collaborators/pages/
+│   │   ├── dashboard/    # pages/ e hooks/ do painel
+│   │   ├── reports/pages/
+│   │   ├── settings/pages/
+│   │   └── tasks/pages/
+│   ├── shared/           # Recursos usados por diferentes funcionalidades
+│   │   ├── api/
+│   │   ├── components/
+│   │   └── lib/
+│   ├── legacy/           # Componentes e hooks preservados fora do fluxo ativo
+│   │   ├── components/
+│   │   ├── constants/
+│   │   └── hooks/
+│   ├── testing/          # Setup e testes transversais
+│   └── main.jsx          # Entrada do React
 ├── .env.example
 ├── index.html
 ├── package.json
@@ -78,7 +92,9 @@ FrontEnd/
 └── eslint.config.js
 ```
 
-Testes específicos de componentes permanecem próximos ao código que validam. O teste transversal de revisão do frontend fica em `src/test/`. Arquivos gerados por build, cobertura e Playwright (`dist/`, `coverage/`, `test-output/` e `test-results/`) são saídas locais e estão no `.gitignore`; não fazem parte da árvore de código-fonte.
+Testes específicos de componentes permanecem próximos ao código que validam. O teste transversal de revisão do frontend fica em `src/testing/`. Arquivos gerados por build, cobertura e Playwright (`dist/`, `coverage/`, `test-output/` e `test-results/`) são saídas locais e estão no `.gitignore`; não fazem parte da árvore de código-fonte.
+
+Uma nova tela entra em `features/<funcionalidade>/pages/`; hooks exclusivos ficam na mesma funcionalidade. Recursos reutilizados por várias telas entram em `shared/`. `app/` compõe essas funcionalidades e `legacy/` mantém o código preservado com seus testes, sem imports pela aplicação ativa. Consulte [Arquitetura](docs/ARQUITETURA.md) para as regras de dependência.
 
 ## Executar
 

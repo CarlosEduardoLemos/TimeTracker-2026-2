@@ -1,5 +1,7 @@
 # Auditoria técnica do frontend — 25/09/2026
 
+Este registro histórico usa os caminhos anteriores à refatoração da estrutura de 26/09/2026. Consulte [Arquitetura](ARQUITETURA.md) para os caminhos atuais e [Alterações](ALTERACOES.md) para o inventário da reorganização.
+
 ## Escopo e método
 
 Foram lidos arquivos de entrada, páginas, componentes, hooks, serviço, utilitários, testes, configurações e documentação em `FrontEnd`. Requisitos em `requisitos/` e rotas, schemas, modelos, CRUD e inicialização em `backend/` foram consultados somente para entender contratos. A árvore de imports, scripts e rotas foi comparada com os arquivos existentes. O estado Git estava limpo antes da revisão. Todas as alterações ficaram em `FrontEnd/`.

@@ -17,7 +17,7 @@ Revisão: **26/09/2026**. `backend/` e `requisitos/` foram consultados somente p
 ### B-02 — CORS e HTTPS por ambiente — Alta
 
 - **Problema/requisito:** política de origem ampla e transmissão segura ainda dependente da implantação; RNF-03/CA-09.
-- **Frontend afetado:** `src/services/api.js` e todas as requisições.
+- **Frontend afetado:** `src/shared/api/api.js` e todas as requisições.
 - **Backend relacionado:** `app/main.py`, configuração de serviço/reverse proxy externa.
 - **Atual/impacto:** `allow_origins=["*"]` com `allow_credentials=True`; origem padrão de desenvolvimento HTTP. O ambiente real não foi validado.
 - **Alteração necessária:** definir origens, credenciais e HTTPS por ambiente; fornecer a origem correta para `VITE_API_URL`.
@@ -217,7 +217,7 @@ As descrições históricas de Sprint 1/2 e EP-01 mencionam dados simulados e mo
 - **Backend relacionado:** novas fontes de I-05/I-06 e definições de produto.
 - **Atual/impacto:** fora da árvore ativa; vários possuem consumidores em testes. Busca de imports/entradas confirmou que não são carregados no build atual. Não há ganho de bundle ao removê-los.
 - **Definição necessária:** confirmar visualizações futuras e política de preservação; depois reaproveitar ou remover arquivos e testes que percam finalidade.
-- **Workaround frontend:** mantê-los isolados é aceitável; não foram conectados a dados inexistentes.
+- **Workaround frontend:** componentes, hook, constantes e testes agora estão isolados em `src/legacy/`; continuam sem conexão com a aplicação ativa ou com dados inexistentes.
 - **Motivo do bloqueio:** remover código explicitamente preservado pela auditoria anterior sem decisão sobre seu destino seria mudança sem benefício funcional comprovado.
 
 ## Ordem de execução

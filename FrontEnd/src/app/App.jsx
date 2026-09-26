@@ -1,25 +1,33 @@
 import { lazy, Suspense, useEffect, useRef } from 'react';
-import { Sidebar } from './components/Sidebar';
+import { Sidebar } from './layout/Sidebar';
 import { useTheme } from './hooks/useTheme';
 import { useHashRoute } from './hooks/useHashRoute';
 
 const DashboardPage = lazy(() =>
-  import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })),
+  import('../features/dashboard/pages/DashboardPage').then((module) => ({
+    default: module.DashboardPage,
+  })),
 );
 const CollaboratorsPage = lazy(() =>
-  import('./pages/CollaboratorsPage').then((module) => ({ default: module.CollaboratorsPage })),
+  import('../features/collaborators/pages/CollaboratorsPage').then((module) => ({
+    default: module.CollaboratorsPage,
+  })),
 );
 const TasksPage = lazy(() =>
-  import('./pages/TasksPage').then((module) => ({ default: module.TasksPage })),
+  import('../features/tasks/pages/TasksPage').then((module) => ({ default: module.TasksPage })),
 );
 const ReportsPage = lazy(() =>
-  import('./pages/ReportsPage').then((module) => ({ default: module.ReportsPage })),
+  import('../features/reports/pages/ReportsPage').then((module) => ({
+    default: module.ReportsPage,
+  })),
 );
 const SettingsPage = lazy(() =>
-  import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })),
+  import('../features/settings/pages/SettingsPage').then((module) => ({
+    default: module.SettingsPage,
+  })),
 );
 const AuthPage = lazy(() =>
-  import('./pages/AuthPage').then((module) => ({ default: module.AuthPage })),
+  import('../features/auth/pages/AuthPage').then((module) => ({ default: module.AuthPage })),
 );
 
 const pages = {

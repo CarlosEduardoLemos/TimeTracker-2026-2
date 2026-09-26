@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import App from './App';
 
-vi.mock('./components/Sidebar', () => ({ Sidebar: () => null }));
+vi.mock('./layout/Sidebar', () => ({ Sidebar: () => null }));
 afterEach(() => {
   window.location.hash = '';
   localStorage.clear();
