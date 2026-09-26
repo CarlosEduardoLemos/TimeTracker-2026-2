@@ -1,8 +1,8 @@
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DashboardPage } from './DashboardPage';
-import { ReportsPage } from './ReportsPage';
-import { SettingsPage } from './SettingsPage';
+import { DashboardPage } from '../pages/DashboardPage';
+import { ReportsPage } from '../pages/ReportsPage';
+import { SettingsPage } from '../pages/SettingsPage';
 import { api } from '../services/api';
 import { useDashboardData } from '../hooks/useDashboardData';
 
@@ -105,7 +105,7 @@ describe('estados de integração', () => {
     api.users.mockResolvedValue([]);
     api.exportFile.mockReturnValue(new Promise(() => {}));
     const { unmount } = render(<ReportsPage />);
-    fireEvent.click(screen.getByRole('button', { name: 'Exportar CSV' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Exportar CSV' }));
     const signal = api.exportFile.mock.calls[0][3];
     expect(signal.aborted).toBe(false);
     unmount();
