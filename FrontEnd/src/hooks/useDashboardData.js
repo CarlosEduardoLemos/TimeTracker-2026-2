@@ -1,97 +1,80 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchDashboardData } from "../services/api";
-import { useAutoRefresh } from "./useAutoRefresh";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { api } from '../services/api';
+import { validRealtime, validSummary, validUsers } from '../utils/dashboard';
+import { requestFailure } from '../utils/requestFailure';
 
-const INITIAL_DASHBOARD_STATE = {
-  data: null,
-  loading: true,
-  refreshing: false,
-  error: null,
-  updatedAt: null,
-  filterKey: null,
-};
+const initial = { loading: true, refreshing: false, error: null, data: null, updatedAt: null };
 
-function createLoadingState(currentState, filterKey) {
-  const isSameFilter = currentState.filterKey === filterKey;
+export function useDashboardData(date, username) {
+  const [state, setState] = useState(initial);
+  const active = useRef(null);
+  const sequence = useRef(0);
+  const previousQuery = useRef(null);
 
-  return {
-    data: isSameFilter ? currentState.data : null,
-    loading: !isSameFilter,
-    refreshing: isSameFilter && Boolean(currentState.data),
-    error: null,
-    updatedAt: isSameFilter ? currentState.updatedAt : null,
-    filterKey: isSameFilter ? currentState.filterKey : null,
-  };
-}
-
-function createErrorState(currentState, error) {
-  return {
-    ...currentState,
-    loading: false,
-    refreshing: false,
-    error,
-  };
-}
-
-/**
- * Orquestra o ciclo de consulta e o estado dos dados do Dashboard.
- * Resumos históricos carregados com sucesso são reutilizados enquanto o filtro
- * não muda durante polling; a atualização manual também revalida o histórico.
- * Dados atuais e lista de usuários continuam sendo reconsultados.
- */
-export function useDashboardData(selectedDate, selectedUsername = "", autoRefresh = true) {
-  const [state, setState] = useState(INITIAL_DASHBOARD_STATE);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const historyCacheRef = useRef({ filterKey: null, summaries: [] });
-  const refreshCurrent = useCallback(() => setRefreshKey((current) => current + 1), []);
-  const refresh = useCallback(() => {
-    historyCacheRef.current = { filterKey: null, summaries: [] };
-    refreshCurrent();
-  }, [refreshCurrent]);
-
-  useAutoRefresh(refreshCurrent, autoRefresh);
+  const load = useCallback(async () => {
+    active.current?.abort();
+    const controller = new AbortController();
+    active.current = controller;
+    const current = ++sequence.current;
+    const query = `${date}|${username}`;
+    const changed = previousQuery.current !== query;
+    previousQuery.current = query;
+    setState((previous) => ({
+      ...previous,
+      data: changed ? null : previous.data,
+      updatedAt: changed ? null : previous.updatedAt,
+      loading: changed || !previous.data,
+      refreshing: !changed && !!previous.data,
+      error: null,
+    }));
+    const [summary, users, realtime] = await Promise.allSettled([
+      api.summary(date, username, controller.signal),
+      api.users(controller.signal),
+      api.realtime(controller.signal),
+    ]);
+    if (controller.signal.aborted || current !== sequence.current) return;
+    const availability = {
+      summary:
+        summary.status === 'fulfilled' &&
+        validSummary(summary.value) &&
+        summary.value.date === date,
+      users: users.status === 'fulfilled' && validUsers(users.value),
+      realtime: realtime.status === 'fulfilled' && validRealtime(realtime.value),
+    };
+    setState((previous) => ({
+      loading: false,
+      refreshing: false,
+      error:
+        [
+          requestFailure(summary, availability.summary, 'Resumo'),
+          requestFailure(users, availability.users, 'Usuários'),
+          requestFailure(realtime, availability.realtime, 'Atividade'),
+        ]
+          .filter(Boolean)
+          .join('; ') || null,
+      data: {
+        summary: availability.summary ? summary.value : null,
+        users: availability.users ? users.value : [],
+        realtime: availability.realtime ? realtime.value : [],
+        availability,
+      },
+      updatedAt: Object.values(availability).some(Boolean) ? new Date() : previous.updatedAt,
+    }));
+  }, [date, username]);
 
   useEffect(() => {
-    const controller = new AbortController();
-    const filterKey = `${selectedDate}:${selectedUsername}`;
-    const cachedPreviousSummaries =
-      historyCacheRef.current.filterKey === filterKey
-        ? historyCacheRef.current.summaries
-        : [];
+    load();
+    const refreshVisible = () => {
+      if (!document.hidden) load();
+    };
+    const interval = setInterval(refreshVisible, 30000);
+    document.addEventListener('visibilitychange', refreshVisible);
+    return () => {
+      active.current?.abort();
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', refreshVisible);
+    };
+  }, [load]);
 
-    setState((currentState) => createLoadingState(currentState, filterKey));
-
-    fetchDashboardData(
-      selectedDate,
-      selectedUsername,
-      controller.signal,
-      cachedPreviousSummaries,
-    )
-      .then((dashboardData) => {
-        if (controller.signal.aborted) return;
-
-        historyCacheRef.current = {
-          filterKey,
-          summaries: dashboardData.weeklySummaries.slice(0, -1),
-        };
-
-        setState({
-          data: dashboardData,
-          loading: false,
-          refreshing: false,
-          error: null,
-          updatedAt: new Date(),
-          filterKey,
-        });
-      })
-      .catch((error) => {
-        if (error.name !== "AbortError" && !controller.signal.aborted) {
-          setState((currentState) => createErrorState(currentState, error));
-        }
-      });
-
-    return () => controller.abort();
-  }, [selectedDate, selectedUsername, refreshKey]);
-
-  return { ...state, refresh };
+  return { ...state, refresh: load };
 }

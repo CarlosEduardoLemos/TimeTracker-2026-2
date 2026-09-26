@@ -1,214 +1,160 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchDashboardData, getPreviousDateKeys } from "./api";
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { api } from './api';
 
 afterEach(() => {
-  vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.useRealTimers();
 });
 
-describe("api service", () => {
-  it("generates correct previous date keys without offset errors", () => {
-    const dates = getPreviousDateKeys("2026-09-11", 7);
-    expect(dates).toHaveLength(7);
-    expect(dates[6]).toBe("2026-09-11");
-    expect(dates[5]).toBe("2026-09-10");
-    expect(dates[0]).toBe("2026-09-05");
-  });
-
-  it("handles month boundary transitions correctly", () => {
-    const dates = getPreviousDateKeys("2026-03-02", 4);
-    expect(dates).toEqual([
-      "2026-02-27",
-      "2026-02-28",
-      "2026-03-01",
-      "2026-03-02",
-    ]);
-  });
-
-  it("keeps the main summary and reports optional request degradation", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const fetchMock = vi.fn(async (url) => {
-      if (String(url).includes("/activities/realtime")) {
-        throw new Error("realtime indisponível");
-      }
-
-      if (String(url).endsWith("/users/")) {
-        return { ok: true, json: async () => ({ unexpected: true }) };
-      }
-
-      const queryDate = new URL(String(url)).searchParams.get("date");
-      return {
-        ok: true,
-        json: async () => ({ date: queryDate, users: [] }),
-      };
-    });
-    vi.stubGlobal("fetch", fetchMock);
-
-    const result = await fetchDashboardData("2026-09-11", "ana");
-
-    expect(result.summary.users).toEqual([]);
-    expect(result.realtime).toEqual([]);
-    expect(result.users).toEqual([]);
-    expect(result.weeklySummaries).toHaveLength(7);
-    expect(result.weeklySummaries.at(-1).date).toBe("2026-09-11");
-    expect(result.availability).toEqual({
-      realtime: false,
-      users: false,
-      history: true,
-    });
-    expect(fetchMock).toHaveBeenCalledTimes(9);
-    expect(warnSpy).toHaveBeenCalledTimes(2);
-  });
-
-  it("marks an unavailable historical day instead of converting it to zero", async () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    const fetchMock = vi.fn(async (url) => {
-      const stringUrl = String(url);
-      if (stringUrl.includes("date=2026-09-08")) {
-        throw new Error("histórico indisponível");
-      }
-      if (stringUrl.includes("/activities/realtime") || stringUrl.endsWith("/users/")) {
-        return { ok: true, json: async () => [] };
-      }
-
-      const queryDate = new URL(stringUrl).searchParams.get("date");
-      return { ok: true, json: async () => ({ date: queryDate, users: [] }) };
-    });
-    vi.stubGlobal("fetch", fetchMock);
-
-    const result = await fetchDashboardData("2026-09-11");
-    const unavailableDay = result.weeklySummaries.find(
-      (summary) => summary.date === "2026-09-08",
-    );
-
-    expect(unavailableDay).toMatchObject({ unavailable: true, users: [] });
-    expect(result.availability.history).toBe(false);
-  });
-
-  it("reuses successful historical summaries on refresh and keeps live sources fresh", async () => {
-    const cachedPreviousSummaries = getPreviousDateKeys("2026-09-11", 7)
-      .slice(0, 6)
-      .map((date) => ({ date, users: [] }));
-
-    const fetchMock = vi.fn(async (url) => {
-      const stringUrl = String(url);
-      if (stringUrl.includes("/activities/realtime") || stringUrl.endsWith("/users/")) {
-        return { ok: true, json: async () => [] };
-      }
-
-      return {
-        ok: true,
-        json: async () => ({ date: "2026-09-11", users: [] }),
-      };
-    });
-    vi.stubGlobal("fetch", fetchMock);
-
-    const result = await fetchDashboardData(
-      "2026-09-11",
-      "",
-      undefined,
-      cachedPreviousSummaries,
-    );
-
-    expect(fetchMock).toHaveBeenCalledTimes(3);
-    expect(result.weeklySummaries.slice(0, 6)).toEqual(cachedPreviousSummaries);
-    expect(result.weeklySummaries.at(-1).date).toBe("2026-09-11");
-  });
-
-  it.each([null, {}, { date: "invalid", users: [] }, { date: "2026-09-11", users: [null] }, { date: "2026-09-11", users: null }])(
-    "rejects malformed main summaries instead of displaying zero: %j", async (payload) => {
-      vi.stubGlobal("fetch", vi.fn(async (url) => ({
-        ok: true,
-        json: async () => String(url).includes("/summary")
-          ? (String(url).includes("2026-09-11") ? payload : { date: new URL(url).searchParams.get("date"), users: [] })
-          : [],
-      })));
-      await expect(fetchDashboardData("2026-09-11")).rejects.toThrow(/contrato/);
-    },
-  );
-
-  it("marks malformed history and list entries unavailable without crashing consumers", async () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.stubGlobal("fetch", vi.fn(async (url) => ({
+describe('cliente da API', () => {
+  it('codifica o usuário no filtro do resumo', async () => {
+    const fetchMock = vi.fn(async () => ({
       ok: true,
-      json: async () => String(url).includes("2026-09-11")
-        ? { date: "2026-09-11", users: [] }
-        : String(url).includes("/summary") ? { date: "invalid", users: [] } : [null],
-    })));
-    const data = await fetchDashboardData("2026-09-11");
-    expect(data.availability).toEqual({ history: false, users: false, realtime: false });
-    expect(data.weeklySummaries[0].unavailable).toBe(true);
-  });
-
-  it("times out a stalled response body and releases all request timers", async () => {
-    vi.useFakeTimers();
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.stubGlobal("fetch", vi.fn(async (_url, { signal }) => ({
-      ok: true,
-      json: () => new Promise((_resolve, reject) => {
-        signal.addEventListener("abort", () => reject(signal.reason), { once: true });
-      }),
-    })));
-    const pending = expect(fetchDashboardData("2026-09-11")).rejects.toMatchObject({ name: "TimeoutError" });
-    await vi.advanceTimersByTimeAsync(15_000);
-    await pending;
-    expect(vi.getTimerCount()).toBe(0);
-  });
-
-  it("propagates cancellation without warnings or lingering timers", async () => {
-    vi.useFakeTimers();
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.stubGlobal("fetch", vi.fn((_url, { signal }) => new Promise((_resolve, reject) => {
-      signal.addEventListener("abort", () => reject(signal.reason), { once: true });
-    })));
-    const controller = new AbortController();
-    const pending = expect(fetchDashboardData("2026-09-11", "", controller.signal))
-      .rejects.toMatchObject({ name: "AbortError" });
-    controller.abort();
-    await pending;
-    expect(warn).not.toHaveBeenCalled();
-    expect(vi.getTimerCount()).toBe(0);
-  });
-
-  it("reports HTTP errors without reading or logging the response body", async () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    const json = vi.fn();
-    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 422, json })));
-    await expect(fetchDashboardData("2026-09-11")).rejects.toThrow("API respondeu com status 422");
-    expect(json).not.toHaveBeenCalled();
-  });
-
-  it("preserves real DTO fields, nullable names and encoded username filters", async () => {
-    const username = "domínio/ana & equipe";
-    const user = {
-      id: "0199614d-4000-7000-8000-000000000001", username,
-      full_name: null, department: null, created_at: "2026-09-11T10:00:00Z",
-    };
-    const realtime = {
-      username, hostname: "PC-01", process_name: "editor.exe",
-      window_title: null, category: null, is_idle: false,
-      seconds_since_last_activity: 10, status: "online",
-    };
-    const summaryUser = {
-      username, total_seconds: 3600,
-      by_category: [{ category: "Outros", color: "#6B7280", total_seconds: 3600 }],
-    };
-    vi.stubGlobal("fetch", vi.fn(async (url) => {
-      const parsed = new URL(url);
-      let data;
-      if (parsed.pathname === "/users/") data = [user];
-      else if (parsed.pathname === "/activities/realtime") data = [realtime];
-      else {
-        expect(parsed.searchParams.get("username")).toBe(username);
-        data = { date: parsed.searchParams.get("date"), users: [summaryUser] };
-      }
-      return { ok: true, json: async () => data };
+      json: async () => ({ date: '2026-09-25', users: [] }),
     }));
-    const result = await fetchDashboardData("2026-09-11", username);
-    expect(result.users).toEqual([user]);
-    expect(result.realtime).toEqual([realtime]);
-    expect(result.summary.users).toEqual([summaryUser]);
-    expect(result.availability).toEqual({ realtime: true, users: true, history: true });
+    vi.stubGlobal('fetch', fetchMock);
+    await api.summary('2026-09-25', 'ana & joão');
+    const url = new URL(fetchMock.mock.calls[0][0]);
+    expect(url.pathname).toBe('/dashboard/summary');
+    expect(url.searchParams.get('username')).toBe('ana & joão');
+    expect(url.searchParams.get('date')).toBe('2026-09-25');
+  });
+
+  it('informa erro HTTP sem ler o corpo da resposta', async () => {
+    const json = vi.fn();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 403, json })),
+    );
+    await expect(api.users()).rejects.toThrow('API respondeu 403');
+    expect(json).toHaveBeenCalledOnce();
+  });
+
+  it('preserva status e detail do FastAPI', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        json: async () => ({ detail: 'Regra não encontrada' }),
+      })),
+    );
+    await expect(api.users()).rejects.toMatchObject({
+      name: 'ApiError',
+      type: 'client',
+      status: 404,
+      statusText: 'Not Found',
+      detail: 'Regra não encontrada',
+      message: 'Regra não encontrada',
+    });
+  });
+
+  it('identifica validação, erro de servidor, rede e JSON inválido', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: false,
+        status: 422,
+        json: async () => ({ detail: [{ msg: 'valor inválido' }] }),
+      })),
+    );
+    await expect(api.users()).rejects.toMatchObject({ type: 'client', message: 'valor inválido' });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 503, json: async () => ({}) })),
+    );
+    await expect(api.users()).rejects.toMatchObject({ type: 'server', status: 503 });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new TypeError('Failed to fetch');
+      }),
+    );
+    await expect(api.users()).rejects.toMatchObject({
+      type: 'network',
+      message: 'Não foi possível conectar à API',
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => {
+          throw new SyntaxError('JSON');
+        },
+      })),
+    );
+    await expect(api.users()).rejects.toMatchObject({ type: 'invalid-response' });
+  });
+
+  it('cancela uma consulta ao receber um sinal externo', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url, { signal }) =>
+          new Promise((_resolve, reject) => {
+            signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+          }),
+      ),
+    );
+    const controller = new AbortController();
+    const pending = expect(api.users(controller.signal)).rejects.toMatchObject({
+      type: 'canceled',
+      message: 'Consulta substituída',
+    });
+    controller.abort(new Error('Consulta substituída'));
+    await pending;
+  });
+
+  it('mantém timeout ativo até terminar de ler o corpo', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url, { signal }) => ({
+        ok: true,
+        json: () =>
+          new Promise((_resolve, reject) => {
+            signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+          }),
+      })),
+    );
+    const pending = expect(api.users()).rejects.toMatchObject({
+      type: 'timeout',
+      message: 'Tempo de resposta da API esgotado',
+    });
+    await vi.advanceTimersByTimeAsync(15000);
+    await pending;
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('baixa apenas formatos CSV e PDF', async () => {
+    const blob = new Blob(['dados'], { type: 'text/csv' });
+    const fetchMock = vi.fn(async () => ({ ok: true, blob: async () => blob }));
+    vi.stubGlobal('fetch', fetchMock);
+    expect(await api.exportFile('csv', '2026-09-25')).toBe(blob);
+    expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/dashboard/export/csv');
+    await expect(api.exportFile('html', '2026-09-25')).rejects.toThrow('Formato');
+  });
+
+  it('rejects invalid dates before sending a request', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(api.summary('2026-02-31')).rejects.toThrow('data válida');
+    await expect(api.exportFile('csv', '')).rejects.toThrow('data válida');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects an HTML response in place of a CSV export', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        headers: { get: () => 'text/html; charset=utf-8' },
+        blob: vi.fn(),
+      })),
+    );
+    await expect(api.exportFile('csv', '2026-09-25')).rejects.toThrow(
+      'Formato de resposta inválido',
+    );
   });
 });

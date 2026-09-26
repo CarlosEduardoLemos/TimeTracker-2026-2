@@ -1,10 +1,10 @@
-import { API_STATUS_LABELS } from "../constants/ui";
-import { safeIsoDate } from "../utils/dashboard";
+import { API_STATUS_LABELS } from '../constants/ui';
+import { safeIsoDate } from '../utils/dashboard';
 
 function getStatusTone(apiStatus) {
-  if (apiStatus === "online") return "text-emerald-600";
-  if (apiStatus === "offline") return "text-red-600 dark:text-red-300";
-  return "text-amber-600";
+  if (apiStatus === 'online') return 'text-emerald-700 dark:text-emerald-400';
+  if (apiStatus === 'offline') return 'text-red-600 dark:text-red-300';
+  return 'text-amber-700 dark:text-amber-400';
 }
 
 export function Header({
@@ -13,8 +13,8 @@ export function Header({
   toggleTheme,
   selectedDate,
   setSelectedDate,
-  apiStatus = "offline",
-  selectedUsername = "",
+  apiStatus = 'offline',
+  selectedUsername = '',
   setSelectedUsername,
   users = [],
   refreshing = false,
@@ -24,14 +24,18 @@ export function Header({
   const apiStatusLabel = API_STATUS_LABELS[apiStatus] || API_STATUS_LABELS.offline;
 
   return (
-    <header id="visao-geral" className="mb-8 flex flex-col justify-between gap-6 xl:flex-row xl:items-start">
+    <header
+      id="visao-geral"
+      className="mb-8 flex flex-col justify-between gap-6 xl:flex-row xl:items-start"
+    >
       <div>
         <p className="eyebrow">{formattedDate} · DADOS DA API</p>
         <h1 className="font-display text-[29px] font-extrabold text-ink dark:text-white">
           Visão geral da equipe
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          Acompanhe estados dos colaboradores e registros disponíveis sem interpretar atividade como produtividade.
+          Acompanhe estados dos colaboradores e registros disponíveis sem interpretar atividade como
+          produtividade.
         </p>
       </div>
 
@@ -40,22 +44,22 @@ export function Header({
           type="button"
           className="icon-control"
           onClick={toggleTheme}
-          aria-label={dark ? "Ativar tema claro" : "Ativar tema escuro"}
+          aria-label={dark ? 'Ativar tema claro' : 'Ativar tema escuro'}
           aria-pressed={dark}
-          title={dark ? "Ativar tema claro" : "Ativar tema escuro"}
+          title={dark ? 'Ativar tema claro' : 'Ativar tema escuro'}
         >
-          <span aria-hidden="true">{dark ? "☀" : "☾"}</span>
+          <span aria-hidden="true">{dark ? '☀' : '☾'}</span>
         </button>
 
         <button
           type="button"
           className="icon-control"
           onClick={onRefresh}
-          disabled={refreshing || apiStatus === "loading"}
-          aria-label={refreshing ? "Atualizando dados" : "Atualizar dados agora"}
-          title={refreshing ? "Atualizando dados" : "Atualizar dados agora"}
+          disabled={refreshing || apiStatus === 'loading'}
+          aria-label={refreshing ? 'Atualizando dados' : 'Atualizar dados agora'}
+          title={refreshing ? 'Atualizando dados' : 'Atualizar dados agora'}
         >
-          <span aria-hidden="true" className={refreshing ? "animate-spin" : ""}>
+          <span aria-hidden="true" className={refreshing ? 'animate-spin' : ''}>
             ↻
           </span>
         </button>
@@ -111,7 +115,8 @@ export function Header({
 
         {updatedAt && (
           <span className="w-full text-right text-[10px] text-muted" aria-live="polite">
-            Atualizado às {updatedAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+            Atualizado às{' '}
+            {updatedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </span>
         )}
 

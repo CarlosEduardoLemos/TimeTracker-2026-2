@@ -6,10 +6,7 @@
  * backend forneça exportação considerando período, colaborador, task, jornada,
  * possíveis horas extras e Activity Timeline.
  */
-export function ReportsAndAgent({
-  autoRefresh,
-  setAutoRefresh,
-}) {
+export function ReportsAndAgent({ autoRefresh, setAutoRefresh }) {
   return (
     <>
       <section
@@ -28,7 +25,8 @@ export function ReportsAndAgent({
               Exportar relatório
             </h2>
             <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">
-              CSV e PDF devem respeitar os filtros e incluir somente os dados permitidos. A API atual ainda não fornece o relatório completo definido em RF-24/RF-25.
+              CSV e PDF devem respeitar os filtros e incluir somente os dados permitidos. A API
+              atual ainda não fornece o relatório completo definido em RF-24/RF-25.
             </p>
           </div>
         </div>

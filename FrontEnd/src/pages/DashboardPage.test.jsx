@@ -1,54 +1,92 @@
-import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DashboardPage } from "./DashboardPage";
+import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { DashboardPage } from './DashboardPage';
+import { useDashboardData } from '../hooks/useDashboardData';
 
-const useDashboardData = vi.fn();
+vi.mock('../hooks/useDashboardData', () => ({ useDashboardData: vi.fn() }));
 
-vi.mock("../hooks", () => ({
-  useDashboardData: (...args) => useDashboardData(...args),
-  useTheme: () => [false, vi.fn()],
-}));
+const fullData = {
+  summary: {
+    date: '2026-09-25',
+    users: [{ username: 'ana', total_seconds: 3600, by_category: [] }],
+  },
+  users: [{ username: 'ana', full_name: 'Ana' }],
+  realtime: [
+    { username: 'ana', status: 'online', seconds_since_last_activity: 5, process_name: 'Editor' },
+  ],
+  availability: { summary: true, users: true, realtime: true },
+};
 
-vi.mock("../components", () => ({
-  Header: ({ apiStatus }) => <div data-testid="api-status">{apiStatus}</div>,
-  MetricCard: ({ label, value, detail }) => (
-    <div>
-      <span>{label}</span>
-      <span>{value}</span>
-      <span>{detail}</span>
-    </div>
-  ),
-  ActivityChart: () => null,
-  PeopleCard: () => null,
-  ReportsAndAgent: () => null,
-  TimelineCard: () => null,
-}));
+beforeEach(() => vi.clearAllMocks());
 
-describe("DashboardPage", () => {
-  beforeEach(() => {
-    useDashboardData.mockReset();
+describe('DashboardPage', () => {
+  it('mostra carregamento antes da primeira resposta', () => {
+    useDashboardData.mockReturnValue({
+      data: null,
+      loading: true,
+      refreshing: false,
+      refresh: vi.fn(),
+    });
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
+    expect(screen.getByText('Online').closest('article')).toHaveTextContent('…');
   });
 
-  it("shows degraded state without converting missing realtime data into zero online users", () => {
+  it('mostra apenas totais e estados fornecidos pela API', () => {
+    useDashboardData.mockReturnValue({
+      data: fullData,
+      loading: false,
+      refreshing: false,
+      refresh: vi.fn(),
+    });
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
+    expect(screen.getByText('Tempo registrado').closest('article')).toHaveTextContent('1h 00min');
+    expect(screen.getByText('Online').closest('article')).toHaveTextContent('1');
+    expect(screen.getByText('Editor')).toBeInTheDocument();
+  });
+
+  it('marca realtime indisponível sem exibir zero', () => {
     useDashboardData.mockReturnValue({
       data: {
+        ...fullData,
         realtime: [],
-        users: [],
-        weeklySummaries: [],
-        availability: { realtime: false, users: true, history: true },
+        availability: { ...fullData.availability, realtime: false },
       },
       loading: false,
       refreshing: false,
-      error: null,
-      updatedAt: new Date(),
+      error: 'Alguns dados estão temporariamente indisponíveis.',
       refresh: vi.fn(),
     });
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
+    expect(screen.getByText('Online').closest('article')).toHaveTextContent('—');
+    expect(screen.getByRole('alert')).toHaveTextContent('temporariamente indisponíveis');
+  });
 
-    render(<DashboardPage />);
+  it('aplica o filtro de usuário à consulta', () => {
+    useDashboardData.mockReturnValue({
+      data: fullData,
+      loading: false,
+      refreshing: false,
+      refresh: vi.fn(),
+    });
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText('Usuário'), { target: { value: 'ana' } });
+    expect(useDashboardData.mock.calls.at(-1)[1]).toBe('ana');
+  });
 
-    expect(screen.getByTestId("api-status")).toHaveTextContent("degraded");
-    expect(screen.getByText(/Alguns dados estão temporariamente indisponíveis/i)).toBeInTheDocument();
-    expect(screen.getByText("dados em tempo real indisponíveis")).toBeInTheDocument();
-    expect(screen.getAllByText("—").length).toBeGreaterThan(0);
+  it('mantém a contagem de usuários cadastrados quando realtime falha', () => {
+    useDashboardData.mockReturnValue({
+      data: {
+        ...fullData,
+        realtime: [],
+        availability: { ...fullData.availability, realtime: false },
+      },
+      loading: false,
+      refreshing: false,
+      refresh: vi.fn(),
+    });
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText('Usuário'), { target: { value: 'ana' } });
+    expect(screen.getByText('Usuários cadastrados').closest('article')).toHaveTextContent('1');
+    expect(screen.getByText('Online').closest('article')).toHaveTextContent('—');
   });
 });

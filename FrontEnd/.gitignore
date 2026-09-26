@@ -9,6 +9,9 @@ yarn-error.log
 dist/
 build/
 coverage/
+playwright-report/
+test-results/
+test-output/
 legacy/
 .pnpm-debug.log*
 .yarn/install-state.gz
@@ -69,9 +72,8 @@ bld/
 # ============================================================================
 
 .env
-.env.local
-.env.*.local
-.env.production
+.env.*
+!.env.example
 
 # Configurações de IDE
 .vscode/

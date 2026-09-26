@@ -1,170 +1,129 @@
-import { safeIsoDate } from "../utils/dashboard";
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+const TIMEOUT = 15000;
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
-const REQUEST_TIMEOUT_MS = 15_000;
-
-function buildDashboardFilterQuery(date, username = "") {
-  const parameters = [`date=${encodeURIComponent(safeIsoDate(date))}`];
-
-  if (username) {
-    parameters.push(`username=${encodeURIComponent(username)}`);
+export class ApiError extends Error {
+  constructor(message, { type, status = null, statusText = '', detail = null, cause } = {}) {
+    super(message, { cause });
+    this.name = 'ApiError';
+    this.type = type;
+    this.status = status;
+    this.statusText = statusText;
+    this.detail = detail;
   }
-
-  return parameters.join("&");
 }
 
-// Valida os campos consumidos pela interface; campos adicionais são preservados.
-function validateSummary(summary, expectedDate) {
-  if (
-    summary?.date !== expectedDate ||
-    !Array.isArray(summary.users) ||
-    !summary.users.every((user) =>
-      typeof user?.username === "string" && Number.isSafeInteger(user.total_seconds),
-    )
-  ) {
-    throw new Error("Resumo diário incompatível com o contrato da API.");
+function detailMessage(detail) {
+  if (typeof detail === 'string') return detail.trim().slice(0, 500);
+  if (Array.isArray(detail)) {
+    return detail
+      .map((item) => (typeof item?.msg === 'string' ? item.msg : ''))
+      .filter(Boolean)
+      .join('; ')
+      .slice(0, 500);
   }
-  return summary;
+  return '';
 }
 
-function unavailableSummary(date) {
-  return { date, users: [], unavailable: true };
-}
-
-export function getPreviousDateKeys(date, count) {
-  const sanitizedDate = safeIsoDate(date);
-  const [year, month, day] = sanitizedDate.split("-").map(Number);
-  const selectedDate = new Date(Date.UTC(year, month - 1, day));
-
-  return Array.from({ length: count }, (_, index) => {
-    const currentDate = new Date(selectedDate);
-    currentDate.setUTCDate(selectedDate.getUTCDate() - (count - 1 - index));
-    return currentDate.toISOString().slice(0, 10);
+async function httpError(response) {
+  let detail = null;
+  try {
+    const body = await response.json();
+    detail = body?.detail ?? null;
+  } catch {
+    // An empty or non-JSON error body still preserves the HTTP status.
+  }
+  return new ApiError(detailMessage(detail) || `API respondeu ${response.status}`, {
+    type: response.status >= 500 ? 'server' : 'client',
+    status: response.status,
+    statusText: response.statusText || '',
+    detail,
   });
 }
 
-async function requestJson(path, signal) {
+async function request(path, { signal, ...options } = {}, read = (response) => response.json()) {
   const controller = new AbortController();
   const abort = () => controller.abort(signal.reason);
   if (signal?.aborted) abort();
-  else signal?.addEventListener("abort", abort, { once: true });
-  const timeoutId = setTimeout(() => {
-    controller.abort(new DOMException("A API excedeu o tempo limite de 15 segundos.", "TimeoutError"));
-  }, REQUEST_TIMEOUT_MS);
-
+  else signal?.addEventListener('abort', abort, { once: true });
+  const timeout = setTimeout(() => controller.abort('timeout'), TIMEOUT);
   try {
-    controller.signal.throwIfAborted();
-    const response = await fetch(`${API_BASE_URL}${path}`, { signal: controller.signal });
-    if (!response.ok) {
-      throw new Error(`API respondeu com status ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    if (controller.signal.aborted) throw controller.signal.reason;
-    throw error;
-  } finally {
-    clearTimeout(timeoutId);
-    signal?.removeEventListener("abort", abort);
-  }
-}
-
-async function requestOptionalJson(path, signal, fallbackValue, warningMessage, validate) {
-  try {
-    return { data: validate(await requestJson(path, signal)), failed: false };
-  } catch (error) {
-    if (error.name === "AbortError") throw error;
-
-    console.warn(warningMessage);
-    return { data: fallbackValue, failed: true };
-  }
-}
-
-async function requestOptionalArray(path, signal, warningMessage, validateItem) {
-  return requestOptionalJson(path, signal, [], warningMessage, (data) => {
-    if (!Array.isArray(data) || !data.every(validateItem)) {
-      throw new Error("Lista incompatível com o contrato da API.");
-    }
-    return data;
-  });
-}
-
-function findReusableSummary(cachedSummaries, date) {
-  return cachedSummaries.find(
-    (summary) => summary?.date === date && summary.unavailable !== true,
-  );
-}
-
-function fetchPreviousSummaries(
-  previousDates,
-  username,
-  signal,
-  cachedSummaries = [],
-) {
-  return Promise.all(
-    previousDates.map((day) => {
-      const cachedSummary = findReusableSummary(cachedSummaries, day);
-      if (cachedSummary) {
-        return Promise.resolve({ data: cachedSummary, failed: false });
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: options.body
+        ? { 'Content-Type': 'application/json', ...options.headers }
+        : options.headers,
+    });
+    if (!response.ok) throw await httpError(response);
+    try {
+      return await read(response);
+    } catch (cause) {
+      if (
+        !controller.signal.aborted &&
+        (cause instanceof SyntaxError || cause instanceof TypeError)
+      ) {
+        throw new ApiError('Resposta inválida da API', { type: 'invalid-response', cause });
       }
-
-      return requestOptionalJson(
-        `/dashboard/summary?${buildDashboardFilterQuery(day, username)}`,
-        signal,
-        unavailableSummary(day),
-        `Falha ao consultar resumo do dia ${day}:`,
-        (data) => validateSummary(data, day),
+      throw cause;
+    }
+  } catch (cause) {
+    if (controller.signal.aborted) {
+      if (controller.signal.reason === 'timeout') {
+        throw new ApiError('Tempo de resposta da API esgotado', { type: 'timeout', cause });
+      }
+      throw new ApiError(
+        signal?.reason instanceof Error ? signal.reason.message : 'Requisição cancelada',
+        {
+          type: 'canceled',
+          cause,
+        },
       );
-    }),
-  );
+    }
+    if (cause instanceof ApiError) throw cause;
+    if (cause instanceof TypeError)
+      throw new ApiError('Não foi possível conectar à API', { type: 'network', cause });
+    if (cause instanceof SyntaxError)
+      throw new ApiError('Resposta inválida da API', { type: 'invalid-response', cause });
+    throw cause;
+  } finally {
+    clearTimeout(timeout);
+    signal?.removeEventListener('abort', abort);
+  }
 }
 
-export async function fetchDashboardData(
-  date,
-  username = "",
-  signal,
-  cachedPreviousSummaries = [],
-) {
-  const sanitizedDate = safeIsoDate(date);
-  const filterQuery = buildDashboardFilterQuery(sanitizedDate, username);
-  const previousDates = getPreviousDateKeys(sanitizedDate, 7).slice(0, 6);
-
-  const [summary, realtimeResult, usersResult, previousSummaryResults] =
-    await Promise.all([
-      requestJson(`/dashboard/summary?${filterQuery}`, signal)
-        .then((data) => validateSummary(data, sanitizedDate)),
-      requestOptionalArray(
-        "/activities/realtime",
-        signal,
-        "Falha ao consultar atividades em tempo real:",
-        (person) => typeof person?.username === "string" &&
-          typeof person.process_name === "string" &&
-          ["online", "ausente"].includes(person.status) &&
-          Number.isSafeInteger(person.seconds_since_last_activity),
-      ),
-      requestOptionalArray(
-        "/users/",
-        signal,
-        "Falha ao consultar lista de colaboradores:",
-        (user) => typeof user?.username === "string" &&
-          (user.full_name == null || typeof user.full_name === "string"),
-      ),
-      fetchPreviousSummaries(
-        previousDates,
-        username,
-        signal,
-        cachedPreviousSummaries,
-      ),
-    ]);
-
-  return {
-    summary,
-    realtime: realtimeResult.data,
-    users: usersResult.data,
-    weeklySummaries: [...previousSummaryResults.map(({ data }) => data), summary],
-    availability: {
-      realtime: !realtimeResult.failed,
-      users: !usersResult.failed,
-      history: previousSummaryResults.every(({ failed }) => !failed),
-    },
-  };
+function summaryPath(date, username = '') {
+  const parsed =
+    typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)
+      ? new Date(`${date}T12:00:00Z`)
+      : null;
+  if (!parsed || Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) {
+    throw new Error('Selecione uma data válida');
+  }
+  const query = new URLSearchParams({ date });
+  if (username) query.set('username', username);
+  return `/dashboard/summary?${query}`;
 }
+
+function exportPath(format, date, username = '') {
+  if (!['csv', 'pdf'].includes(format)) throw new Error('Formato de exportação inválido');
+  return summaryPath(date, username).replace('/summary?', `/export/${format}?`);
+}
+
+export const api = {
+  users: (signal) => request('/users/', { signal }),
+  realtime: (signal) => request('/activities/realtime', { signal }),
+  summary: async (date, username = '', signal) => request(summaryPath(date, username), { signal }),
+  settings: (signal) => request('/config/', { signal }),
+  saveSettings: (payload, signal) =>
+    request('/config/', { method: 'PUT', body: JSON.stringify(payload), signal }),
+  async exportFile(format, date, username = '', signal) {
+    return request(exportPath(format, date, username), { signal }, (response) => {
+      const expectedType = format === 'csv' ? 'text/csv' : 'application/pdf';
+      const contentType = response.headers?.get('content-type');
+      if (contentType && !contentType.toLowerCase().startsWith(expectedType)) {
+        throw new ApiError('Formato de resposta inválido', { type: 'invalid-response' });
+      }
+      return response.blob();
+    });
+  },
+};

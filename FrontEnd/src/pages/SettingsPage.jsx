@@ -1,48 +1,154 @@
-import { IntegrationNotice } from "../components/IntegrationNotice";
-import { PageHeader } from "../components/PageHeader";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { api } from '../services/api';
+import { PageHeader } from '../components/PageHeader';
+import { IntegrationNotice } from '../components/IntegrationNotice';
 
-const days = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
+function validSettings(value) {
+  return (
+    Number.isSafeInteger(value?.capture_interval_seconds) &&
+    value.capture_interval_seconds > 0 &&
+    Number.isSafeInteger(value?.idle_timeout_seconds) &&
+    value.idle_timeout_seconds > 0
+  );
+}
+
+function editableSettings(value) {
+  return {
+    capture_interval_seconds: value.capture_interval_seconds,
+    idle_timeout_seconds: value.idle_timeout_seconds,
+  };
+}
 
 export function SettingsPage() {
+  const [form, setForm] = useState(null);
+  const [status, setStatus] = useState('loading');
+  const [error, setError] = useState('');
+  const active = useRef(null);
+
+  const load = useCallback(async () => {
+    active.current?.abort();
+    const controller = new AbortController();
+    active.current = controller;
+    setForm(null);
+    setStatus('loading');
+    setError('');
+    try {
+      const value = await api.settings(controller.signal);
+      if (!validSettings(value)) throw new Error('Resposta inválida da API');
+      if (controller.signal.aborted) return;
+      setForm(editableSettings(value));
+      setStatus('ready');
+    } catch (cause) {
+      if (controller.signal.aborted) return;
+      setError(`Não foi possível carregar: ${cause.message}`);
+      setStatus('error');
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+    return () => active.current?.abort();
+  }, [load]);
+
+  async function save(event) {
+    event.preventDefault();
+    if (status === 'saving' || !form) return;
+    const payload = {
+      capture_interval_seconds: Number(form.capture_interval_seconds),
+      idle_timeout_seconds: Number(form.idle_timeout_seconds),
+    };
+    if (!validSettings(payload)) {
+      setError('Informe números inteiros maiores que zero.');
+      return;
+    }
+    const controller = new AbortController();
+    active.current = controller;
+    setStatus('saving');
+    setError('');
+    try {
+      const value = await api.saveSettings(payload, controller.signal);
+      if (!validSettings(value)) throw new Error('Resposta inválida da API');
+      if (controller.signal.aborted) return;
+      setForm(editableSettings(value));
+      setStatus('saved');
+    } catch (cause) {
+      if (controller.signal.aborted) return;
+      setError(`Não foi possível salvar: ${cause.message}`);
+      setStatus('ready');
+    }
+  }
+
   return (
     <>
       <PageHeader
-        title="Configurações de acompanhamento"
-        description="Configure jornada e limite de inatividade por colaborador associado."
+        title="Configurações"
+        description="Parâmetros globais fornecidos pela API atual."
       />
-
       <IntegrationNotice>
-        RF-20 e RF-21 são configurações por colaborador e dependem da identificação do colaborador e de endpoints de leitura/gravação. Os campos permanecem desabilitados até essa integração existir.
+        Jornada e limite de inatividade por colaborador precisam de contratos próprios. Estes campos
+        são globais; o backend também precisa aplicar o limite salvo ao cálculo de atividade.
       </IntegrationNotice>
-
-      <form className="mt-5 grid gap-5" onSubmit={(event) => event.preventDefault()}>
-        <section className="rounded-xl border border-line bg-white p-5 dark:border-slate-700 dark:bg-slate-900" aria-labelledby="schedule-heading">
-          <h2 id="schedule-heading" className="text-base font-bold text-ink dark:text-white">Jornada</h2>
-          <div className="mt-4 grid gap-3">
-            {days.map((day) => (
-              <div key={day} className="grid gap-3 rounded-lg border border-line p-3 dark:border-slate-700 sm:grid-cols-[120px_repeat(4,minmax(0,1fr))] sm:items-end">
-                <label className="flex items-center gap-2 text-sm font-semibold text-ink dark:text-white">
-                  <input type="checkbox" disabled /> {day}
-                </label>
-                <label className="text-xs font-semibold text-muted">Entrada<input className="form-field mt-1" type="time" disabled /></label>
-                <label className="text-xs font-semibold text-muted">Saída<input className="form-field mt-1" type="time" disabled /></label>
-                <label className="text-xs font-semibold text-muted">Intervalo início<input className="form-field mt-1" type="time" disabled /></label>
-                <label className="text-xs font-semibold text-muted">Intervalo fim<input className="form-field mt-1" type="time" disabled /></label>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-line bg-white p-5 dark:border-slate-700 dark:bg-slate-900" aria-labelledby="idle-heading">
-          <h2 id="idle-heading" className="text-base font-bold text-ink dark:text-white">Limite de inatividade</h2>
-          <label className="mt-4 block max-w-sm text-sm font-semibold text-ink dark:text-white" htmlFor="idle-minutes">
-            Minutos sem interação
-          </label>
-          <input id="idle-minutes" className="form-field mt-2 max-w-sm" type="number" min="1" step="1" disabled />
-          <p className="mt-2 text-xs leading-5 text-muted">Mouse e teclado são usados somente para determinar Ativo/Inativo; o conteúdo das interações não deve ser coletado.</p>
-        </section>
-
-        <div><button className="primary-button" type="submit" disabled>Salvar configurações</button></div>
+      <form
+        onSubmit={save}
+        className="card mt-5 max-w-2xl"
+        aria-busy={status === 'loading' || status === 'saving'}
+      >
+        {status === 'loading' && <p role="status">Carregando configurações…</p>}
+        {form && (
+          <>
+            <fieldset disabled={status === 'saving'} className="grid gap-4 sm:grid-cols-2">
+              <legend className="sr-only">Parâmetros globais</legend>
+              <label className="text-sm font-semibold">
+                Intervalo de captura (segundos)
+                <input
+                  className="form-field mt-2"
+                  min="1"
+                  step="1"
+                  required
+                  type="number"
+                  value={form.capture_interval_seconds}
+                  onChange={(event) => {
+                    setStatus('ready');
+                    setForm({ ...form, capture_interval_seconds: event.target.value });
+                  }}
+                />
+              </label>
+              <label className="text-sm font-semibold">
+                Limite de inatividade (segundos)
+                <input
+                  className="form-field mt-2"
+                  min="1"
+                  step="1"
+                  required
+                  type="number"
+                  value={form.idle_timeout_seconds}
+                  onChange={(event) => {
+                    setStatus('ready');
+                    setForm({ ...form, idle_timeout_seconds: event.target.value });
+                  }}
+                />
+              </label>
+            </fieldset>
+            <button className="primary-button mt-5" disabled={status === 'saving'}>
+              {status === 'saving' ? 'Salvando…' : 'Salvar configurações'}
+            </button>
+          </>
+        )}
+        {status === 'saved' && (
+          <p role="status" className="mt-3 text-sm text-emerald-700 dark:text-emerald-300">
+            Configurações salvas.
+          </p>
+        )}
+        {error && (
+          <p role="alert" className="mt-3 text-sm text-red-700 dark:text-red-300">
+            {error}
+          </p>
+        )}
+        {status === 'error' && (
+          <button type="button" className="secondary-button mt-3" onClick={load}>
+            Tentar novamente
+          </button>
+        )}
       </form>
     </>
   );

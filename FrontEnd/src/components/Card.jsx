@@ -4,7 +4,7 @@
  * @param {string} className - Classes CSS adicionais
  * @param {string} id - ID do elemento
  */
-export function Card({ children, className = "", id }) {
+export function Card({ children, className = '', id }) {
   return (
     <article
       id={id}

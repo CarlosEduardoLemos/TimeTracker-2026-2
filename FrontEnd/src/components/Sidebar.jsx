@@ -1,116 +1,141 @@
-import { useEffect, useRef, useState } from "react";
-import { navItems as defaultNavItems } from "../data/dashboardData";
+import { useEffect, useRef, useState } from 'react';
 
-const FOCUSABLE_ELEMENTS = [
-  "a[href]",
-  "button:not([disabled])",
-  "input:not([disabled])",
-  "select:not([disabled])",
-  "textarea:not([disabled])",
-  "[tabindex]:not([tabindex='-1'])",
-].join(",");
+const items = [
+  ['painel', 'Painel'],
+  ['colaboradores', 'Colaboradores'],
+  ['tasks', 'Tasks'],
+  ['relatorios', 'Relatórios'],
+  ['configuracoes', 'Configurações'],
+];
 
-export function Sidebar({ activeSection, items = defaultNavItems }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const openButtonRef = useRef(null);
-  const closeButtonRef = useRef(null);
-  const mobilePanelRef = useRef(null);
-
-  useEffect(() => {
-    const desktop = window.matchMedia("(min-width: 1024px)");
-    const closeOnDesktop = () => {
-      if (desktop.matches) setMobileOpen(false);
-    };
-    desktop.addEventListener("change", closeOnDesktop);
-    return () => desktop.removeEventListener("change", closeOnDesktop);
-  }, []);
-
-  useEffect(() => {
-    if (!mobileOpen) return undefined;
-
-    closeButtonRef.current?.focus();
-
-    const onKeyDown = (event) => {
-      if (event.key === "Escape") {
-        setMobileOpen(false);
-        openButtonRef.current?.focus();
-        return;
-      }
-
-      if (event.key !== "Tab") return;
-
-      const focusableElements = Array.from(
-        mobilePanelRef.current?.querySelectorAll(FOCUSABLE_ELEMENTS) ?? [],
-      );
-
-      if (!focusableElements.length) return;
-
-      const firstElement = focusableElements[0];
-      const lastElement = focusableElements.at(-1);
-
-      if (event.shiftKey && document.activeElement === firstElement) {
-        event.preventDefault();
-        lastElement.focus();
-      } else if (!event.shiftKey && document.activeElement === lastElement) {
-        event.preventDefault();
-        firstElement.focus();
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [mobileOpen]);
-
-  const closeMobile = () => {
-    setMobileOpen(false);
-    window.requestAnimationFrame(() => openButtonRef.current?.focus());
-  };
-
-  const sidebarContent = (
+function Navigation({ route, onNavigate }) {
+  return (
     <>
-      <a href="#/painel" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-lg font-display text-[21px] font-extrabold text-ink focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 dark:text-white" aria-label="TimeTrack — ir para o Painel">
-        <span aria-hidden="true" className="grid h-8 w-8 place-items-center rounded-[10px] bg-brand text-white">T</span>
-        <span>time<span className="text-brand">track</span></span>
+      <a
+        href="#/painel"
+        onClick={onNavigate}
+        className="text-xl font-extrabold text-ink dark:text-white"
+      >
+        time<span className="text-brand">track</span>
       </a>
-
-      <nav className="mt-12 grid gap-1" aria-label="Menu principal">
-        {items.map(([id, icon, label]) => {
-          const isActive = activeSection === id;
-          return (
-            <a key={id} href={`#/${id}`} onClick={() => setMobileOpen(false)} aria-current={isActive ? "page" : undefined} className={`flex items-center gap-3 rounded-lg px-3.5 py-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${isActive ? "bg-indigo-50 text-brand dark:bg-indigo-950/50" : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>
-              <span aria-hidden="true" className="w-5 text-center text-lg">{icon}</span>{label}
-            </a>
-          );
-        })}
+      <nav aria-label="Menu principal" className="mt-8 grid gap-1">
+        {items.map(([id, label]) => (
+          <a
+            key={id}
+            href={`#/${id}`}
+            onClick={onNavigate}
+            aria-current={route === id ? 'page' : undefined}
+            className={`rounded-lg px-3 py-3 text-sm font-semibold ${route === id ? 'bg-indigo-50 text-brand dark:bg-indigo-950/50' : 'muted hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+          >
+            {label}
+          </a>
+        ))}
       </nav>
-
-      <div className="mt-auto border-t border-line pt-4 dark:border-slate-700">
-        <div className="rounded-lg bg-slate-50 px-3 py-3 text-xs leading-5 text-muted dark:bg-slate-800">
-          <strong className="block text-ink dark:text-white">Sessão do gestor</strong>
-          A identificação do usuário será exibida após integração de RF-02.
-        </div>
-        <div className="mt-3 flex gap-2">
-          <a href="#/login" className="secondary-button flex-1 text-center" onClick={() => setMobileOpen(false)}>Login</a>
-          <a href="#/cadastro" className="secondary-button flex-1 text-center" onClick={() => setMobileOpen(false)}>Criar conta</a>
-        </div>
+      <div className="mt-auto rounded-lg bg-slate-50 p-3 text-xs muted dark:bg-slate-800">
+        A identificação do usuário será exibida após integração.{' '}
+        <a href="#/cadastro" onClick={onNavigate} className="mt-2 block font-semibold text-brand">
+          Criar conta
+        </a>
       </div>
     </>
   );
+}
+
+export function Sidebar({ route, activeSection }) {
+  const selected = route || activeSection;
+  const [open, setOpen] = useState(false);
+  const trigger = useRef(null);
+  const panel = useRef(null);
+  const close = () => {
+    setOpen(false);
+    trigger.current?.focus();
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const before = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    panel.current?.querySelector('button')?.focus();
+    const onKey = (event) => {
+      if (event.key === 'Escape') close();
+      if (event.key !== 'Tab') return;
+      const focusable = [...panel.current.querySelectorAll('a,button')];
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (
+        !event.shiftKey &&
+        (document.activeElement === last || !panel.current.contains(document.activeElement))
+      ) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = before;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    const onHistory = () => {
+      if (open) close();
+    };
+    window.addEventListener('hashchange', onHistory);
+    return () => window.removeEventListener('hashchange', onHistory);
+  }, [open]);
+
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 1024px)');
+    const onResize = () => {
+      if (desktop.matches) setOpen(false);
+    };
+    desktop.addEventListener('change', onResize);
+    return () => desktop.removeEventListener('change', onResize);
+  }, []);
 
   return (
     <>
-      <button ref={openButtonRef} type="button" className="fixed left-4 top-4 z-30 grid h-10 w-10 place-items-center rounded-lg border border-line bg-white text-lg text-slate-600 shadow-md focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Abrir menu" aria-expanded={mobileOpen} aria-controls="mobile-navigation" title="Abrir menu">
-        <span aria-hidden="true">☰</span>
+      <button
+        ref={trigger}
+        onClick={() => setOpen(true)}
+        className="fixed left-4 top-4 z-30 h-10 w-10 rounded-lg border bg-white text-slate-900 lg:hidden"
+        aria-label="Abrir menu"
+        aria-expanded={open}
+        aria-controls="mobile-menu"
+      >
+        ☰
       </button>
-
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-line bg-white px-4 py-7 dark:border-slate-700 dark:bg-slate-900 lg:flex">{sidebarContent}</aside>
-
-      {mobileOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden" role="presentation">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={closeMobile} aria-hidden="true" />
-          <aside ref={mobilePanelRef} id="mobile-navigation" className="absolute inset-y-0 left-0 z-50 flex w-[min(18rem,88vw)] flex-col overflow-y-auto border-r border-line bg-white px-4 py-7 shadow-xl animate-slide-in dark:border-slate-700 dark:bg-slate-900" aria-label="Menu principal mobile" aria-modal="true" role="dialog">
-            <button ref={closeButtonRef} type="button" className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-lg text-slate-400 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 hover:bg-slate-100 dark:hover:bg-slate-800" onClick={closeMobile} aria-label="Fechar menu" title="Fechar menu"><span aria-hidden="true">✕</span></button>
-            {sidebarContent}
+      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-line bg-white p-5 dark:border-slate-700 dark:bg-slate-900 lg:flex">
+        <Navigation route={selected} />
+      </aside>
+      {open && (
+        <div
+          role="presentation"
+          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) close();
+          }}
+        >
+          <aside
+            ref={panel}
+            id="mobile-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu principal mobile"
+            className="flex h-full w-72 max-w-[90vw] flex-col bg-white p-5 dark:bg-slate-900"
+          >
+            <button
+              onClick={close}
+              className="mb-5 self-end rounded-lg border px-3 py-1 text-sm"
+              aria-label="Fechar menu"
+            >
+              Fechar
+            </button>
+            <Navigation route={selected} onNavigate={close} />
           </aside>
         </div>
       )}

@@ -1,6 +1,6 @@
-import { formatDuration } from "../utils/dashboard";
-import { Card } from "./Card";
-import { SectionHeading } from "./SectionHeading";
+import { formatDuration } from '../utils/dashboard';
+import { Card } from './Card';
+import { SectionHeading } from './SectionHeading';
 
 /**
  * Activity Timeline conforme RF-27/CA-10.
@@ -29,20 +29,18 @@ export function TimelineCard({ activities = [] }) {
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <strong className="text-ink dark:text-white">
-                  {activity.application || "Aplicação não informada"}
+                  {activity.application || 'Aplicação não informada'}
                 </strong>
-                <span className="text-muted">
-                  {activity.state || "Estado não informado"}
-                </span>
+                <span className="text-muted">{activity.state || 'Estado não informado'}</span>
               </div>
               <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-muted">
                 <div>
                   <dt className="sr-only">Início</dt>
-                  <dd>Início: {activity.startedAt || "—"}</dd>
+                  <dd>Início: {activity.startedAt || '—'}</dd>
                 </div>
                 <div>
                   <dt className="sr-only">Fim</dt>
-                  <dd>Fim: {activity.endedAt || "—"}</dd>
+                  <dd>Fim: {activity.endedAt || '—'}</dd>
                 </div>
                 <div>
                   <dt className="sr-only">Duração</dt>
@@ -51,12 +49,17 @@ export function TimelineCard({ activities = [] }) {
                 <div>
                   <dt className="sr-only">Escopo</dt>
                   <dd>
-                    Escopo: {activity.inScope === true ? "Dentro" : activity.inScope === false ? "Fora" : "—"}
+                    Escopo:{' '}
+                    {activity.inScope === true
+                      ? 'Dentro'
+                      : activity.inScope === false
+                        ? 'Fora'
+                        : '—'}
                   </dd>
                 </div>
                 <div className="col-span-2">
                   <dt className="sr-only">Task</dt>
-                  <dd>Task: {activity.task || "—"}</dd>
+                  <dd>Task: {activity.task || '—'}</dd>
                 </div>
               </dl>
             </li>
@@ -65,7 +68,8 @@ export function TimelineCard({ activities = [] }) {
       ) : (
         <div className="mt-5 grid min-h-[150px] place-items-center rounded-lg bg-slate-50 px-5 text-center text-xs leading-relaxed text-muted dark:bg-slate-800/60">
           <p>
-            A API atual ainda não disponibiliza períodos de atividade associados a uma task com início, término, estado Ativo/Inativo e classificação dentro/fora do escopo.
+            A API atual ainda não disponibiliza períodos de atividade associados a uma task com
+            início, término, estado Ativo/Inativo e classificação dentro/fora do escopo.
           </p>
         </div>
       )}

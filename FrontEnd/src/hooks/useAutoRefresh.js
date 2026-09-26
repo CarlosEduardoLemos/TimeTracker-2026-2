@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 export const DEFAULT_REFRESH_INTERVAL_MS = 30_000;
 
@@ -14,7 +14,7 @@ export function useAutoRefresh(
   intervalMs = DEFAULT_REFRESH_INTERVAL_MS,
 ) {
   useEffect(() => {
-    if (!enabled || typeof onRefresh !== "function") return undefined;
+    if (!enabled || typeof onRefresh !== 'function') return undefined;
 
     let timerId = null;
 
@@ -43,11 +43,11 @@ export function useAutoRefresh(
     };
 
     startTimer();
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       stopTimer();
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [enabled, intervalMs, onRefresh]);
 }
