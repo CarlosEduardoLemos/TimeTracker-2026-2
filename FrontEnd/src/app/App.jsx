@@ -41,6 +41,7 @@ export default function App() {
   const route = useHashRoute();
   const [dark, toggleTheme] = useTheme();
   const main = useRef(null);
+  const previousRoute = useRef(route);
   useEffect(() => {
     const titles = {
       painel: 'Painel',
@@ -53,13 +54,21 @@ export default function App() {
       notFound: 'Página não encontrada',
     };
     document.title = `${titles[route]} | TimeTrack`;
+    if (previousRoute.current !== route) main.current?.focus();
+    previousRoute.current = route;
   }, [route]);
 
   if (route === 'login' || route === 'cadastro')
     return (
-      <Suspense fallback={<p role="status">Carregando interface…</p>}>
-        <AuthPage mode={route} />
-      </Suspense>
+      <main
+        ref={main}
+        tabIndex="-1"
+        className="grid min-h-screen place-items-center bg-page p-4 dark:bg-slate-950 dark:text-white"
+      >
+        <Suspense fallback={<p role="status">Carregando interface…</p>}>
+          <AuthPage mode={route} />
+        </Suspense>
+      </main>
     );
   const Page = pages[route];
   return (

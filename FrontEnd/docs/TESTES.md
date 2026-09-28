@@ -1,6 +1,6 @@
 ﻿# Testes e validação do frontend
 
-Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Os resultados abaixo foram confirmados em 26/09/2026; o inventário completo das alterações está em [Alterações](ALTERACOES.md).
+Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Os resultados abaixo foram confirmados em 28/09/2026; o inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
 ## Preparação e comandos
 
@@ -27,7 +27,7 @@ Para executar o teste de leitura com FastAPI real, inicie a API e o banco de dad
 
 | Verificação                      | Resultado                                                 | O que comprova                                                                 |
 | -------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `npm.cmd test`                   | **103 testes passaram em 22 arquivos** em 26/09/2026      | Comportamentos cobertos pelos mocks e por jsdom                                |
+| `npm.cmd test`                   | **104 testes passaram em 22 arquivos** em 28/09/2026      | Comportamentos cobertos pelos mocks e por jsdom                                |
 | `npm.cmd run lint`               | **Concluído**                                             | Regras JS, React, Hooks e JSX a11y                                             |
 | `npm.cmd run format:check`       | **Concluído**                                             | Código sob Prettier consistente                                                |
 | `npm.cmd run test:e2e` no Chrome | **22 passaram; 1 teste real ignorado sem `RUN_REAL_API`** | Fluxos no navegador, cinco larguras, ampliação CSS e análise WCAG automatizada |
@@ -43,12 +43,12 @@ Os caminhos abaixo refletem a estrutura após a refatoração. Os testes especí
 
 | Arquivo(s)                                                                                                                          | Comportamento protegido                                                                                                                             |
 | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/app/App.test.jsx`                                                                                                              | Entrada direta em rotas com tema salvo, fallback de carregamento, link de salto, 404 e título                                                       |
-| `src/shared/api/api.test.js`                                                                                                        | Codificação do usuário, erro HTTP, cancelamento externo, timeout na leitura, formatos de exportação, data inválida e HTML recebido como CSV         |
+| `src/app/App.test.jsx`                                                                                                              | Entrada direta em rotas com tema salvo, fallback de carregamento, link de salto, foco após navegação, 404 e título                                  |
+| `src/shared/api/api.test.js`                                                                                                        | Codificação do usuário, erro HTTP, cancelamento externo, timeout na leitura, formatos de exportação, data inválida e MIME ausente ou incorreto      |
 | `src/features/dashboard/hooks/useDashboardData.test.js`                                                                             | Três fontes, horário de atualização, dados mantidos no refresh, falha parcial e data divergente                                                     |
 | `src/app/hooks/useHashRoute.test.js`                                                                                                | Hash desconhecido e reação a `hashchange`                                                                                                           |
 | `src/app/hooks/useTheme.test.js`                                                                                                    | Preferência do sistema, preferência salva, alternância, classe/documento e `localStorage`                                                           |
-| `src/legacy/hooks/useAutoRefresh.test.js`                                                                                           | Intervalo, desativação e atualização ao retornar à aba; protege um hook preservado, sem consumidor no fluxo ativo                                   |
+| `src/features/dashboard/hooks/useAutoRefresh.test.js`                                                                               | Intervalo, desativação, pausa na aba oculta e atualização ao retornar; usado pelo painel                                                            |
 | `src/features/dashboard/pages/DashboardPage.test.jsx`                                                                               | Loading, indicadores baseados na API, falha de realtime, filtro de usuário e contagem de cadastrados independente do realtime                       |
 | `src/testing/frontendRevision.test.jsx`                                                                                             | Falha parcial, resposta antiga, resumo malformado, configuração indisponível/inválida, cancelamento de gravação e exportação, erro HTTP no download |
 | `src/features/reports/pages/ReportsPage.test.jsx`                                                                                   | Loading/vazio/retry, envio duplicado, filtros bloqueados, download iniciado, liberação da URL de objeto e arquivo vazio                             |
@@ -69,7 +69,7 @@ Os testes de componentes preservados não significam que gráfico semanal, timel
 - Cancelar solicitações quando filtros mudam ou a página sai de cena; encerrar timeout e listeners.
 - Validar inteiros positivos antes de gravar configurações e não anunciar sucesso quando a resposta for inválida.
 - Não baixar HTML, arquivo vazio ou resposta HTTP de erro como CSV/PDF.
-- Garantir navegação por teclado, foco restaurado no menu móvel, rota 404 e tema na entrada direta.
+- Garantir navegação por teclado, foco no conteúdo após troca de rota, foco restaurado no menu móvel, rota 404 e tema na entrada direta.
 - Continuar sem testes que pressupõem login ou tasks funcionais antes de existir contrato real.
 
 ## Validação manual pendente

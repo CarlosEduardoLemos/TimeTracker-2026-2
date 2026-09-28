@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   countPeopleByStatus,
   filterRealtimePeople,
-  formatDashboardReferenceDate,
-  formatDuration,
   formatRelativeActivityTime,
   getSummaryTotalSeconds,
   safeIsoDate,
@@ -55,11 +53,6 @@ describe('dashboard utilities', () => {
     ).toBe(false);
     expect(validSummary({ date: '2026-09-25', users: [user, user] })).toBe(false);
   });
-  it('formats durations consistently', () => {
-    expect(formatDuration(0)).toBe('0h 00min');
-    expect(formatDuration(3661)).toBe('1h 01min');
-    expect(formatDuration(-10)).toBe('0h 00min');
-  });
 
   it('sums registered time from users without productivity classification', () => {
     expect(
@@ -110,10 +103,5 @@ describe('dashboard utilities', () => {
     expect(countPeopleByStatus(people, 'online')).toBe(2);
     expect(countPeopleByStatus(people, 'offline')).toBe(1);
     expect(countPeopleByStatus(undefined, 'online')).toBe(0);
-  });
-
-  it('formats the dashboard reference date in pt-BR', () => {
-    expect(formatDashboardReferenceDate('2026-09-16')).toContain('16');
-    expect(formatDashboardReferenceDate('2026-09-16')).toContain('SETEMBRO');
   });
 });

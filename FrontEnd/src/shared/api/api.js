@@ -127,7 +127,7 @@ export const api = {
     return request(exportPath(format, date, username), { signal }, (response) => {
       const expectedType = format === 'csv' ? 'text/csv' : 'application/pdf';
       const contentType = response.headers?.get('content-type');
-      if (contentType && contentType.split(';')[0].trim().toLowerCase() !== expectedType) {
+      if (!contentType || contentType.split(';')[0].trim().toLowerCase() !== expectedType) {
         throw new ApiError('Formato de resposta inválido', { type: 'invalid-response' });
       }
       return response.blob();

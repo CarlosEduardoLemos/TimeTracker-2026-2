@@ -1,6 +1,6 @@
 # Melhorias do frontend — 25/09/2026
 
-Os caminhos nas revisões históricas abaixo correspondem à estrutura existente na época. A refatoração de 26/09/2026 está registrada no final deste documento; os caminhos atuais estão em [Arquitetura](ARQUITETURA.md).
+Os caminhos nas revisões históricas abaixo correspondem à estrutura existente na época. A refatoração de 26/09/2026 e a revisão de 28/09/2026 estão registradas abaixo; os caminhos atuais estão em [Arquitetura](ARQUITETURA.md).
 
 ## Escopo
 
@@ -88,3 +88,21 @@ Reorganizados 52 arquivos de código e testes por responsabilidade, preservando 
 | `src/testing/`  | Setup do Vitest e teste transversal `frontendRevision.test.jsx`                                                                     |
 
 Atualizados imports relativos, imports dinâmicos das páginas, mocks e configuração de setup/cobertura do Vitest. Os testes específicos acompanham o código; os padrões recursivos de Vite, Tailwind e ESLint continuam abrangendo a nova árvore. README, arquitetura, inventário dos testes e a pendência F-04 documentam os novos locais. Não foram adicionadas dependências ou arquivos de reexportação. Consulte [Testes](TESTES.md) para a validação desta refatoração.
+
+## Revisão de 28/09/2026
+
+Esta revisão consultou requisitos e backend somente para leitura. O código e a documentação alterados estão exclusivamente em `FrontEnd/`.
+
+| Alteração                                                                                 | Motivo                                                                                                                                                                                                  |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/legacy/hooks/useAutoRefresh.js` e teste movidos para `src/features/dashboard/hooks/` | O painel passou a usar o hook existente. O intervalo de 30 segundos agora é suspenso enquanto a aba está oculta e retomado quando ela fica visível. A pasta `legacy/hooks/` ficou vazia e foi removida. |
+| `src/features/dashboard/hooks/useDashboardData.js`                                        | Substitui agendamento duplicado pelo hook, preservando consulta inicial, cancelamento e atualização ao retornar à aba.                                                                                  |
+| `src/app/App.jsx`, `src/features/auth/pages/AuthPage.jsx`                                 | Mantêm um `<main>` focalizável nas rotas comuns e de autenticação; a troca de rota envia foco ao novo conteúdo.                                                                                         |
+| `src/shared/api/api.js`                                                                   | Rejeita CSV/PDF sem cabeçalho `Content-Type` ou com tipo diferente do esperado antes de criar download.                                                                                                 |
+| `src/shared/lib/dashboard.js`, `src/features/dashboard/pages/DashboardPage.jsx`           | Reutiliza funções existentes para filtrar usuários e contar status; remove os helpers `formatDuration` e `formatDashboardReferenceDate`, sem consumidores fora dos próprios testes.                     |
+| `src/app/styles/index.css`                                                                | Remove transparência dos botões desabilitados para preservar contraste. O axe-core havia identificado contraste insuficiente no botão “Atualizar” durante o carregamento.                               |
+| Testes em `src/app/`, `src/shared/`, `src/features/dashboard/` e `e2e/app.spec.js`        | Cobrem foco entre rotas, MIME ausente e pausa do temporizador; testes dos helpers removidos foram retirados.                                                                                            |
+
+Nenhum arquivo de código foi descartado: os componentes preservados em `src/legacy/` têm finalidade potencial nas visualizações ainda dependentes de I-05/I-06. Não foram criados contratos, métricas ou mocks na aplicação. A estrutura continua `app/`, `features/`, `shared/`, `legacy/` e `testing/`; somente o hook passou de `legacy/hooks/` para `features/dashboard/hooks/`.
+
+Validação: 104 testes unitários passaram em 22 arquivos; lint, build, formatação e `git diff --check` passaram; Playwright no Chrome passou 22 cenários e ignorou o teste opt-in com API real. A primeira execução do axe-core apontou o contraste do botão desabilitado; após a correção, a suíte E2E completa passou. Leitor de tela, dispositivos reais e API em execução permanecem pendentes conforme [Testes](TESTES.md) e [Pendências](PENDENCIAS.md).

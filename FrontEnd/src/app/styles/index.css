@@ -75,11 +75,11 @@ button:disabled {
 }
 
 .primary-button {
-  @apply inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50;
+  @apply inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md disabled:translate-y-0 disabled:cursor-not-allowed disabled:shadow-none;
 }
 
 .secondary-button {
-  @apply inline-flex items-center justify-center rounded-lg border border-line bg-white px-4 py-2.5 text-xs font-bold text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800;
+  @apply inline-flex items-center justify-center rounded-lg border border-line bg-white px-4 py-2.5 text-xs font-bold text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md disabled:translate-y-0 disabled:cursor-not-allowed disabled:shadow-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800;
 }
 
 .form-field {
@@ -127,7 +127,7 @@ button:disabled {
 }
 
 .icon-control {
-  @apply inline-grid h-10 w-10 place-items-center rounded-lg border border-line bg-white text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md disabled:translate-y-0 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800;
+  @apply inline-grid h-10 w-10 place-items-center rounded-lg border border-line bg-white text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md disabled:translate-y-0 disabled:shadow-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800;
 }
 
 .chart-tooltip {
@@ -143,6 +143,7 @@ button:disabled {
 }
 
 a:focus-visible,
+main:focus-visible,
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,

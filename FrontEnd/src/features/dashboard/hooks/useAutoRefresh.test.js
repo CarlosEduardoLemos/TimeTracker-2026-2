@@ -55,4 +55,21 @@ describe('useAutoRefresh', () => {
 
     expect(onRefresh).toHaveBeenCalledTimes(1);
   });
+
+  it('pausa o intervalo enquanto a aba está oculta e reinicia ao voltar', () => {
+    const onRefresh = vi.fn();
+    renderHook(() => useAutoRefresh(onRefresh));
+    expect(vi.getTimerCount()).toBe(1);
+
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    act(() => document.dispatchEvent(new Event('visibilitychange')));
+    expect(vi.getTimerCount()).toBe(0);
+    act(() => vi.advanceTimersByTime(DEFAULT_REFRESH_INTERVAL_MS * 2));
+    expect(onRefresh).not.toHaveBeenCalled();
+
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    act(() => document.dispatchEvent(new Event('visibilitychange')));
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(1);
+  });
 });

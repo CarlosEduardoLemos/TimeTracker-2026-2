@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../../../shared/api/api';
 import { validRealtime, validSummary, validUsers } from '../../../shared/lib/dashboard';
 import { requestFailure } from '../../../shared/lib/requestFailure';
+import { useAutoRefresh } from './useAutoRefresh';
 
 const initial = { loading: true, refreshing: false, error: null, data: null, updatedAt: null };
 
@@ -65,17 +66,9 @@ export function useDashboardData(date, username) {
 
   useEffect(() => {
     load();
-    const refreshVisible = () => {
-      if (!document.hidden) load();
-    };
-    const interval = setInterval(refreshVisible, 30000);
-    document.addEventListener('visibilitychange', refreshVisible);
-    return () => {
-      active.current?.abort();
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', refreshVisible);
-    };
+    return () => active.current?.abort();
   }, [load]);
+  useAutoRefresh(load);
 
   return { ...state, refresh: load };
 }

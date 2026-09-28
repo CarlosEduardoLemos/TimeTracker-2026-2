@@ -53,6 +53,17 @@ describe('cliente da API', () => {
     });
     expect(blob).not.toHaveBeenCalled();
   });
+  it('rejeita exportação sem tipo MIME declarado', async () => {
+    const blob = vi.fn();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: true, headers: { get: () => null }, blob })),
+    );
+    await expect(api.exportFile('csv', '2026-09-25')).rejects.toMatchObject({
+      type: 'invalid-response',
+    });
+    expect(blob).not.toHaveBeenCalled();
+  });
   it('codifica o usuário no filtro do resumo', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: true,
@@ -175,7 +186,11 @@ describe('cliente da API', () => {
 
   it('baixa apenas formatos CSV e PDF', async () => {
     const blob = new Blob(['dados'], { type: 'text/csv' });
-    const fetchMock = vi.fn(async () => ({ ok: true, blob: async () => blob }));
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      headers: { get: () => 'text/csv; charset=utf-8' },
+      blob: async () => blob,
+    }));
     vi.stubGlobal('fetch', fetchMock);
     expect(await api.exportFile('csv', '2026-09-25')).toBe(blob);
     expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/dashboard/export/csv');

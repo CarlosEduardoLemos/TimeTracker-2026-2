@@ -4,7 +4,9 @@ import { MetricCard } from '../../../shared/components/MetricCard';
 import { PageHeader } from '../../../shared/components/PageHeader';
 import {
   categoryTotals,
+  countPeopleByStatus,
   deriveTeam,
+  filterRealtimePeople,
   fmtDuration,
   todayIso,
   totalSeconds,
@@ -19,8 +21,8 @@ export function DashboardPage({ dark, toggleTheme }) {
     () => (available.users && available.realtime ? deriveTeam(data.users, data.realtime) : []),
     [data, available.users, available.realtime],
   );
-  const filtered = username ? team.filter((person) => person.username === username) : team;
-  const count = (status) => filtered.filter((person) => person.status === status).length;
+  const filtered = filterRealtimePeople(team, username);
+  const count = (status) => countPeopleByStatus(filtered, status);
   const cats = available.summary ? categoryTotals(data.summary) : [];
   const unavailable = '—';
 

@@ -14,7 +14,7 @@ Este é o inventário das telas que a aplicação **executa hoje**. Os requisito
 | `#/login`, `#/cadastro`  | Aviso de autenticação indisponível e retorno ao painel               | Nenhuma consulta                  |
 | Qualquer outro hash      | Página não encontrada e link para o painel                           | Nenhuma consulta                  |
 
-O menu principal mostra Painel, Colaboradores, Tasks, Relatórios e Configurações. Há um link “Criar conta”, mas a rota de cadastro explica que a função ainda não existe. A navegação por hash permite acesso direto às páginas, e o título da aba muda conforme a rota. O tema claro/escuro é mantido entre visitas por `localStorage`; sem escolha anterior, segue a preferência do sistema.
+O menu principal mostra Painel, Colaboradores, Tasks, Relatórios e Configurações. Há um link “Criar conta”, mas a rota de cadastro explica que a função ainda não existe. A navegação por hash permite acesso direto às páginas; ao trocar de rota, o foco de teclado vai ao conteúdo principal e o título da aba muda. O tema claro/escuro é mantido entre visitas por `localStorage`; sem escolha anterior, segue a preferência do sistema.
 
 ## Painel (`#/painel`)
 
@@ -22,7 +22,7 @@ O menu principal mostra Painel, Colaboradores, Tasks, Relatórios e Configuraç�
 
 - **Data do resumo:** inicia na data local do navegador, não aceita data vazia e oferece datas até o dia atual. É enviada ao backend apenas para `/dashboard/summary`.
 - **Usuário:** opções provenientes de `/users/`; fica desabilitado quando a lista não está disponível. O `username` selecionado é enviado ao resumo e usado no navegador para filtrar a tabela atual. O backend realtime não recebe filtro.
-- **Atualizar:** repete a consulta das três fontes. Também há atualização automática a cada 30 segundos quando a aba está visível e atualização imediata ao retornar à aba. A interface mostra o horário da última resposta com pelo menos uma fonte válida.
+- **Atualizar:** repete a consulta das três fontes. Também há atualização automática a cada 30 segundos quando a aba está visível; o temporizador é suspenso enquanto ela está oculta e a consulta ocorre imediatamente ao retornar. A interface mostra o horário da última resposta com pelo menos uma fonte válida.
 
 ### Indicadores exibidos
 
@@ -60,7 +60,7 @@ O campo global de inatividade **não** configura o limite individual previsto em
 
 ## Relatórios (`#/relatorios`)
 
-A página oferece uma data e, quando `/users/` responde validamente, um filtro opcional de usuário. A consulta anuncia carregamento e distingue lista vazia de erro. Falha da lista desabilita apenas esse filtro, preserva a seleção, mostra motivo e retry; a exportação com os filtros atuais continua disponível. Os botões chamam `/dashboard/export/csv` ou `/dashboard/export/pdf` com a data e, se escolhido, `username`. Durante o download há indicação de progresso, filtros ficam bloqueados e não se inicia outro envio, mesmo em ações no mesmo evento. A conclusão anuncia “Download de CSV/PDF iniciado”, sem confirmar salvamento em disco. HTTP com falha, tipo de conteúdo incompatível ou arquivo vazio gera erro. Alterar filtros limpa feedback anterior; sair cancela a operação.
+A página oferece uma data e, quando `/users/` responde validamente, um filtro opcional de usuário. A consulta anuncia carregamento e distingue lista vazia de erro. Falha da lista desabilita apenas esse filtro, preserva a seleção, mostra motivo e retry; a exportação com os filtros atuais continua disponível. Os botões chamam `/dashboard/export/csv` ou `/dashboard/export/pdf` com a data e, se escolhido, `username`. Durante o download há indicação de progresso, filtros ficam bloqueados e não se inicia outro envio, mesmo em ações no mesmo evento. A conclusão anuncia “Download de CSV/PDF iniciado”, sem confirmar salvamento em disco. HTTP com falha, tipo de conteúdo ausente ou incompatível, ou arquivo vazio gera erro. Alterar filtros limpa feedback anterior; sair cancela a operação.
 
 O **CSV atual** contém as colunas `username`, `category`, `total_seconds` e uma linha por categoria retornada para cada usuário. Sem registros, pode conter apenas o cabeçalho. O **PDF atual** contém a data, o total e as categorias de cada usuário retornado. A interface salva o arquivo como `resumo_<data>.csv` ou `.pdf`. Esses arquivos são exportações do resumo diário parcial, não relatórios completos de RF-24/RF-25: não contêm período, task, aplicação, classificação dentro/fora do escopo, jornada ou possível hora extra.
 
@@ -70,7 +70,7 @@ As rotas mostram o bloqueio de autenticação e um retorno ao painel. Não há f
 
 ## Acessibilidade e apresentação
 
-O layout adapta menu e colunas a mobile, tablet e desktop. Há link para pular ao conteúdo, foco visível, labels nos controles, cabeçalhos e `caption` de tabela, mensagens de erro/status anunciáveis, navegação do diálogo móvel por teclado e redução de movimento quando solicitada pelo sistema. Tabelas extensas permitem rolagem horizontal com foco. O Chrome validou as larguras 375, 390, 768, 1366 e 1920 px; axe-core não detectou violações WCAG nos cenários testados após ajuste de contraste. A validação manual restante está em [Testes](TESTES.md).
+O layout adapta menu e colunas a mobile, tablet e desktop. Há link para pular ao conteúdo, foco visível, foco no conteúdo após navegar, labels nos controles, cabeçalhos e `caption` de tabela, mensagens de erro/status anunciáveis, navegação do diálogo móvel por teclado e redução de movimento quando solicitada pelo sistema. Tabelas extensas permitem rolagem horizontal com foco. O Chrome validou as larguras 375, 390, 768, 1366 e 1920 px; axe-core não detectou violações WCAG nos cenários testados após ajuste de contraste, inclusive no botão de atualização desabilitado. A validação manual restante está em [Testes](TESTES.md).
 
 ## Correspondência com os requisitos do produto
 

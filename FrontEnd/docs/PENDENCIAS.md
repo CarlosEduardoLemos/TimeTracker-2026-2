@@ -1,6 +1,6 @@
 ﻿# Pendências do frontend e dependências externas
 
-Revisão: **26/09/2026**. `backend/` e `requisitos/` foram consultados somente para leitura. Nenhum contrato foi alterado. Os itens abaixo distinguem correções do servidor, integração das equipes e trabalho futuro no frontend. Prioridade alta indica risco de acesso, integridade ou bloqueio funcional; média indica lacuna relevante; baixa indica manutenção.
+Revisão: **28/09/2026**. `backend/` e `requisitos/` foram consultados somente para leitura. Nenhum contrato foi alterado. Os itens abaixo distinguem correções do servidor, integração das equipes e trabalho futuro no frontend. Prioridade alta indica risco de acesso, integridade ou bloqueio funcional; média indica lacuna relevante; baixa indica manutenção.
 
 ## Pendências do backend
 
@@ -213,12 +213,13 @@ As descrições históricas de Sprint 1/2 e EP-01 mencionam dados simulados e mo
 ### F-04 — Componentes preservados sem uso na aplicação ativa — Baixa
 
 - **Problema/requisito:** decidir reaproveitamento/remoção conforme desenho futuro de RF-27, sem implementar visualizações fictícias.
-- **Frontend afetado:** `ActivityChart`, `Header`, `PeopleCard`, `ReportsAndAgent`, `useAutoRefresh` e componentes auxiliares.
+- **Frontend afetado:** `ActivityChart`, `Header`, `PeopleCard`, `ReportsAndAgent` e componentes auxiliares em `src/legacy/`.
 - **Backend relacionado:** novas fontes de I-05/I-06 e definições de produto.
 - **Atual/impacto:** fora da árvore ativa; vários possuem consumidores em testes. Busca de imports/entradas confirmou que não são carregados no build atual. Não há ganho de bundle ao removê-los.
 - **Definição necessária:** confirmar visualizações futuras e política de preservação; depois reaproveitar ou remover arquivos e testes que percam finalidade.
-- **Workaround frontend:** componentes, hook, constantes e testes agora estão isolados em `src/legacy/`; continuam sem conexão com a aplicação ativa ou com dados inexistentes.
+- **Workaround frontend:** componentes, constantes e testes permanecem isolados em `src/legacy/`; continuam sem conexão com a aplicação ativa ou com dados inexistentes. `useAutoRefresh` passou a atender o painel e saiu dessa pendência.
 - **Motivo do bloqueio:** os arquivos preservados têm consumidores nos testes existentes ou nas dependências dos componentes testados; sua remoção exige decidir também o destino desses testes.
+- **Arquivos mantidos:** `src/legacy/components/ActivityChart.jsx` aguarda dados de período/task para possível reaproveitamento; `Header.jsx` e `PeopleCard.jsx` representam filtros e cartões associados à futura visão gerencial; `ReportsAndAgent.jsx` contém controles de relatório completo ainda sem contrato. `Card.jsx`, `SectionHeading.jsx`, `src/legacy/constants/ui.js` e seus testes permanecem por serem dependências desses componentes. A disponibilidade futura de I-05/I-06 e a definição visual decidirão seu destino.
 
 ## Ordem de execução
 

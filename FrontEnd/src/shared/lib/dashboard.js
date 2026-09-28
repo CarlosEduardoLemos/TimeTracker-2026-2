@@ -92,11 +92,6 @@ export function categoryTotals(summary) {
     .sort((first, second) => second.seconds - first.seconds);
 }
 
-// Helpers used by the existing chart and status components.
-export function formatDuration(seconds) {
-  return fmtDuration(Math.max(0, Number(seconds) || 0));
-}
-
 export function getSummaryTotalSeconds(summary) {
   return summary?.users?.reduce((sum, user) => sum + (Number(user?.total_seconds) || 0), 0) || 0;
 }
@@ -127,10 +122,4 @@ export function filterRealtimePeople(people, username) {
 
 export function countPeopleByStatus(people, status) {
   return (Array.isArray(people) ? people : []).filter((person) => person.status === status).length;
-}
-
-export function formatDashboardReferenceDate(value) {
-  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
-    .format(new Date(`${safeIsoDate(value)}T12:00:00`))
-    .toUpperCase();
 }

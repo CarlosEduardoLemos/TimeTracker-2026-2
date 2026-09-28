@@ -74,10 +74,9 @@ FrontEnd/
 │   │   ├── api/
 │   │   ├── components/
 │   │   └── lib/
-│   ├── legacy/           # Componentes e hooks preservados fora do fluxo ativo
+│   ├── legacy/           # Componentes preservados fora do fluxo ativo
 │   │   ├── components/
-│   │   ├── constants/
-│   │   └── hooks/
+│   │   └── constants/
 │   ├── testing/          # Setup e testes transversais
 │   └── main.jsx          # Entrada do React
 ├── .env.example

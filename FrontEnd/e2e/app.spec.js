@@ -69,6 +69,7 @@ test('abre o painel, filtra data e usuário e navega até a rota 404', async ({ 
     .getByRole('link', { name: 'Colaboradores' })
     .click();
   await expect(page.getByRole('heading', { name: 'Colaboradores' })).toBeVisible();
+  await expect(page.getByRole('main')).toBeFocused();
   await page.goto('/#/inexistente');
   await expect(page.getByRole('heading', { name: 'Página não encontrada' })).toBeVisible();
 });
@@ -139,6 +140,7 @@ test('menu móvel mantém o último link acessível em orientação horizontal',
   await expect(account).toBeInViewport();
   await account.click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Criar conta');
+  await expect(page.getByRole('main')).toBeFocused();
 });
 
 test('menu móvel aceita teclado e tema escuro', async ({ page }) => {

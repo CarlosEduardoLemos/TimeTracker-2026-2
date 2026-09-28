@@ -1,6 +1,6 @@
 # Auditoria técnica do frontend — 25/09/2026
 
-Este registro histórico usa os caminhos anteriores à refatoração da estrutura de 26/09/2026. Consulte [Arquitetura](ARQUITETURA.md) para os caminhos atuais e [Alterações](ALTERACOES.md) para o inventário da reorganização.
+Este registro histórico usa os caminhos anteriores à refatoração da estrutura de 26/09/2026. O hook `useAutoRefresh`, citado abaixo como preservado, passou a ser usado pelo painel em 28/09/2026. Consulte [Arquitetura](ARQUITETURA.md) para os caminhos atuais e [Alterações](ALTERACOES.md) para o inventário da reorganização.
 
 ## Escopo e método
 
