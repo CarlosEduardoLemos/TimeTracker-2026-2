@@ -1,6 +1,6 @@
 # TimeTrack — Frontend
 
-Frontend do **TimeTrack**, responsável pela interface web do Dashboard PWA. A aplicação consulta os dados disponíveis na API FastAPI e utiliza navegação por hash, sem React Router.
+Frontend do **TimeTrack**, responsável pela interface web do dashboard. A aplicação consulta os dados disponíveis na API FastAPI e utiliza navegação por hash, sem React Router. Atualmente, não possui manifest nem service worker e não é instalável como PWA.
 
 > **Escopo atual:** autenticação, associação de equipe, tasks e alguns filtros/indicadores previstos nos requisitos dependem de contratos de backend que ainda não estão disponíveis. O frontend sinaliza essas limitações na interface em vez de simular dados.
 
