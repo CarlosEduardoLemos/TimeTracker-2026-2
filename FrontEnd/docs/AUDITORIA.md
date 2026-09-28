@@ -1,14 +1,27 @@
 # Auditoria técnica do frontend — 25/09/2026
 
-Este registro histórico usa os caminhos anteriores à refatoração da estrutura de 26/09/2026. O hook `useAutoRefresh`, citado abaixo como preservado, passou a ser usado pelo painel em 28/09/2026. Consulte [Arquitetura](ARQUITETURA.md) para os caminhos atuais e [Alterações](ALTERACOES.md) para o inventário da reorganização.
+> **DOCUMENTO HISTÓRICO — não representa os caminhos ou resultados atuais.** Esta auditoria registra o estado observado em 25/09/2026. Caminhos como `src/pages/`, `src/components/`, `src/services/`, `src/utils/` e `src/index.css` pertencem à estrutura anterior. Não use as seções abaixo como inventário do frontend presente.
 
-## Escopo e método
+## Estado atual: onde consultar
+
+| Assunto                                                  | Fonte atual                   |
+| -------------------------------------------------------- | ----------------------------- |
+| Estrutura em `src/app/`, `src/features/` e `src/shared/` | [Arquitetura](ARQUITETURA.md) |
+| Resultados de testes, E2E e cobertura                    | [Testes](TESTES.md)           |
+| Mudanças por data                                        | [Alterações](ALTERACOES.md)   |
+| Bloqueios e trabalho futuro                              | [Pendências](PENDENCIAS.md)   |
+
+O hook `useAutoRefresh`, citado abaixo como preservado, passou a ser usado pelo painel em 28/09/2026. A partir daqui, os caminhos e as decisões refletem a data de cada registro.
+
+## Registro histórico — 25/09/2026
+
+### Escopo e método
 
 Foram lidos arquivos de entrada, páginas, componentes, hooks, serviço, utilitários, testes, configurações e documentação em `FrontEnd`. Requisitos em `requisitos/` e rotas, schemas, modelos, CRUD e inicialização em `backend/` foram consultados somente para entender contratos. A árvore de imports, scripts e rotas foi comparada com os arquivos existentes. O estado Git estava limpo antes da revisão. Todas as alterações ficaram em `FrontEnd/`.
 
 Este registro foi complementado após a consolidação inicial dos guias. O inventário de telas, contratos, testes e pendências agora está detalhado nos demais documentos desta pasta. Informações históricas de versões anteriores continuam acessíveis no Git, mas não são tratadas como descrição da aplicação presente.
 
-### Evidência consultada
+#### Evidência consultada
 
 | Fonte                                                                                         | O que foi confirmado                                                                                |
 | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -18,7 +31,7 @@ Este registro foi complementado após a consolidação inicial dos guias. O inve
 | `requisitos/visao.md`, `requisitos/requisitos/rn_rf.md`, `requisitos/responsividade.md`       | Requisitos de gestor, colaborador, task, relatórios, dashboard e responsividade                     |
 | `backend/app/routers`, `backend/app/schemas.py`, `crud.py`, `models.py`, `main.py`, `seed.py` | Métodos, parâmetros, respostas, ausência de autenticação/task, semântica realtime e riscos externos |
 
-### Comparação com os requisitos
+#### Comparação com os requisitos
 
 | Área                                    | O que existe hoje                                                                | Lacuna verificada                                                                                                                      |
 | --------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
@@ -31,7 +44,7 @@ Este registro foi complementado após a consolidação inicial dos guias. O inve
 
 O backend expõe categorias e regras de categorização, mas não há contrato que as transforme em aplicações produtivas de uma task. Por isso não foram usadas para simular escopo de trabalho. O resumo diário soma duração de registros; a palavra “produtividade” na descrição do endpoint não altera o conteúdo efetivamente retornado.
 
-## Prioridades encontradas
+### Prioridades encontradas
 
 | Prioridade | Achado                                                                                                                                | Decisão                                                                           |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
@@ -47,7 +60,7 @@ O backend expõe categorias e regras de categorização, mas não há contrato q
 | Baixa      | Dois reexports e uma lista de navegação não tinham consumidores                                                                       | Arquivos removidos após busca de imports e entradas                               |
 | Alta       | Com usuário filtrado, “Usuários cadastrados” dependia da lista combinada com realtime; falha isolada podia resultar em zero incorreto | O indicador passou a contar somente `/users/`, com regressão para falha parcial   |
 
-## Alterações realizadas
+### Alterações realizadas
 
 | Arquivo                                                                                               | Problema                                                                                                                       | Alteração e motivo                                                                                                               |
 | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
@@ -73,7 +86,7 @@ O backend expõe categorias e regras de categorização, mas não há contrato q
 | `src/pages/DashboardPage.test.jsx`                                                                    | Faltava regressão para contagem filtrada com falha de realtime                                                                 | Confirma usuário cadastrado pela lista global e estados realtime indisponíveis                                                   |
 | `README.md`, `docs/ARQUITETURA.md`, `docs/FUNCIONALIDADES.md`, `docs/PENDENCIAS.md`, `docs/TESTES.md` | Informações repetidas ou defasadas                                                                                             | Reescritos para refletir caminhos de execução e contratos atuais; este arquivo reúne auditoria e decisões                        |
 
-## Arquivos removidos
+### Arquivos removidos
 
 | Arquivo                                         | Evidência de remoção segura                                                                                                                                                          |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -83,7 +96,7 @@ O backend expõe categorias e regras de categorização, mas não há contrato q
 
 Componentes sem uso no caminho atual, mas com possível função nas integrações planejadas, foram preservados e estão descritos em [Arquitetura](ARQUITETURA.md). Não foram inventados endpoints, métricas, usuários ou permissões.
 
-## Decisões de preservação
+### Decisões de preservação
 
 - A integração HTTP permanece centralizada em `src/services/api.js`, pois há poucos contratos realmente consumidos. Não foi criada camada adicional de estado ou cliente externo.
 - O painel continua apresentando categorias e tempo **registrado** do resumo; nenhuma categoria é rotulada como produtividade de task.
@@ -91,25 +104,20 @@ Componentes sem uso no caminho atual, mas com possível função nas integraçõ
 - `ActivityChart`, `Header`, `PeopleCard`, `ReportsAndAgent`, `TimelineCard`, `useAutoRefresh` e componentes auxiliares isolados foram mantidos por possível uso futuro, sem anunciá-los como funções ativas.
 - Login e tasks não recebem entrada do usuário enquanto faltam contratos. Configurações e exportação conservam seus endpoints atuais e descrevem explicitamente seu escopo global/parcial.
 
-## Qualidade, UX e acessibilidade
+### Qualidade, UX e acessibilidade
 
 As correções iniciais abrangeram carregamento, falha parcial, retry, cancelamento, validação de data/resposta, download, foco de tabelas, semântica de métricas e rota inexistente. O menu móvel já possuía controle de foco e rolagem; os testes existentes foram preservados. A revisão posterior de qualidade, navegador e contraste está registrada em [Alterações de 25/09/2026](ALTERACOES.md).
 
 Playwright agora valida os fluxos principais no Chrome com API simulada e axe-core verifica regras WCAG detectáveis automaticamente. Leitor de tela, zoom nativo e backend real ainda requerem inspeção; veja [Testes](TESTES.md).
 
-## Validação
+### Validação registrada em 25/09/2026
 
-- `npm.cmd test`: **88 testes passaram em 21 arquivos** após a revisão posterior.
-- `npm.cmd run lint` e `npm.cmd run format:check`: **concluídos**.
-- `npm.cmd run test:e2e` com Chrome: **20 passaram; 1 teste opt-in do backend real foi ignorado**.
-- `npm.cmd run build`: **concluído**, com chunks por página.
-- `git diff --check`: sem erros de whitespace; Git informou apenas conversão futura de LF para CRLF no checkout Windows.
-- `git status --short`: apenas caminhos sob `FrontEnd/` foram modificados ou removidos.
+Na revisão histórica, passaram os comandos de testes unitários, lint, formatação, build e E2E no Chrome com API simulada. O teste opt-in com backend real foi ignorado. `git diff --check` não apontou erros de whitespace, e as alterações ficaram em `FrontEnd/`. Para quantidades e cobertura da validação mais recente, consulte [Testes](TESTES.md).
 
 As verificações em Chrome cobrem as larguras definidas e os fluxos simulados, mas não substituem leitor de tela ou teste contra backend em execução. Próximos passos estão em [Pendências](PENDENCIAS.md).
 
 ## Revisão complementar — 26/09/2026
 
-As correções adicionais de cancelamento, validação de respostas/filtros, ações duplicadas, estados de exportação, armazenamento de tema e menu em pouca altura estão no inventário de [Alterações](ALTERACOES.md). [Testes](TESTES.md) registra os resultados atuais; os números da seção anterior pertencem à execução histórica de 25/09.
+As correções adicionais de cancelamento, validação de respostas/filtros, ações duplicadas, estados de exportação, armazenamento de tema e menu em pouca altura estão no inventário de [Alterações](ALTERACOES.md). [Testes](TESTES.md) registra os resultados atuais.
 
 [Pendências](PENDENCIAS.md) agora separa explicitamente backend, integração Frontend + Backend e frontend futuro. Cada item possui problema/requisito, frontend e backend relacionados, comportamento, impacto, contrato/correção necessária, workaround, prioridade e motivo do bloqueio. A revisão não altera backend, requisitos, banco, infraestrutura ou contratos.
