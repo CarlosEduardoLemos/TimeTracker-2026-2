@@ -2,6 +2,7 @@
 
 ## Revisão de 28/09/2026
 
+- `CollaboratorsPage.test.jsx` cobre dados completos, falhas isoladas e simultâneas, lista vazia, retry e cancelamento. O script opcional `check:full` acrescenta o Playwright ao `check`. A execução completa passou com 126 testes unitários em 35 arquivos e 26 E2E; o teste de API real foi ignorado sem `RUN_REAL_API`. A cobertura global ficou em 94,37% de statements, 92,55% de branches, 94,35% de functions e 96,28% de lines.
 - O script `npm run check` reúne lint, formatação, testes com cobertura mínima e build; testes diretos verificam `errorMessage.js` e `requestFailure.js`. Passaram 119 testes em 34 arquivos, com 91,14% de statements, 85,11% de branches, 90,25% de functions e 92,95% de lines.
 - Na rodada anterior, testes diretos passaram a cobrir `useReportExport`, os componentes de Reports, `routeLeaveGuard`, `activityStatus`, `DashboardMetrics` e `DashboardStatusNotice`; a suíte passou com 108 testes em 32 arquivos.
 - `vitest.config.js` exige cobertura global mínima de 85% em statements, functions e lines, e 80% em branches.

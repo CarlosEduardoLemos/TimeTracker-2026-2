@@ -107,10 +107,10 @@ npm.cmd run dev
 ```powershell
 npm.cmd run check
 $env:PLAYWRIGHT_CHANNEL = 'chrome'
-npm.cmd run test:e2e
+npm.cmd run check:full
 ```
 
-`check` executa lint, verificação de formatação, testes com os mínimos de cobertura e build. O E2E permanece um comando separado porque usa navegador.
+`check` executa lint, verificação de formatação, testes com os mínimos de cobertura e build. `check:full` também executa o E2E no navegador; ele pode ser usado antes de PR ou release. Para rodar só o E2E, use `npm.cmd run test:e2e`.
 
 Para usar o Chromium gerenciado pelo Playwright:
 
