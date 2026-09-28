@@ -28,6 +28,8 @@ Revisão: **28/09/2026**. `backend/` e a pasta [requisitos](../../requisitos/vis
 | F-03 | Validação humana e matriz de navegadores                          | Frontend             | Média      | FRONTEND FUTURO            |
 | D-01 | Atualizar [responsividade.md](../../requisitos/responsividade.md) | Documentação externa | Baixa      | AGUARDANDO REVISÃO EXTERNA |
 
+Cada ID identifica uma pendência específica para facilitar referências no texto e na ordem de execução. A letra indica a área: `B` = backend, `I` = integração entre frontend e backend, `F` = frontend e `D` = documentação externa. O número distingue os itens da mesma área; não indica prioridade nem status, que aparecem em colunas próprias.
+
 Os status descrevem a dependência atual; a prioridade indica impacto. Eles não indicam que todo o frontend esteja parado.
 
 | Status | Significado |
