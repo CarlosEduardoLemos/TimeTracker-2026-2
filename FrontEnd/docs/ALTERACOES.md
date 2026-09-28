@@ -2,6 +2,9 @@
 
 ## Revisão de 28/09/2026
 
+- Testes diretos cobrem `useReportExport`, os componentes de Reports, `routeLeaveGuard`, `activityStatus`, `DashboardMetrics` e `DashboardStatusNotice`; a suíte unitária passou com 108 testes em 32 arquivos.
+- `vitest.config.js` exige cobertura global mínima de 85% em statements, functions e lines, e 80% em branches. A medição foi de 90,8%, 90,3%, 92,8% e 84,7%, respectivamente.
+- O import dos hooks React em `AsyncFeedback.jsx` foi movido para o início do arquivo.
 - A saída de Configurações com valores alterados agora pede confirmação; atualização e fechamento da aba acionam `beforeunload`.
 - `ReportsPage` foi dividido em filtros, estados, ações e `useReportExport`. O toast fecha automaticamente após cinco segundos.
 - Status de atividade usam formatação compartilhada e badges; barras de categoria foram marcadas como decorativas porque os valores já estão em texto.
