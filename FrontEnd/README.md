@@ -105,13 +105,12 @@ npm.cmd run dev
 ## Validar
 
 ```powershell
-npm.cmd test
-npm.cmd run lint
-npm.cmd run format:check
-npm.cmd run build
+npm.cmd run check
 $env:PLAYWRIGHT_CHANNEL = 'chrome'
 npm.cmd run test:e2e
 ```
+
+`check` executa lint, verificação de formatação, testes com os mínimos de cobertura e build. O E2E permanece um comando separado porque usa navegador.
 
 Para usar o Chromium gerenciado pelo Playwright:
 

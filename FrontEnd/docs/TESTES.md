@@ -9,16 +9,12 @@ Execute na pasta `FrontEnd` com as dependências do `package-lock.json` instalad
 ```powershell
 cd FrontEnd
 npm ci
-npm.cmd test
-npm.cmd run test:coverage
-npm.cmd run lint
-npm.cmd run format:check
-npm.cmd run build
+npm.cmd run check
 $env:PLAYWRIGHT_CHANNEL = 'chrome' # se usar Chrome instalado em vez do Chromium do Playwright
 npm.cmd run test:e2e
 ```
 
-Para desenvolvimento, `npm.cmd run test:watch` mantém Vitest em observação. `npm.cmd run test:coverage` gera cobertura V8 em texto e HTML e exige mínimos globais de 85% para statements, functions e lines, e 80% para branches. `npm.cmd run format` aplica Prettier ao código e Markdown; lockfile e artefatos gerados estão em `.prettierignore`. `git diff --check` verifica whitespace e `git status --short` confirma o escopo. `npm.cmd run dev` inicia Vite na porta 5173; os comandos do Vite usam `--configLoader runner` para compatibilidade com o Windows deste ambiente.
+`npm.cmd run check` executa lint, verificação de formatação, testes com cobertura e build em sequência. Para desenvolvimento, `npm.cmd run test:watch` mantém Vitest em observação. `npm.cmd run test:coverage` gera cobertura V8 em texto e HTML e exige mínimos globais de 85% para statements, functions e lines, e 80% para branches. `npm.cmd run format` aplica Prettier ao código e Markdown; lockfile e artefatos gerados estão em `.prettierignore`. `git diff --check` verifica whitespace e `git status --short` confirma o escopo. `npm.cmd run dev` inicia Vite na porta 5173; os comandos do Vite usam `--configLoader runner` para compatibilidade com o Windows deste ambiente.
 
 `vitest.config.js` usa `jsdom`, plugin React e `src/testing/setup.js` com `@testing-library/jest-dom`; só inclui `src/**/*.test.{js,jsx}`. A cobertura configura `src/**/*.{js,jsx}` e exclui `src/testing/**`. Playwright gera o build, sobe o preview, executa os testes no Chrome/Chromium e encerra o servidor. O executor fixa `VITE_API_URL=http://localhost:8000` nos E2E simulados; com `RUN_REAL_API=1`, respeita a origem configurada. Para instalar o Chromium gerenciado pelo Playwright, execute `npx playwright install chromium`; em máquina com Chrome instalado, defina `PLAYWRIGHT_CHANNEL=chrome`. `PLAYWRIGHT_CHANNEL` pode ser removida quando o Chromium gerenciado estiver disponível.
 
@@ -26,16 +22,16 @@ Para executar o teste de leitura com FastAPI real, inicie a API e o banco de dad
 
 ## Resultado automatizado registrado
 
-| Verificação                      | Resultado                                                                   | O que comprova                                                                |
-| -------------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `npm.cmd test`                   | **108 testes passaram em 32 arquivos** em 28/09/2026                        | Comportamentos cobertos pelos mocks e por jsdom                               |
-| `npm.cmd run test:coverage`      | **Passou**; 90,8% statements, 84,7% branches, 90,3% functions e 92,8% lines | Cobertura V8 acima dos mínimos globais configurados                           |
-| `npm.cmd run lint`               | **Concluído**                                                               | Regras JS, React, Hooks e JSX a11y                                            |
-| `npm.cmd run format:check`       | **Concluído**                                                               | Código sob Prettier consistente                                               |
-| `npm.cmd run test:e2e` no Chrome | **26 passaram; 1 teste real ignorado sem `RUN_REAL_API`**                   | Fluxos no navegador, seis larguras, ampliação CSS e análise WCAG automatizada |
-| `npm.cmd run build`              | **Concluído** pelo Vite 6.4.3                                               | Imports, JSX, CSS e geração dos chunks das páginas                            |
-| `git diff --check`               | **Sem erros**                                                               | Ausência de erros de whitespace no diff                                       |
-| `git status --short`             | **Somente `FrontEnd/`**                                                     | Escopo das alterações registradas no Git                                      |
+| Verificação                      | Resultado                                                                                                   | O que comprova                                                                |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `npm.cmd run check`              | **Concluído** em 28/09/2026                                                                                 | Executa lint, formatação, testes com cobertura e build em sequência           |
+| `npm.cmd run test:coverage`      | **119 testes em 34 arquivos passaram**; 91,14% statements, 85,11% branches, 90,25% functions e 92,95% lines | Cobertura V8 acima dos mínimos globais configurados                           |
+| `npm.cmd run lint`               | **Concluído**                                                                                               | Regras JS, React, Hooks e JSX a11y                                            |
+| `npm.cmd run format:check`       | **Concluído**                                                                                               | Código sob Prettier consistente                                               |
+| `npm.cmd run test:e2e` no Chrome | **26 passaram; 1 teste real ignorado sem `RUN_REAL_API`**                                                   | Fluxos no navegador, seis larguras, ampliação CSS e análise WCAG automatizada |
+| `npm.cmd run build`              | **Concluído** pelo Vite 6.4.3                                                                               | Imports, JSX, CSS e geração dos chunks das páginas                            |
+| `git diff --check`               | **Sem erros**                                                                                               | Ausência de erros de whitespace no diff                                       |
+| `git status --short`             | **Somente `FrontEnd/`**                                                                                     | Escopo das alterações registradas no Git                                      |
 
 Build bem sucedido não comprova disponibilidade da API, layout em navegador ou ausência de erro no console durante uso real.
 
@@ -48,6 +44,7 @@ Os caminhos abaixo refletem a estrutura atual. Os testes específicos continuam 
 | `src/app/App.test.jsx`                                                                                          | Entrada direta em rotas com tema salvo, fallback de carregamento, link de salto, foco após navegação, 404 e título                                  |
 | `src/shared/api/api.test.js`                                                                                    | Codificação do usuário, erro HTTP, cancelamento externo, timeout na leitura, formatos de exportação, data inválida e MIME ausente ou incorreto      |
 | `src/shared/api/validators.test.js`                                                                             | Contratos válidos e inválidos de usuários, realtime, resumo e configurações                                                                         |
+| `src/shared/api/errorMessage.test.js`, `src/shared/lib/requestFailure.test.js`                                  | Mensagens seguras para erros, cancelamento, falha de contrato e rejeição por fonte                                                                  |
 | `src/features/dashboard/hooks/useDashboardData.test.js`                                                         | Três fontes, horário de atualização, dados mantidos no refresh, falha parcial e data divergente                                                     |
 | `src/app/hooks/useHashRoute.test.js`                                                                            | Hash desconhecido e reação a `hashchange`                                                                                                           |
 | `src/app/hooks/useTheme.test.js`                                                                                | Preferência do sistema, preferência salva, alternância, classe/documento e `localStorage`                                                           |
