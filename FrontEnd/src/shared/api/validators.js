@@ -12,6 +12,7 @@ function uniqueUsers(value) {
   );
 }
 
+/** @param {any} value @returns {value is import('./contracts').User[]} */
 export function validUsers(value) {
   return (
     uniqueUsers(value) &&
@@ -19,6 +20,7 @@ export function validUsers(value) {
   );
 }
 
+/** @param {any} value @returns {value is import('./contracts').RealtimeEntry[]} */
 export function validRealtime(value) {
   return (
     uniqueUsers(value) &&
@@ -35,6 +37,7 @@ export function validRealtime(value) {
   );
 }
 
+/** @param {any} value @returns {value is import('./contracts').DailySummary} */
 export function validSummary(value) {
   return Boolean(
     value &&
@@ -56,6 +59,7 @@ export function validSummary(value) {
   );
 }
 
+/** @param {any} value @returns {value is import('./contracts').SystemSettings} */
 export function validSettings(value) {
   return (
     Number.isSafeInteger(value?.capture_interval_seconds) &&

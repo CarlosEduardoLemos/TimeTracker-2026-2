@@ -16,6 +16,7 @@ export function ReportsPage() {
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [usersError, setUsersError] = useState('');
   const activeUsers = useRef(null);
+  const usersSequence = useRef(0);
   const { exporting, error, success, download, clearFeedback, dismissSuccess } = useReportExport(
     date,
     username,
@@ -25,18 +26,20 @@ export function ReportsPage() {
     activeUsers.current?.abort();
     const controller = new AbortController();
     activeUsers.current = controller;
+    const current = ++usersSequence.current;
+    const isCurrent = () => !controller.signal.aborted && current === usersSequence.current;
     setLoadingUsers(true);
     setUsersError('');
     try {
       const value = await api.users(controller.signal);
-      if (!controller.signal.aborted) setUsers(value);
+      if (isCurrent()) setUsers(value);
     } catch (cause) {
-      if (!controller.signal.aborted) {
+      if (isCurrent()) {
         setUsers(null);
         setUsersError(getApiErrorMessage(cause));
       }
     } finally {
-      if (!controller.signal.aborted) setLoadingUsers(false);
+      if (isCurrent()) setLoadingUsers(false);
     }
   }, []);
 

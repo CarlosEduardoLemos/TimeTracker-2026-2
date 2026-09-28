@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '../../../shared/api/api';
 import { CollaboratorsPage } from './CollaboratorsPage';
@@ -110,5 +110,32 @@ describe('CollaboratorsPage', () => {
     expect(usersSignal.aborted).toBe(false);
     unmount();
     expect(usersSignal.aborted).toBe(true);
+  });
+
+  it('ignora resposta antiga mesmo quando a fonte ignora o cancelamento', async () => {
+    const pending = [];
+    api.users.mockRejectedValueOnce(new Error('offline')).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          pending.push(resolve);
+        }),
+    );
+    api.realtime.mockRejectedValueOnce(new Error('offline')).mockResolvedValue([]);
+    render(<CollaboratorsPage />);
+
+    const retry = within(await screen.findByRole('alert')).getByRole('button', {
+      name: 'Tentar novamente',
+    });
+    act(() => {
+      retry.click();
+      retry.click();
+    });
+    expect(pending).toHaveLength(2);
+    expect(api.users.mock.calls[1][0].aborted).toBe(true);
+    await act(async () => pending[1]([{ username: 'nova', full_name: 'Nova' }]));
+    expect(screen.getByRole('table')).toHaveTextContent('Nova');
+    await act(async () => pending[0]([{ username: 'antiga', full_name: 'Antiga' }]));
+    expect(screen.getByRole('table')).toHaveTextContent('Nova');
+    expect(screen.getByRole('table')).not.toHaveTextContent('Antiga');
   });
 });

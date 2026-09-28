@@ -3,6 +3,7 @@ import globals from 'globals';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
+import { architecture } from './lint/architecture.js';
 
 export default [
   {
@@ -23,6 +24,11 @@ export default [
       parserOptions: { ecmaFeatures: { jsx: true } },
       globals: { ...globals.browser, ...globals.node, ...globals.vitest },
     },
+  },
+  {
+    files: ['src/**/*.{js,jsx}'],
+    plugins: { local: { rules: { architecture } } },
+    rules: { 'local/architecture': 'error' },
   },
   {
     files: ['src/**/*.{js,jsx}'],

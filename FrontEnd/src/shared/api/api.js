@@ -4,7 +4,13 @@ import { validRealtime, validSettings, validSummary, validUsers } from './valida
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 const TIMEOUT = 15000;
 
+/**
+ * @typedef {{ type?: import('./contracts').ApiErrorType, status?: number | null,
+ *   statusText?: string, detail?: unknown, cause?: unknown }} ApiErrorOptions
+ */
+
 export class ApiError extends Error {
+  /** @param {string} message @param {ApiErrorOptions} [options] */
   constructor(message, { type, status = null, statusText = '', detail = null, cause } = {}) {
     super(message, { cause });
     this.name = 'ApiError';
@@ -15,6 +21,7 @@ export class ApiError extends Error {
   }
 }
 
+/** @param {unknown} detail */
 function detailMessage(detail) {
   if (typeof detail === 'string') return detail.trim().slice(0, 500);
   if (Array.isArray(detail)) {
@@ -27,6 +34,7 @@ function detailMessage(detail) {
   return '';
 }
 
+/** @param {Response} response */
 async function httpError(response) {
   let detail = null;
   try {
@@ -43,10 +51,17 @@ async function httpError(response) {
   });
 }
 
+/**
+ * @template T
+ * @param {string} path
+ * @param {RequestInit} [options]
+ * @param {(response: Response) => Promise<T>} [read]
+ * @returns {Promise<T>}
+ */
 async function request(path, { signal, ...options } = {}, read = (response) => response.json()) {
   // O controller próprio permite timeout; timedOut o distingue do cancelamento externo.
   const controller = new AbortController();
-  const abort = () => controller.abort(signal.reason);
+  const abort = () => controller.abort(signal?.reason);
   if (signal?.aborted) abort();
   else signal?.addEventListener('abort', abort, { once: true });
   let timedOut = false;
@@ -104,6 +119,12 @@ async function request(path, { signal, ...options } = {}, read = (response) => r
   }
 }
 
+/**
+ * @template T
+ * @param {Promise<unknown>} promise
+ * @param {(value: unknown) => value is T} validator
+ * @returns {Promise<T>}
+ */
 async function validateResponse(promise, validator) {
   const value = await promise;
   if (!validator(value))
@@ -125,6 +146,7 @@ function exportPath(format, date, username = '') {
   return summaryPath(date, username).replace('/summary?', `/export/${format}?`);
 }
 
+/** @type {import('./contracts').ApiClient} */
 export const api = {
   users: (signal) => validateResponse(request('/users/', { signal }), validUsers),
   realtime: (signal) =>

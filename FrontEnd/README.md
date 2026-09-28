@@ -45,6 +45,7 @@ Não há React Router, biblioteca de formulários, biblioteca de ícones ou gere
 - **@axe-core/playwright 4.13.0** — validações automatizadas de acessibilidade.
 - **@vitejs/plugin-react 4.7.0** — integração de React e JSX com Vite.
 - **ESLint 9.39.5** — análise estática do código.
+- **TypeScript 5.9.3** — `checkJs` dos contratos da API, mantendo o código em JavaScript.
 - **@eslint/js e globals** — regras base e globais de ambiente para a configuração flat do ESLint.
 - **eslint-plugin-react, eslint-plugin-react-hooks e eslint-plugin-jsx-a11y** — regras específicas para React, hooks e acessibilidade.
 - **Prettier 3.9.9** — formatação padronizada.
@@ -110,7 +111,7 @@ $env:PLAYWRIGHT_CHANNEL = 'chrome'
 npm.cmd run check:full
 ```
 
-`check` executa lint, verificação de formatação, testes com os mínimos de cobertura e build. `check:full` também executa o E2E no navegador; ele pode ser usado antes de PR ou release. Para rodar só o E2E, use `npm.cmd run test:e2e`.
+`check` executa lint, verificação de formatação, checagem estática dos contratos JavaScript, testes com os mínimos de cobertura e build. `check:full` também executa o E2E no navegador; ele pode ser usado antes de PR ou release. Para rodar só o E2E, use `npm.cmd run test:e2e`.
 
 Para usar o Chromium gerenciado pelo Playwright:
 

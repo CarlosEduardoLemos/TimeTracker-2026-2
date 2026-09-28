@@ -87,4 +87,27 @@ describe('ReportsPage', () => {
     expect(screen.getByRole('button', { name: 'Exportar CSV' })).toBeEnabled();
     expect(screen.queryByText(/Download de/)).not.toBeInTheDocument();
   });
+
+  it('mantém os usuários da consulta mais recente se a anterior responder depois', async () => {
+    const pending = [];
+    api.users.mockRejectedValueOnce(new Error('offline')).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          pending.push(resolve);
+        }),
+    );
+    render(<ReportsPage />);
+    const retry = await screen.findByRole('button', { name: 'Tentar novamente' });
+    act(() => {
+      retry.click();
+      retry.click();
+    });
+    expect(pending).toHaveLength(2);
+    expect(api.users.mock.calls[1][0].aborted).toBe(true);
+    await act(async () => pending[1]([{ username: 'nova' }]));
+    expect(screen.getByRole('combobox')).toHaveTextContent('nova');
+    await act(async () => pending[0]([{ username: 'antiga' }]));
+    expect(screen.getByRole('combobox')).toHaveTextContent('nova');
+    expect(screen.getByRole('combobox')).not.toHaveTextContent('antiga');
+  });
 });

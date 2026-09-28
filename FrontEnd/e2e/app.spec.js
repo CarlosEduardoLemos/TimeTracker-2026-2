@@ -119,18 +119,15 @@ test('lê e salva configurações com GET e PUT', async ({ page }) => {
 test('confirma saída de configurações com alterações pendentes', async ({ page }) => {
   await page.goto('/#/configuracoes');
   await page.getByLabel('Limite de inatividade (segundos)').fill('240');
-  page.once('dialog', (dialog) => dialog.dismiss());
-  await page
+  const panel = page
     .getByRole('navigation', { name: 'Menu principal' })
-    .getByRole('link', { name: 'Painel' })
-    .click();
+    .getByRole('link', { name: 'Painel' });
+  const dismiss = page.waitForEvent('dialog').then((dialog) => dialog.dismiss());
+  await Promise.all([dismiss, panel.click()]);
   await expect(page).toHaveURL(/#\/configuracoes$/);
   await expect(page.getByText('Alterações não salvas')).toBeVisible();
-  page.once('dialog', (dialog) => dialog.accept());
-  await page
-    .getByRole('navigation', { name: 'Menu principal' })
-    .getByRole('link', { name: 'Painel' })
-    .click();
+  const accept = page.waitForEvent('dialog').then((dialog) => dialog.accept());
+  await Promise.all([accept, panel.click()]);
   await expect(page).toHaveURL(/#\/painel$/);
 });
 

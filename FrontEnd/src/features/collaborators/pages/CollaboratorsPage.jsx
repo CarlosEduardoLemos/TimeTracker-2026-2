@@ -10,14 +10,16 @@ import { ActivityStatusBadge } from '../../../shared/components/ActivityStatusBa
 export function CollaboratorsPage() {
   const [state, setState] = useState({ loading: true, users: null, realtime: null, error: null });
   const active = useRef(null);
+  const sequence = useRef(0);
   const load = useCallback(() => {
     active.current?.abort();
     const controller = new AbortController();
     active.current = controller;
+    const current = ++sequence.current;
     setState((previous) => ({ ...previous, loading: true, error: null }));
     Promise.allSettled([api.users(controller.signal), api.realtime(controller.signal)]).then(
       ([users, realtime]) => {
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted || current !== sequence.current) return;
         setState({
           loading: false,
           users: users.status === 'fulfilled' ? users.value : null,
