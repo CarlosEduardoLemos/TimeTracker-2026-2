@@ -20,6 +20,18 @@ npm.cmd run check:full
 
 Para executar o teste de leitura com FastAPI real, inicie a API e o banco de dados separadamente, configure `VITE_API_URL` para a origem correta, defina `RUN_REAL_API=1` e rode `npm.cmd run test:e2e:real`. O teste não envia POST/PUT; GET /config/ pode inicializar configurações no servidor se ainda não existirem: verifica painel, CORS observado no navegador, GET de configurações e erros de página. Exporte CSV/PDF com dados reais e confira conteúdo manualmente; o E2E regular valida o mecanismo de download com respostas HTTP simuladas.
 
+## Problemas comuns
+
+| Sintoma                                               | Verificação e ação                                                                                                                                                                                                |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API não responde ou telas mostram dados indisponíveis | Confira `VITE_API_URL` em `.env` (padrão `http://localhost:8000`), inicie FastAPI e banco e reinicie o Vite após mudar `.env`. Confira a chamada com falha na aba Rede do navegador.                              |
+| Erro de CORS no navegador                             | Confira se o backend permite a origem exata do frontend, incluindo protocolo e porta (`http://localhost:5173` no desenvolvimento; `http://127.0.0.1:5173` no preview dos E2E). A configuração é feita no backend. |
+| Playwright não encontra o navegador                   | Execute `npx playwright install chromium`. Se usar Chrome já instalado, defina `$env:PLAYWRIGHT_CHANNEL = 'chrome'` antes do comando de teste.                                                                    |
+| `test:e2e:real` aparece como ignorado                 | Inicie FastAPI e banco, configure `VITE_API_URL`, defina `$env:RUN_REAL_API = '1'` e execute `npm.cmd run test:e2e:real` novamente. Sem essa variável, o teste real é ignorado de propósito.                      |
+| Preview E2E não inicia                                | Libere a porta `5173`: o executor usa `127.0.0.1:5173` com `--strictPort`.                                                                                                                                        |
+
+Os E2E regulares interceptam as respostas HTTP; para conferir API e CORS reais, use o teste opt-in e os roteiros manuais abaixo.
+
 ## Resultado automatizado registrado
 
 | Verificação                      | Resultado                                                                                                   | O que comprova                                                                |
@@ -96,6 +108,55 @@ Os itens abaixo **não foram comprovados** pelos testes automatizados. Executar 
 | Configurações          | Leitura, valores inválidos, salvamento, erro 4xx/5xx, queda de rede e saída durante operação                                                                  |
 | Exportação             | CSV/PDF reais, nome e conteúdo do arquivo, falha/timeout, ausência de usuários e cancelamento ao sair                                                         |
 | Console e rede         | Exceções de renderização, rejeições não tratadas, requests inesperados e mensagens de CORS                                                                    |
+
+### Roteiros para fluxos críticos
+
+Estes roteiros ainda **precisam ser executados manualmente** no ambiente alvo. Registre navegador, data, resultado e eventuais erros de Console/Rede ao executá-los. Use dados de teste e não altere configurações de produção.
+
+#### Saída com alterações não salvas
+
+**Pré-condições:** frontend e backend em execução; `GET /config/` responde com os dois valores globais.
+
+1. Abra `#/configuracoes` e aguarde os campos aparecerem.
+2. Altere **Intervalo de captura (segundos)** para outro inteiro positivo, sem salvar.
+3. Confirme que aparece **Alterações não salvas** e clique em **Painel**.
+4. Cancele o diálogo de saída; confirme que a página e o valor editado permanecem.
+5. Clique novamente em **Painel** e confirme a saída.
+
+**Resultado esperado:** o diálogo pergunta se deseja sair sem salvar; cancelar mantém Configurações e confirmar abre o Painel. Ao reabrir Configurações, o valor original continua salvo. Confira também **Restaurar**: ele deve repor o valor e remover o aviso sem gravar.
+
+#### Falha isolada da atividade no Painel
+
+**Pré-condições:** `GET /users/` e `GET /dashboard/summary` respondem; há pelo menos um usuário cadastrado. No navegador, bloqueie temporariamente apenas a requisição `/activities/realtime` pela ferramenta de rede.
+
+1. Abra `#/painel` ou clique em **Atualizar** depois de ativar o bloqueio.
+2. Aguarde o fim da consulta e observe o alerta, os indicadores e **Última atividade**.
+3. Remova o bloqueio e clique em **Tentar novamente** no alerta, ou em **Atualizar**.
+
+**Resultado esperado:** o alerta identifica a falha de **Atividade**; **Online**, **Ausentes** e **Sem leitura recente** mostram `—`, e a última atividade fica indisponível. **Usuários cadastrados** e **Tempo registrado** continuam usando suas fontes disponíveis. Após a nova consulta, os dados de atividade voltam se a API responder. Falha de realtime não deve aparecer como zero pessoas online.
+
+#### Exportação com dados reais
+
+**Pré-condições:** backend e banco em execução; data com registros conhecidos; navegador permite downloads. Este roteiro não é coberto pelo E2E simulado.
+
+1. Abra `#/relatorios`, escolha a data conhecida e, se necessário, um usuário.
+2. Clique em **Exportar CSV** e aguarde o aviso de download iniciado.
+3. Abra o arquivo: confira nome, codificação, colunas `username,category,total_seconds` e valores contra a resposta real da API.
+4. Clique em **Exportar PDF**; abra o arquivo e confira data, usuário, total e categorias contra a mesma fonte.
+5. Na aba Rede, confira status 200 e tipos `text/csv` e `application/pdf` nas respectivas respostas.
+
+**Resultado esperado:** cada ação produz um arquivo não vazio do formato escolhido, referente aos filtros selecionados. O aviso na tela significa apenas que o download começou; confirme o conteúdo no arquivo aberto.
+
+#### Menu móvel por teclado e leitor de tela
+
+**Pré-condições:** navegador em largura menor que `1024px`; leitor de tela disponível para a segunda parte.
+
+1. Com Tab, foque **Abrir menu** e ative com Enter ou Espaço.
+2. Percorra os links com Tab e Shift+Tab; use Escape para fechar.
+3. Abra novamente, escolha **Relatórios** e observe o foco após a navegação.
+4. Repita com leitor de tela, verificando nome do diálogo, rota ativa e anúncio dos títulos e erros.
+
+**Resultado esperado:** o foco permanece no diálogo aberto; Escape devolve o foco a **Abrir menu**; a navegação fecha o menu e leva o foco ao conteúdo principal da nova página. O leitor de tela deve anunciar os controles e mensagens sem depender apenas de cor.
 
 Vitest usa mocks de `fetch` e jsdom. Playwright usa Chrome com respostas HTTP simuladas e downloads reais do navegador, mas não valida banco, autorização, CORS de implantação nem conteúdo produzido pelo FastAPI. axe-core detecta apenas parte dos problemas de acessibilidade; leitor de tela e inspeção humana continuam necessários. Não há `typecheck`, pois o código permanece em JavaScript/JSX.
 
