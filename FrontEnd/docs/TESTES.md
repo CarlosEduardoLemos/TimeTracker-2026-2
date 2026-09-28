@@ -97,7 +97,7 @@ Playwright cobre retry de Colaboradores, leitura e gravação de Configurações
 
 ## Validação manual pendente
 
-Os itens abaixo **não foram comprovados** pelos testes automatizados. Executar em navegador com backend disponível e também com API indisponível:
+Os itens abaixo **não foram comprovados** pelos testes automatizados. Executar em navegador com backend disponível e também com API indisponível. As áreas de jornada, relatórios e Dashboard se relacionam com [CA-06](../../requisitos/requisitos/ca.md#ca-06--jornada-e-inatividade), [CA-07](../../requisitos/requisitos/ca.md#ca-07--consulta-relatórios-e-exportação) e [CA-10](../../requisitos/requisitos/ca.md#ca-10--dashboard-analítico); teclado e telas menores são tratados em [Responsividade](../../requisitos/responsividade.md#6-critérios). Esses critérios descrevem o produto alvo e continuam sem aceite automático por causa dos contratos ausentes:
 
 | Área                   | Verificação manual                                                                                                                                            |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |

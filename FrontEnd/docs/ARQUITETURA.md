@@ -1,6 +1,6 @@
 # Arquitetura e contratos do frontend
 
-Este documento descreve o código executado atualmente em `FrontEnd/`. [Funcionalidades](FUNCIONALIDADES.md) descreve o que aparece ao usuário; [Pendências](PENDENCIAS.md) separa o que requer novos contratos do backend.
+Este documento descreve o código executado atualmente em `FrontEnd/`. [Funcionalidades](FUNCIONALIDADES.md) descreve o que aparece ao usuário e liga cada RF à sua origem em [regras de negócio e requisitos funcionais](../../requisitos/requisitos/rn_rf.md); [Pendências](PENDENCIAS.md) separa o que requer novos contratos do backend. Rotas, payloads e escolhas técnicas abaixo foram verificados no código e na API, não prescritos pelos documentos de requisitos.
 
 ## Plataforma e entrada
 
@@ -92,6 +92,8 @@ Revise estas decisões quando os contratos ou o número de rotas mudarem; os det
 O layout usa `sm`, `lg` e `xl` do Tailwind. O menu lateral fixo aparece no desktop; no mobile, o botão abre um diálogo com foco inicial, ciclo de Tab, fechamento por Escape ou clique externo, bloqueio da rolagem do fundo e restauração do foco. O link “Pular para o conteúdo principal” foca o `<main>` sem trocar o hash. Após trocar de rota, o foco vai ao `<main>` da nova página, inclusive em login/cadastro. Filtros têm labels; erros usam `role="alert"`, carregamento usa `role="status"` e skeletons, e as tabelas passam a cards nas larguras menores. Status usam rótulo e badge; as barras de categoria são decorativas porque duração e percentual já aparecem em texto. `index.css` oferece foco visível, mantém contraste em botões desabilitados e respeita `prefers-reduced-motion`.
 
 Playwright executa os fluxos principais no Chrome, testa larguras de 375 a 1920 px e ampliação CSS de 200%; axe-core verifica violações WCAG detectáveis automaticamente em quatro telas e no menu móvel escuro. O painel recebeu `min-w-0` para conter a tabela rolável no mobile; textos secundários e links escuros receberam contraste maior. Leitor de tela, zoom nativo e backend real ainda exigem inspeção. Consulte [Testes](TESTES.md).
+
+As metas de layout e navegação vêm de [Responsividade](../../requisitos/responsividade.md#2-diretriz-geral) e a clareza de uso de [RNF-12](../../requisitos/requisitos/rnf.md#rnf-12--usabilidade). Breakpoints e soluções de foco descritos acima são decisões da implementação.
 
 ## Qualidade automatizada
 

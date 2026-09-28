@@ -1,32 +1,32 @@
 ﻿# Pendências do frontend e dependências externas
 
-Revisão: **28/09/2026**. `backend/` e `requisitos/` foram consultados somente para leitura. Nenhum contrato foi alterado. Os itens abaixo distinguem correções do servidor, integração das equipes e trabalho futuro no frontend. Prioridade alta indica risco de acesso, integridade ou bloqueio funcional; média indica lacuna relevante; baixa indica manutenção.
+Revisão: **28/09/2026**. `backend/` e a pasta [requisitos](../../requisitos/visao.md) foram consultados somente para leitura. Nenhum contrato foi alterado. Os IDs clicáveis em **Problema/requisito** levam às seções de origem em [RN/RF](../../requisitos/requisitos/rn_rf.md), [RNF](../../requisitos/requisitos/rnf.md) ou [critérios de aceite](../../requisitos/requisitos/ca.md). Situação, prioridade, impacto e contrato necessário são conclusões da revisão do código e da API, não texto dos requisitos. Prioridade alta indica risco de acesso, integridade ou bloqueio funcional; média indica lacuna relevante; baixa indica manutenção.
 
 ## Resumo das pendências
 
-| ID   | Pendência                                            | Área                 | Prioridade | Status                     |
-| ---- | ---------------------------------------------------- | -------------------- | ---------- | -------------------------- |
-| B-01 | Autorização dos endpoints e isolamento dos dados     | Backend              | Alta       | AGUARDANDO BACKEND         |
-| B-02 | CORS e HTTPS por ambiente                            | Backend              | Alta       | AGUARDANDO BACKEND         |
-| B-03 | Seed incompatível com chave UUID                     | Backend              | Alta       | AGUARDANDO BACKEND         |
-| B-04 | Limite salvo não aplicado ao realtime                | Backend              | Média      | AGUARDANDO BACKEND         |
-| B-05 | Capturas empatadas no realtime                       | Backend              | Média      | AGUARDANDO BACKEND         |
-| B-06 | Reenvio de atividades sem deduplicação               | Backend              | Alta       | AGUARDANDO BACKEND         |
-| B-07 | Datas futuras e tempo relativo negativo              | Backend              | Média      | AGUARDANDO BACKEND         |
-| B-08 | Segurança e fidelidade dos arquivos exportados       | Backend              | Média      | AGUARDANDO BACKEND         |
-| B-09 | Configuração global sem unicidade garantida          | Backend              | Média      | AGUARDANDO BACKEND         |
-| I-01 | Conta, login e sessão do gestor                      | Integração           | Alta       | BLOQUEADO                  |
-| I-02 | Associação gestor–colaborador e código               | Integração           | Alta       | BLOQUEADO                  |
-| I-03 | Tasks, atribuição, escopo e monitoramento consentido | Integração           | Alta       | BLOQUEADO                  |
-| I-04 | Jornada individual e possível hora extra             | Integração           | Alta       | BLOQUEADO                  |
-| I-05 | Conexão real do agente                               | Integração           | Média      | BLOQUEADO                  |
-| I-06 | Dashboard, timeline e relatórios completos           | Integração           | Alta       | BLOQUEADO                  |
-| I-07 | Referência de fuso e virada do dia                   | Integração           | Média      | BLOQUEADO                  |
-| I-08 | Teste de integração com serviço real                 | Integração           | Média      | BLOQUEADO                  |
-| F-01 | Integração das telas após contratos                  | Frontend             | Alta       | BLOQUEADO                  |
-| F-02 | Instalação PWA e política offline                    | Frontend             | Média      | FRONTEND FUTURO            |
-| F-03 | Validação humana e matriz de navegadores             | Frontend             | Média      | FRONTEND FUTURO            |
-| D-01 | Atualizar `requisitos/responsividade.md`             | Documentação externa | Baixa      | AGUARDANDO REVISÃO EXTERNA |
+| ID   | Pendência                                                         | Área                 | Prioridade | Status                     |
+| ---- | ----------------------------------------------------------------- | -------------------- | ---------- | -------------------------- |
+| B-01 | Autorização dos endpoints e isolamento dos dados                  | Backend              | Alta       | AGUARDANDO BACKEND         |
+| B-02 | CORS e HTTPS por ambiente                                         | Backend              | Alta       | AGUARDANDO BACKEND         |
+| B-03 | Seed incompatível com chave UUID                                  | Backend              | Alta       | AGUARDANDO BACKEND         |
+| B-04 | Limite salvo não aplicado ao realtime                             | Backend              | Média      | AGUARDANDO BACKEND         |
+| B-05 | Capturas empatadas no realtime                                    | Backend              | Média      | AGUARDANDO BACKEND         |
+| B-06 | Reenvio de atividades sem deduplicação                            | Backend              | Alta       | AGUARDANDO BACKEND         |
+| B-07 | Datas futuras e tempo relativo negativo                           | Backend              | Média      | AGUARDANDO BACKEND         |
+| B-08 | Segurança e fidelidade dos arquivos exportados                    | Backend              | Média      | AGUARDANDO BACKEND         |
+| B-09 | Configuração global sem unicidade garantida                       | Backend              | Média      | AGUARDANDO BACKEND         |
+| I-01 | Conta, login e sessão do gestor                                   | Integração           | Alta       | BLOQUEADO                  |
+| I-02 | Associação gestor–colaborador e código                            | Integração           | Alta       | BLOQUEADO                  |
+| I-03 | Tasks, atribuição, escopo e monitoramento consentido              | Integração           | Alta       | BLOQUEADO                  |
+| I-04 | Jornada individual e possível hora extra                          | Integração           | Alta       | BLOQUEADO                  |
+| I-05 | Conexão real do agente                                            | Integração           | Média      | BLOQUEADO                  |
+| I-06 | Dashboard, timeline e relatórios completos                        | Integração           | Alta       | BLOQUEADO                  |
+| I-07 | Referência de fuso e virada do dia                                | Integração           | Média      | BLOQUEADO                  |
+| I-08 | Teste de integração com serviço real                              | Integração           | Média      | BLOQUEADO                  |
+| F-01 | Integração das telas após contratos                               | Frontend             | Alta       | BLOQUEADO                  |
+| F-02 | Instalação PWA e política offline                                 | Frontend             | Média      | FRONTEND FUTURO            |
+| F-03 | Validação humana e matriz de navegadores                          | Frontend             | Média      | FRONTEND FUTURO            |
+| D-01 | Atualizar [responsividade.md](../../requisitos/responsividade.md) | Documentação externa | Baixa      | AGUARDANDO REVISÃO EXTERNA |
 
 Os status descrevem a dependência atual; a prioridade indica impacto. As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID.
 
@@ -35,7 +35,7 @@ Os status descrevem a dependência atual; a prioridade indica impacto. As seçõ
 ### B-01 — Autorização dos endpoints e isolamento dos dados — Alta
 
 - **Status:** AGUARDANDO BACKEND.
-- **Problema/requisito:** ausência de autorização; RN-15, RF-23, CA-09.
+- **Problema/requisito:** ausência de autorização; [RN-15](../../requisitos/requisitos/rn_rf.md#rn-15--controle-de-acesso-aos-dados), [RF-23](../../requisitos/requisitos/rn_rf.md#rf-23--consultar-registros), [CA-09](../../requisitos/requisitos/ca.md#ca-09--privacidade-e-segurança) e [escopo de acesso no RBAC](../../requisitos/rbac.md#5-escopo-de-acesso).
 - **Frontend afetado:** todas as páginas com dados, especialmente `SettingsPage`, `DashboardPage`, `CollaboratorsPage` e `ReportsPage`.
 - **Backend relacionado:** `app/main.py`, routers `users`, `activities`, `dashboard` e `config`.
 - **Atual/impacto:** consultas globais e `PUT /config/` sem verificação de gestor permitem leitura e escrita sem identidade validada.
@@ -46,7 +46,7 @@ Os status descrevem a dependência atual; a prioridade indica impacto. As seçõ
 ### B-02 — CORS e HTTPS por ambiente — Alta
 
 - **Status:** AGUARDANDO BACKEND.
-- **Problema/requisito:** política de origem ampla e transmissão segura ainda dependente da implantação; RNF-03/CA-09.
+- **Problema/requisito:** política de origem ampla e transmissão segura ainda dependente da implantação; [RNF-03](../../requisitos/requisitos/rnf.md#rnf-03--comunicação-segura)/[CA-09](../../requisitos/requisitos/ca.md#ca-09--privacidade-e-segurança).
 - **Frontend afetado:** `src/shared/api/api.js` e todas as requisições.
 - **Backend relacionado:** `app/main.py`, configuração de serviço/reverse proxy externa.
 - **Atual/impacto:** `allow_origins=["*"]` com `allow_credentials=True`; origem padrão de desenvolvimento HTTP. O ambiente real não foi validado.
@@ -68,7 +68,7 @@ Os status descrevem a dependência atual; a prioridade indica impacto. As seçõ
 ### B-04 — Limite salvo não aplicado ao realtime — Média
 
 - **Status:** AGUARDANDO BACKEND.
-- **Problema/requisito:** configuração editável não governa o cálculo exibido; RF-14/RF-21.
+- **Problema/requisito:** configuração editável não governa o cálculo exibido; [RF-14](../../requisitos/requisitos/rn_rf.md#rf-14--controlar-atividade-e-inatividade)/[RF-21](../../requisitos/requisitos/rn_rf.md#rf-21--configurar-limite-de-inatividade).
 - **Frontend afetado:** `SettingsPage`, indicadores do painel e tabela de colaboradores.
 - **Backend relacionado:** `app/crud.py:get_realtime_view`, `app/utils.py:MAX_IDLE_SECONDS`, `/config/`.
 - **Atual/impacto:** GET/PUT persiste valores globais, mas realtime usa constante do processo. Salvar não altera esse cálculo.
@@ -79,7 +79,7 @@ Os status descrevem a dependência atual; a prioridade indica impacto. As seçõ
 ### B-05 — Capturas empatadas no realtime — Média
 
 - **Status:** AGUARDANDO BACKEND.
-- **Problema/requisito:** join pelo maior `captured_at` pode retornar várias entradas do mesmo usuário; RF-16/RF-27.
+- **Problema/requisito:** join pelo maior `captured_at` pode retornar várias entradas do mesmo usuário; [RF-16](../../requisitos/requisitos/rn_rf.md#rf-16--acompanhar-colaboradores-online)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico).
 - **Frontend afetado:** `validRealtime`, `useDashboardData`, `CollaboratorsPage`.
 - **Backend relacionado:** `app/crud.py:get_realtime_view`.
 - **Atual/impacto:** anteriormente o Map escolhia a última entrada pela ordem da resposta; agora a fonte ambígua é rejeitada e anunciada como inválida. Demais fontes continuam disponíveis.
@@ -90,7 +90,7 @@ Os status descrevem a dependência atual; a prioridade indica impacto. As seçõ
 ### B-06 — Reenvio de atividades sem deduplicação — Alta
 
 - **Status:** AGUARDANDO BACKEND.
-- **Problema/requisito:** ausência de chave de idempotência/unicidade de reenvio; RF-19/CA-05/CA-09.
+- **Problema/requisito:** ausência de chave de idempotência/unicidade de reenvio; [RF-19](../../requisitos/requisitos/rn_rf.md#rf-19--sincronizar-registros)/[CA-05](../../requisitos/requisitos/ca.md#ca-05--armazenamento-e-sincronização)/[CA-09](../../requisitos/requisitos/ca.md#ca-09--privacidade-e-segurança).
 - **Frontend afetado:** total registrado no painel e arquivos de relatório.
 - **Backend relacionado:** `ActivityLogCreate`, `create_activity_log`, modelo `ActivityLog`.
 - **Atual/impacto:** cada POST insere uma atividade; reenvios podem duplicar duração agregada.
@@ -101,7 +101,7 @@ Os status descrevem a dependência atual; a prioridade indica impacto. As seçõ
 ### B-07 — Datas futuras e tempo relativo negativo — Média
 
 - **Status:** AGUARDANDO BACKEND.
-- **Problema/requisito:** `captured_at` aceita data fornecida pelo agente sem política para relógio adiantado; RF-13/RF-16/RF-27.
+- **Problema/requisito:** `captured_at` aceita data fornecida pelo agente sem política para relógio adiantado; [RF-13](../../requisitos/requisitos/rn_rf.md#rf-13--registrar-períodos-de-utilização)/[RF-16](../../requisitos/requisitos/rn_rf.md#rf-16--acompanhar-colaboradores-online)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico).
 - **Frontend afetado:** validação de realtime no painel e colaboradores.
 - **Backend relacionado:** `ActivityLogCreate`, `create_activity_log`, `get_realtime_view`.
 - **Atual/impacto:** cutoff tem apenas limite inferior; captura futura pode produzir `seconds_since_last_activity < 0` e status online inadequado. O frontend rejeita a fonte inválida em vez de exibir segundos negativos.
@@ -112,7 +112,7 @@ Os status descrevem a dependência atual; a prioridade indica impacto. As seçõ
 ### B-08 — Segurança e fidelidade dos arquivos exportados — Média
 
 - **Status:** AGUARDANDO BACKEND.
-- **Problema/requisito:** CSV recebe strings diretamente e PDF chama dados de categoria de produtividade; RF-25, RN-19/CA-07.
+- **Problema/requisito:** CSV recebe strings diretamente e PDF chama dados de categoria de produtividade; [RF-25](../../requisitos/requisitos/rn_rf.md#rf-25--exportar-relatórios), [RN-19](../../requisitos/requisitos/rn_rf.md#rn-19--visão-gerencial-do-dashboard)/[CA-07](../../requisitos/requisitos/ca.md#ca-07--consulta-relatórios-e-exportação).
 - **Frontend afetado:** downloads em `ReportsPage`.
 - **Backend relacionado:** `app/routers/dashboard.py:export_csv/export_pdf`.
 - **Atual/impacto:** `csv.writer` faz escape CSV, mas não neutraliza fórmulas de planilha em textos controlados externamente; título do PDF é “Relatorio de Produtividade” embora o conteúdo seja duração por categoria. Riscos identificados por leitura, sem arquivo real gerado.
@@ -133,12 +133,12 @@ Os status descrevem a dependência atual; a prioridade indica impacto. As seçõ
 
 ## Pendências de integração Frontend + Backend
 
-As descrições históricas de Sprint 1/2 e EP-01 mencionam dados simulados e monitoramento “fingindo” task. Elas não autorizam mocks em produção nesta revisão: prevalecem as restrições do usuário e os RFs atuais, que exigem task ativa e ciência. Existe também divergência entre `screens/dashboard.md` (sem métricas de produtividade) e RN-19/RF-27 (tempo produtivo por escopo); I-06 exige esclarecer a apresentação antes da implementação, sem rankings.
+As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), [Sprint 2](../../requisitos/sprints/sprint2.md) e [EP-01](../../requisitos/epicos/EP-01.md) mencionam dados simulados e monitoramento “fingindo” task. Elas não autorizam mocks em produção nesta revisão: prevalecem as restrições do usuário e as regras atuais de [task ativa](../../requisitos/requisitos/rn_rf.md#rn-05--monitoramento-vinculado-à-task) e [ciência do colaborador](../../requisitos/requisitos/rn_rf.md#rn-06--transparência-e-ciência). Existe também divergência entre a [tela de referência do Dashboard](../../requisitos/screens/dashboard.md#8-regras-gerais) (sem métricas de produtividade) e [RN-19](../../requisitos/requisitos/rn_rf.md#rn-19--visão-gerencial-do-dashboard)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico) (tempo produtivo por escopo); I-06 exige esclarecer a apresentação antes da implementação, sem rankings.
 
 ### I-01 — Conta, login e sessão do gestor — Alta
 
 - **Status:** BLOQUEADO.
-- **Problema/requisito:** RF-02/RF-23 e CA-01 sem contratos de autenticação.
+- **Problema/requisito:** [RF-02](../../requisitos/requisitos/rn_rf.md#rf-02--criar-e-acessar-conta-do-gestor)/[RF-23](../../requisitos/requisitos/rn_rf.md#rf-23--consultar-registros) e [CA-01](../../requisitos/requisitos/ca.md#ca-01--identificação-acesso-e-associação) sem contratos de autenticação.
 - **Frontend afetado:** `AuthPage`, `App`, cliente HTTP e navegação.
 - **Backend relacionado:** routers/schemas atuais não oferecem conta do gestor, login ou sessão.
 - **Atual/impacto:** login/cadastro são páginas informativas, sem coleta de credenciais; não há gestor autenticado.
@@ -149,7 +149,7 @@ As descrições históricas de Sprint 1/2 e EP-01 mencionam dados simulados e mo
 ### I-02 — Associação gestor–colaborador e código — Alta
 
 - **Status:** BLOQUEADO.
-- **Problema/requisito:** RF-03/RF-04/RF-05 e CA-01/CA-07.
+- **Problema/requisito:** [RF-03](../../requisitos/requisitos/rn_rf.md#rf-03--disponibilizar-código-de-associação)/[RF-04](../../requisitos/requisitos/rn_rf.md#rf-04--associar-colaborador)/[RF-05](../../requisitos/requisitos/rn_rf.md#rf-05--gerenciar-colaboradores-associados), [CA-01](../../requisitos/requisitos/ca.md#ca-01--identificação-acesso-e-associação)/[CA-07](../../requisitos/requisitos/ca.md#ca-07--consulta-relatórios-e-exportação) e [associação no RBAC](../../requisitos/rbac.md#6-associação).
 - **Frontend afetado:** painel, colaboradores, relatórios e futura exibição do código do gestor.
 - **Backend relacionado:** `User` e `/users/`; não há modelo gestor/equipe/código.
 - **Atual/impacto:** usuários globais; nenhum código ou vínculo real é exibido. Não é possível representar equipe autorizada.
@@ -160,7 +160,7 @@ As descrições históricas de Sprint 1/2 e EP-01 mencionam dados simulados e mo
 ### I-03 — Tasks, atribuição, escopo e monitoramento consentido — Alta
 
 - **Status:** BLOQUEADO.
-- **Problema/requisito:** RF-06 a RF-13, RF-17, RN-18 e CA-02/CA-03/CA-04.
+- **Problema/requisito:** [RF-06](../../requisitos/requisitos/rn_rf.md#rf-06--criar-e-editar-tasks) a [RF-13](../../requisitos/requisitos/rn_rf.md#rf-13--registrar-períodos-de-utilização), [RF-17](../../requisitos/requisitos/rn_rf.md#rf-17--encerrar-ou-trocar-task), [RN-18](../../requisitos/requisitos/rn_rf.md#rn-18--finalidade-e-minimização) e [CA-02](../../requisitos/requisitos/ca.md#ca-02--tasks-e-início-do-monitoramento)/[CA-03](../../requisitos/requisitos/ca.md#ca-03--monitoramento-da-atividade)/[CA-04](../../requisitos/requisitos/ca.md#ca-04--estado-e-execução-da-task).
 - **Frontend afetado:** `TasksPage`, painel e relatórios.
 - **Backend relacionado:** modelos/schemas/routers não contêm task; atividades não contêm vínculo, início/fim ou classificação de escopo.
 - **Atual/impacto:** tela de tasks informa indisponibilidade; API recebe atividade sem exigir task ativa ou ciência. Categorias não equivalem às aplicações produtivas de uma task.
@@ -171,7 +171,7 @@ As descrições históricas de Sprint 1/2 e EP-01 mencionam dados simulados e mo
 ### I-04 — Jornada individual e possível hora extra — Alta
 
 - **Status:** BLOQUEADO.
-- **Problema/requisito:** RF-20/RF-21/RF-22 e CA-06.
+- **Problema/requisito:** [RF-20](../../requisitos/requisitos/rn_rf.md#rf-20--configurar-jornada)/[RF-21](../../requisitos/requisitos/rn_rf.md#rf-21--configurar-limite-de-inatividade)/[RF-22](../../requisitos/requisitos/rn_rf.md#rf-22--identificar-possível-hora-extra) e [CA-06](../../requisitos/requisitos/ca.md#ca-06--jornada-e-inatividade).
 - **Frontend afetado:** configurações, painel e relatórios.
 - **Backend relacionado:** `SystemSettings` tem somente dois inteiros globais; não há jornada individual.
 - **Atual/impacto:** formulário global funcional; dias, entrada/saída, intervalo/carga horária e possível hora extra indisponíveis.
@@ -182,7 +182,7 @@ As descrições históricas de Sprint 1/2 e EP-01 mencionam dados simulados e mo
 ### I-05 — Conexão real do agente — Média
 
 - **Status:** BLOQUEADO.
-- **Problema/requisito:** RF-05/RF-16/RF-27 e CA-04 exigem Online enquanto conectado/autenticado.
+- **Problema/requisito:** [RF-05](../../requisitos/requisitos/rn_rf.md#rf-05--gerenciar-colaboradores-associados)/[RF-16](../../requisitos/requisitos/rn_rf.md#rf-16--acompanhar-colaboradores-online)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico) e [CA-04](../../requisitos/requisitos/ca.md#ca-04--estado-e-execução-da-task) exigem Online enquanto conectado/autenticado.
 - **Frontend afetado:** métricas de estado e tabela de última atividade.
 - **Backend relacionado:** `/activities/realtime`, janela de 15 minutos.
 - **Atual/impacto:** status deriva de última leitura e inatividade; ausência na janela não comprova desconexão. A interface explica a aproximação.
@@ -193,18 +193,18 @@ As descrições históricas de Sprint 1/2 e EP-01 mencionam dados simulados e mo
 ### I-06 — Dashboard, timeline e relatórios completos — Alta
 
 - **Status:** BLOQUEADO.
-- **Problema/requisito:** RF-24/RF-25/RF-27 e CA-07/CA-10.
+- **Problema/requisito:** [RF-24](../../requisitos/requisitos/rn_rf.md#rf-24--gerar-relatórios)/[RF-25](../../requisitos/requisitos/rn_rf.md#rf-25--exportar-relatórios)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico) e [CA-07](../../requisitos/requisitos/ca.md#ca-07--consulta-relatórios-e-exportação)/[CA-10](../../requisitos/requisitos/ca.md#ca-10--dashboard-analítico).
 - **Frontend afetado:** `DashboardPage`, `ReportsPage` e visualizações preservadas.
 - **Backend relacionado:** `DailySummaryResponse`, `/dashboard/summary`, `/dashboard/export/csv|pdf`.
 - **Atual/impacto:** data única, usuário, duração registrada e categoria; CSV/PDF do mesmo resumo. Sem task ativa, período, produtividade, tempo ativo/inativo agregado, jornada ou timeline confiável.
 - **Contrato necessário:** consultas autorizadas por período/colaborador/task; aplicações dentro/fora do escopo, períodos de utilização/inatividade e métricas coerentes com jornada. Exportação deve respeitar exatamente os filtros e as permissões.
-- **Workaround frontend:** manter resumo/exportação diária, já funcional. Não inventar série, produtividade ou reconstruir períodos a partir de realtime. Rankings/notas/comparações são proibidos pela RN-19.
+- **Workaround frontend:** manter resumo/exportação diária, já funcional. Não inventar série, produtividade ou reconstruir períodos a partir de realtime. Rankings/notas/comparações são proibidos pela [RN-19](../../requisitos/requisitos/rn_rf.md#rn-19--visão-gerencial-do-dashboard).
 - **Motivo do bloqueio:** fonte agregada atual não fornece os dados e classificações exigidos.
 
 ### I-07 — Referência de fuso e virada do dia — Média
 
 - **Status:** BLOQUEADO.
-- **Problema/requisito:** significado do filtro diário e períodos da jornada; RF-20/RF-24/RF-27.
+- **Problema/requisito:** significado do filtro diário e períodos da jornada; [RF-20](../../requisitos/requisitos/rn_rf.md#rf-20--configurar-jornada)/[RF-24](../../requisitos/requisitos/rn_rf.md#rf-24--gerar-relatórios)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico).
 - **Frontend afetado:** `todayIso`, filtros de data, resumo e exportação.
 - **Backend relacionado:** `captured_at` com timezone e `func.date` em `get_daily_summary`.
 - **Atual/impacto:** frontend usa dia local do navegador; agregação usa data de captura no banco. Registros perto da meia-noite podem pertencer a outro dia dependendo do ambiente.
@@ -215,7 +215,7 @@ As descrições históricas de Sprint 1/2 e EP-01 mencionam dados simulados e mo
 ### I-08 — Teste de integração com serviço real — Média
 
 - **Status:** BLOQUEADO.
-- **Problema/requisito:** confirmar CORS, dados e conteúdo de exportação; CA-07/CA-09/CA-10.
+- **Problema/requisito:** confirmar CORS, dados e conteúdo de exportação; [CA-07](../../requisitos/requisitos/ca.md#ca-07--consulta-relatórios-e-exportação)/[CA-09](../../requisitos/requisitos/ca.md#ca-09--privacidade-e-segurança)/[CA-10](../../requisitos/requisitos/ca.md#ca-10--dashboard-analítico).
 - **Frontend afetado:** `e2e/real-api.spec.js` e telas com API.
 - **Backend relacionado:** FastAPI/banco em execução com dados de teste; origem configurada.
 - **Atual/impacto:** E2E principal intercepta HTTP somente nos testes; teste real é opt-in e não escreve dados. Sem serviço disponível não comprova integração/arquivos reais.
@@ -239,7 +239,7 @@ As descrições históricas de Sprint 1/2 e EP-01 mencionam dados simulados e mo
 ### F-02 — Instalação PWA e política offline — Média
 
 - **Status:** FRONTEND FUTURO.
-- **Problema/requisito:** requisitos chamam a aplicação de Dashboard PWA, sem detalhar instalação/offline.
+- **Problema/requisito:** a [visão do produto](../../requisitos/visao.md#1-visão-geral) e a [diretriz de responsividade](../../requisitos/responsividade.md#1-objetivo) chamam a aplicação de Dashboard PWA, sem detalhar instalação/offline.
 - **Frontend afetado:** entrada Vite, recursos estáticos e futura configuração de manifest/service worker.
 - **Backend relacionado:** política de sessão, cache e acesso a dados sensíveis ainda indefinida.
 - **Atual/impacto:** aplicação web responsiva, sem manifest/service worker; não é instalável como PWA.
@@ -250,7 +250,7 @@ As descrições históricas de Sprint 1/2 e EP-01 mencionam dados simulados e mo
 ### F-03 — Validação humana e matriz de navegadores — Média
 
 - **Status:** FRONTEND FUTURO.
-- **Problema/requisito:** completar acessibilidade/responsividade e compatibilidade previstas em RNF e `responsividade.md`.
+- **Problema/requisito:** completar usabilidade de [RNF-12](../../requisitos/requisitos/rnf.md#rnf-12--usabilidade) e as [diretrizes de responsividade](../../requisitos/responsividade.md#6-critérios); a [matriz de navegadores ainda está pendente](../../requisitos/requisitos/rnf.md#4-pontos-pendentes).
 - **Frontend afetado:** todas as telas, menu, tabelas, filtros e estados de erro.
 - **Backend relacionado:** nenhum contrato novo; serviço real é necessário apenas para validação de dados.
 - **Atual/impacto:** teclado, larguras, ampliação CSS, orientação horizontal e axe-core automatizados; leitor de tela, zoom nativo e dispositivos reais não comprovados.
