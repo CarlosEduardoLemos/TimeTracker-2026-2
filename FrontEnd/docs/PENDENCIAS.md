@@ -28,7 +28,16 @@ Revisão: **28/09/2026**. `backend/` e a pasta [requisitos](../../requisitos/vis
 | F-03 | Validação humana e matriz de navegadores                          | Frontend             | Média      | FRONTEND FUTURO            |
 | D-01 | Atualizar [responsividade.md](../../requisitos/responsividade.md) | Documentação externa | Baixa      | AGUARDANDO REVISÃO EXTERNA |
 
-Os status descrevem a dependência atual; a prioridade indica impacto. As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID.
+Os status descrevem a dependência atual; a prioridade indica impacto. Eles não indicam que todo o frontend esteja parado.
+
+| Status | Significado |
+| ------ | ----------- |
+| **BLOQUEADO** | A funcionalidade não pode ser concluída com os contratos, dados ou ambiente disponíveis no momento. Depende de uma definição ou implementação externa, como autenticação no backend para o login do gestor. |
+| **AGUARDANDO BACKEND** | A correção precisa ser feita ou garantida no servidor, como a autorização dos endpoints. |
+| **FRONTEND FUTURO** | Trabalho previsto para uma etapa posterior do frontend, como instalação PWA ou validação em dispositivos reais. |
+| **AGUARDANDO REVISÃO EXTERNA** | Depende da revisão de um documento fora de `FrontEnd/`; neste caso, `requisitos/responsividade.md`. |
+
+As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID. O motivo específico aparece em **Motivo do bloqueio** ou **Motivo da pendência**.
 
 ## Pendências do backend
 
