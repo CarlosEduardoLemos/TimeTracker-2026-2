@@ -26,6 +26,26 @@ describe('SettingsPage', () => {
     expect(save).toBeDisabled();
     expect(api.saveSettings).not.toHaveBeenCalled();
   });
+
+  it('preserva alterações nos dois campos antes do próximo render', async () => {
+    api.saveSettings.mockResolvedValue({ capture_interval_seconds: 25, idle_timeout_seconds: 400 });
+    render(<SettingsPage />);
+    const save = await screen.findByRole('button', { name: 'Salvar configurações' });
+    act(() => {
+      fireEvent.change(screen.getByLabelText('Intervalo de captura (segundos)'), {
+        target: { value: '25' },
+      });
+      fireEvent.change(screen.getByLabelText('Limite de inatividade (segundos)'), {
+        target: { value: '400' },
+      });
+    });
+    fireEvent.click(save);
+    expect(api.saveSettings.mock.calls[0][0]).toEqual({
+      capture_interval_seconds: 25,
+      idle_timeout_seconds: 400,
+    });
+  });
+
   it('confirma a saída e protege o refresh apenas enquanto há alterações', async () => {
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
     try {

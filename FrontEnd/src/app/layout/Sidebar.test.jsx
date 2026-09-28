@@ -4,7 +4,7 @@ import { Sidebar } from './Sidebar';
 
 describe('Sidebar', () => {
   it('closes the mobile menu and releases scrolling on history navigation', () => {
-    render(<Sidebar activeSection="painel" />);
+    render(<Sidebar route="painel" />);
     const previousOverflow = document.body.style.overflow;
     const openButton = screen.getByRole('button', { name: 'Abrir menu' });
     fireEvent.click(openButton);
@@ -15,7 +15,7 @@ describe('Sidebar', () => {
   });
 
   it('recovers keyboard focus if it moves outside the open dialog', () => {
-    render(<Sidebar activeSection="painel" />);
+    render(<Sidebar route="painel" />);
     const openButton = screen.getByRole('button', { name: 'Abrir menu' });
     fireEvent.click(openButton);
     openButton.focus();
@@ -24,7 +24,7 @@ describe('Sidebar', () => {
   });
 
   it('restores focus when navigation closes the mobile menu', () => {
-    render(<Sidebar activeSection="painel" />);
+    render(<Sidebar route="painel" />);
     const openButton = screen.getByRole('button', { name: 'Abrir menu' });
     fireEvent.click(openButton);
     const dialog = screen.getByRole('dialog');
@@ -40,7 +40,7 @@ describe('Sidebar', () => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'auto';
     try {
-      const { unmount } = render(<Sidebar activeSection="painel" />);
+      const { unmount } = render(<Sidebar route="painel" />);
       const openButton = screen.getByRole('button', { name: 'Abrir menu' });
       fireEvent.click(openButton);
       expect(document.body.style.overflow).toBe('hidden');
@@ -66,7 +66,7 @@ describe('Sidebar', () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it('releases the hidden mobile dialog when resizing to desktop', () => {
-    const { unmount } = render(<Sidebar activeSection="painel" />);
+    const { unmount } = render(<Sidebar route="painel" />);
     fireEvent.click(screen.getByRole('button', { name: 'Abrir menu' }));
     desktop.matches = true;
     act(() => desktop.addEventListener.mock.calls[0][1]());
@@ -79,7 +79,7 @@ describe('Sidebar', () => {
     expect(desktop.removeEventListener).toHaveBeenCalledWith('change', expect.any(Function));
   });
   it('renders sitemap navigation and highlights the active route', () => {
-    render(<Sidebar activeSection="tasks" />);
+    render(<Sidebar route="tasks" />);
     const desktopNav = screen.getAllByRole('navigation', { name: 'Menu principal' })[0];
     expect(within(desktopNav).getByRole('link', { name: 'Tasks' })).toHaveAttribute(
       'aria-current',
@@ -94,7 +94,7 @@ describe('Sidebar', () => {
   });
 
   it('does not expose a fictitious authenticated manager', () => {
-    render(<Sidebar activeSection="painel" />);
+    render(<Sidebar route="painel" />);
     expect(screen.queryByText('Luan Menezes')).not.toBeInTheDocument();
     expect(
       screen.getByText(/identificação do usuário será exibida após integração/i),
@@ -102,7 +102,7 @@ describe('Sidebar', () => {
   });
 
   it('opens and closes the mobile menu with Escape', () => {
-    render(<Sidebar activeSection="painel" />);
+    render(<Sidebar route="painel" />);
     const openButton = screen.getByRole('button', { name: 'Abrir menu' });
     fireEvent.click(openButton);
     expect(screen.getByRole('dialog', { name: 'Menu principal mobile' })).toBeInTheDocument();
@@ -112,7 +112,7 @@ describe('Sidebar', () => {
   });
 
   it('keeps keyboard focus inside the mobile dialog', () => {
-    render(<Sidebar activeSection="painel" />);
+    render(<Sidebar route="painel" />);
     fireEvent.click(screen.getByRole('button', { name: 'Abrir menu' }));
 
     const dialog = screen.getByRole('dialog', { name: 'Menu principal mobile' });

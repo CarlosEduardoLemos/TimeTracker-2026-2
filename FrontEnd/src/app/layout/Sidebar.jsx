@@ -36,8 +36,7 @@ function Navigation({ route, onNavigate }) {
   );
 }
 
-export function Sidebar({ route, activeSection }) {
-  const selected = route || activeSection;
+export function Sidebar({ route }) {
   const [open, setOpen] = useState(false);
   const trigger = useRef(null);
   const panel = useRef(null);
@@ -54,6 +53,7 @@ export function Sidebar({ route, activeSection }) {
     const onKey = (event) => {
       if (event.key === 'Escape') close();
       if (event.key !== 'Tab') return;
+      // Mantém o foco dentro do diálogo móvel enquanto ele estiver aberto.
       const focusable = [...panel.current.querySelectorAll('a,button')];
       const first = focusable[0];
       const last = focusable.at(-1);
@@ -107,7 +107,7 @@ export function Sidebar({ route, activeSection }) {
         </svg>
       </button>
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col overflow-y-auto border-r border-line bg-white p-5 dark:border-slate-700 dark:bg-slate-900 lg:flex">
-        <Navigation route={selected} />
+        <Navigation route={route} />
       </aside>
       {open && (
         <div
@@ -135,7 +135,7 @@ export function Sidebar({ route, activeSection }) {
                 <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" />
               </svg>
             </button>
-            <Navigation route={selected} onNavigate={close} />
+            <Navigation route={route} onNavigate={close} />
           </aside>
         </div>
       )}

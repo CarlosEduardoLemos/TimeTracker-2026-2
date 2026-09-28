@@ -19,10 +19,11 @@ export function DashboardPage({ dark, toggleTheme }) {
   const [date, setDate] = useState(todayIso());
   const [username, setUsername] = useState('');
   const { data, loading, refreshing, error, updatedAt, refresh } = useDashboardData(date, username);
-  const available = data?.availability || {};
+  const availability = data?.availability || {};
   const users = data?.users || [];
-  const team = available.users && available.realtime ? deriveTeam(users, data.realtime) : [];
-  const filtered = filterRealtimePeople(team, username);
+  const teamMembers =
+    availability.users && availability.realtime ? deriveTeam(users, data.realtime) : [];
+  const filteredTeam = filterRealtimePeople(teamMembers, username);
 
   return (
     <>
@@ -47,7 +48,7 @@ export function DashboardPage({ dark, toggleTheme }) {
         username={username}
         onUsernameChange={setUsername}
         users={users}
-        usersAvailable={available.users}
+        usersAvailable={availability.users}
         updatedAt={updatedAt}
         refreshing={refreshing}
       />
@@ -58,23 +59,23 @@ export function DashboardPage({ dark, toggleTheme }) {
       )}
       <DashboardMetrics
         loading={loading}
-        available={available}
-        filtered={filtered}
+        available={availability}
+        filtered={filteredTeam}
         summary={data?.summary}
         users={users}
         username={username}
       />
       <section className="mt-5 grid gap-5 xl:grid-cols-2">
         <LastActivityTable
-          people={filtered}
+          people={filteredTeam}
           loading={loading}
-          available={available.users && available.realtime}
+          available={availability.users && availability.realtime}
         />
         <CategorySummary
-          categories={available.summary ? categoryTotals(data.summary) : []}
-          totalSeconds={available.summary ? totalSeconds(data.summary) : 0}
+          categories={availability.summary ? categoryTotals(data.summary) : []}
+          totalSeconds={availability.summary ? totalSeconds(data.summary) : 0}
           loading={loading}
-          available={available.summary}
+          available={availability.summary}
         />
       </section>
       <p className="mt-5 text-sm muted">

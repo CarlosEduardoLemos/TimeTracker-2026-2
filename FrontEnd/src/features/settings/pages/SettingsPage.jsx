@@ -11,7 +11,7 @@ import {
   SuccessToast,
 } from '../../../shared/components/AsyncFeedback';
 
-function editableSettings(value) {
+function toEditableSettings(value) {
   return {
     capture_interval_seconds: value.capture_interval_seconds,
     idle_timeout_seconds: value.idle_timeout_seconds,
@@ -37,8 +37,8 @@ export function SettingsPage() {
     try {
       const value = await api.settings(controller.signal);
       if (controller.signal.aborted) return;
-      setForm(editableSettings(value));
-      setSavedForm(editableSettings(value));
+      setForm(toEditableSettings(value));
+      setSavedForm(toEditableSettings(value));
       setStatus('ready');
     } catch (cause) {
       if (controller.signal.aborted) return;
@@ -74,6 +74,12 @@ export function SettingsPage() {
     };
   }, [dirty]);
 
+  function updateField(field, value) {
+    setStatus('ready');
+    setError('');
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+
   async function save(event) {
     event.preventDefault();
     if (saving.current || !form || !dirty) return;
@@ -94,8 +100,8 @@ export function SettingsPage() {
     try {
       const value = await api.saveSettings(payload, controller.signal);
       if (controller.signal.aborted) return;
-      setForm(editableSettings(value));
-      setSavedForm(editableSettings(value));
+      setForm(toEditableSettings(value));
+      setSavedForm(toEditableSettings(value));
       setStatus('saved');
     } catch (cause) {
       if (controller.signal.aborted) return;
@@ -135,11 +141,7 @@ export function SettingsPage() {
                   required
                   type="number"
                   value={form.capture_interval_seconds}
-                  onChange={(event) => {
-                    setStatus('ready');
-                    setError('');
-                    setForm({ ...form, capture_interval_seconds: event.target.value });
-                  }}
+                  onChange={(event) => updateField('capture_interval_seconds', event.target.value)}
                 />
               </label>
               <label className="text-sm font-semibold">
@@ -151,11 +153,7 @@ export function SettingsPage() {
                   required
                   type="number"
                   value={form.idle_timeout_seconds}
-                  onChange={(event) => {
-                    setStatus('ready');
-                    setError('');
-                    setForm({ ...form, idle_timeout_seconds: event.target.value });
-                  }}
+                  onChange={(event) => updateField('idle_timeout_seconds', event.target.value)}
                 />
               </label>
             </fieldset>

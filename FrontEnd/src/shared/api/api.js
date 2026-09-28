@@ -44,6 +44,7 @@ async function httpError(response) {
 }
 
 async function request(path, { signal, ...options } = {}, read = (response) => response.json()) {
+  // O controller próprio permite timeout; timedOut o distingue do cancelamento externo.
   const controller = new AbortController();
   const abort = () => controller.abort(signal.reason);
   if (signal?.aborted) abort();
@@ -103,7 +104,7 @@ async function request(path, { signal, ...options } = {}, read = (response) => r
   }
 }
 
-async function validated(promise, validator) {
+async function validateResponse(promise, validator) {
   const value = await promise;
   if (!validator(value))
     throw new ApiError('Resposta inválida da API', { type: 'invalid-response' });
@@ -125,13 +126,14 @@ function exportPath(format, date, username = '') {
 }
 
 export const api = {
-  users: (signal) => validated(request('/users/', { signal }), validUsers),
-  realtime: (signal) => validated(request('/activities/realtime', { signal }), validRealtime),
+  users: (signal) => validateResponse(request('/users/', { signal }), validUsers),
+  realtime: (signal) =>
+    validateResponse(request('/activities/realtime', { signal }), validRealtime),
   summary: async (date, username = '', signal) =>
-    validated(request(summaryPath(date, username), { signal }), validSummary),
-  settings: (signal) => validated(request('/config/', { signal }), validSettings),
+    validateResponse(request(summaryPath(date, username), { signal }), validSummary),
+  settings: (signal) => validateResponse(request('/config/', { signal }), validSettings),
   saveSettings: (payload, signal) =>
-    validated(
+    validateResponse(
       request('/config/', { method: 'PUT', body: JSON.stringify(payload), signal }),
       validSettings,
     ),

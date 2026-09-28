@@ -20,11 +20,13 @@ Changelog por data, em ordem da mais recente para a mais antiga. As entradas de 
 - Rotas comuns e de autenticação mantêm um `<main>` focalizável, e a troca de rota direciona o foco ao novo conteúdo. Tasks e acesso exibem estados informativos sem simular contratos ausentes.
 - A API rejeita CSV/PDF com `Content-Type` ausente ou incorreto. Helpers existentes passaram a filtrar usuários e contar status no painel. Botões desabilitados mantêm contraste no tema claro e escuro.
 - A auditoria passou a separar o registro de 25/09 dos guias atuais; este changelog foi agrupado por data. Pendências ganharam resumo, status e registro da divergência em `requisitos/responsividade.md`.
+- `SettingsPage` compartilha a atualização dos campos com `setForm` funcional. Nomes locais no painel, em Configurações e na API ficaram mais explícitos; comentários curtos explicam o timeout e o foco do menu móvel.
 
 ### Removido
 
 - `recharts` saiu de `package.json` e `package-lock.json` por não ter imports na aplicação.
 - `src/legacy/` e seus testes isolados foram removidos após verificação de consumidores. Os helpers `formatDuration` e `formatDashboardReferenceDate` saíram do painel junto dos testes exclusivos.
+- A prop `activeSection` saiu da `Sidebar`; o aplicativo e os testes usam `route`.
 
 ### Testes e validação
 
