@@ -21,6 +21,7 @@ export function EmptyState({ children, className = '' }) {
 export function LoadingSkeleton({ lines = 3, label = 'Carregando dados…' }) {
   return (
     <div role="status" aria-label={label} className="animate-pulse space-y-3 py-3">
+      <span className="sr-only">{label}</span>
       {Array.from({ length: lines }, (_, index) => (
         <div
           key={index}
@@ -33,7 +34,18 @@ export function LoadingSkeleton({ lines = 3, label = 'Carregando dados…' }) {
   );
 }
 
-export function SuccessToast({ children, onDismiss }) {
+export function SuccessToast({ children, onDismiss, duration = 5000 }) {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    if (!duration) return undefined;
+    const timer = window.setTimeout(() => {
+      setVisible(false);
+      onDismiss?.();
+    }, duration);
+    return () => window.clearTimeout(timer);
+  }, [duration, onDismiss]);
+
+  if (!visible) return null;
   return (
     <div
       role="status"
@@ -44,7 +56,10 @@ export function SuccessToast({ children, onDismiss }) {
         <button
           type="button"
           className="font-semibold underline"
-          onClick={onDismiss}
+          onClick={() => {
+            setVisible(false);
+            onDismiss();
+          }}
           aria-label="Dispensar confirmação"
         >
           Fechar
@@ -53,3 +68,4 @@ export function SuccessToast({ children, onDismiss }) {
     </div>
   );
 }
+import { useEffect, useState } from 'react';

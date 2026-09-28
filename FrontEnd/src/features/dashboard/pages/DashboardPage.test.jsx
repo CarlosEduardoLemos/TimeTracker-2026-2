@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DashboardPage } from './DashboardPage';
 import { useDashboardData } from '../hooks/useDashboardData';
@@ -55,7 +55,11 @@ describe('DashboardPage', () => {
     });
     render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
     expect(screen.getByText('Tempo registrado').closest('article')).toHaveTextContent('1h 00min');
-    expect(screen.getByText('Online').closest('article')).toHaveTextContent('1');
+    expect(
+      within(screen.getByLabelText('Indicadores disponíveis'))
+        .getByText('Online')
+        .closest('article'),
+    ).toHaveTextContent('1');
     expect(screen.getAllByText('Editor')).toHaveLength(2);
   });
 
@@ -72,7 +76,11 @@ describe('DashboardPage', () => {
       refresh: vi.fn(),
     });
     render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
-    expect(screen.getByText('Online').closest('article')).toHaveTextContent('—');
+    expect(
+      within(screen.getByLabelText('Indicadores disponíveis'))
+        .getByText('Online')
+        .closest('article'),
+    ).toHaveTextContent('—');
     expect(screen.getByRole('alert')).toHaveTextContent('temporariamente indisponíveis');
   });
 
@@ -102,6 +110,10 @@ describe('DashboardPage', () => {
     render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
     fireEvent.change(screen.getByLabelText('Usuário'), { target: { value: 'ana' } });
     expect(screen.getByText('Usuários cadastrados').closest('article')).toHaveTextContent('1');
-    expect(screen.getByText('Online').closest('article')).toHaveTextContent('—');
+    expect(
+      within(screen.getByLabelText('Indicadores disponíveis'))
+        .getByText('Online')
+        .closest('article'),
+    ).toHaveTextContent('—');
   });
 });

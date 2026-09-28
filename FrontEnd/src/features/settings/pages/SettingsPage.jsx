@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../../../shared/api/api';
 import { getApiErrorMessage } from '../../../shared/api/errorMessage';
 import { validSettings } from '../../../shared/api/validators';
+import { registerRouteLeaveGuard } from '../../../shared/lib/routeLeaveGuard';
 import { PageHeader } from '../../../shared/components/PageHeader';
 import { IntegrationNotice } from '../../../shared/components/IntegrationNotice';
 import {
@@ -56,6 +57,22 @@ export function SettingsPage() {
     !!savedForm &&
     (Number(form.capture_interval_seconds) !== savedForm.capture_interval_seconds ||
       Number(form.idle_timeout_seconds) !== savedForm.idle_timeout_seconds);
+
+  useEffect(() => {
+    if (!dirty) return undefined;
+    const unregister = registerRouteLeaveGuard(() =>
+      window.confirm('Há alterações não salvas. Deseja sair sem salvar?'),
+    );
+    const onBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => {
+      unregister();
+      window.removeEventListener('beforeunload', onBeforeUnload);
+    };
+  }, [dirty]);
 
   async function save(event) {
     event.preventDefault();

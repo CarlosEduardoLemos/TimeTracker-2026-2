@@ -21,7 +21,6 @@ Frontend do **TimeTrack**, responsável pela interface web do Dashboard PWA. A a
 - **CSS global (`src/app/styles/index.css`)** — tokens de cor, componentes compartilhados, estados de foco, responsividade e suporte a movimento reduzido.
 - **PostCSS 8.5.28** — processamento do CSS.
 - **Autoprefixer 10.4.16** — compatibilidade de propriedades CSS.
-- **Recharts 2.10.3** — dependência instalada; as barras atuais do painel são renderizadas com CSS.
 
 ### Recursos do navegador
 
@@ -66,8 +65,8 @@ FrontEnd/
 │   ├── features/         # Páginas e lógica de cada funcionalidade
 │   │   ├── auth/pages/
 │   │   ├── collaborators/pages/
-│   │   ├── dashboard/    # pages/ e hooks/ do painel
-│   │   ├── reports/pages/
+│   │   ├── dashboard/    # pages/, hooks/ e components/ do painel
+│   │   ├── reports/      # pages/, hooks/, components/ e lib/
 │   │   ├── settings/pages/
 │   │   └── tasks/pages/
 │   ├── shared/           # Recursos usados por diferentes funcionalidades

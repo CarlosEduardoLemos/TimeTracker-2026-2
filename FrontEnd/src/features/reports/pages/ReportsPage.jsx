@@ -4,8 +4,10 @@ import { getApiErrorMessage } from '../../../shared/api/errorMessage';
 import { todayIso } from '../../../shared/lib/dashboard';
 import { PageHeader } from '../../../shared/components/PageHeader';
 import { IntegrationNotice } from '../../../shared/components/IntegrationNotice';
-import { ErrorNotice, SuccessToast } from '../../../shared/components/AsyncFeedback';
-import { exportFilename } from '../lib/exportFilename';
+import { ReportFilters } from '../components/ReportFilters';
+import { ReportUsersState } from '../components/ReportUsersState';
+import { ExportActions } from '../components/ExportActions';
+import { useReportExport } from '../hooks/useReportExport';
 
 export function ReportsPage() {
   const [date, setDate] = useState(todayIso());
@@ -13,11 +15,11 @@ export function ReportsPage() {
   const [users, setUsers] = useState(null);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [usersError, setUsersError] = useState('');
-  const [exporting, setExporting] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const activeExport = useRef(null);
   const activeUsers = useRef(null);
+  const { exporting, error, success, download, clearFeedback, dismissSuccess } = useReportExport(
+    date,
+    username,
+  );
 
   const loadUsers = useCallback(async () => {
     activeUsers.current?.abort();
@@ -40,40 +42,17 @@ export function ReportsPage() {
 
   useEffect(() => {
     loadUsers();
-    return () => {
-      activeUsers.current?.abort();
-      activeExport.current?.abort();
-    };
+    return () => activeUsers.current?.abort();
   }, [loadUsers]);
 
-  async function download(format) {
-    if (activeExport.current) return;
-    const controller = new AbortController();
-    activeExport.current = controller;
-    setError('');
-    setSuccess('');
-    setExporting(format);
-    try {
-      const blob = await api.exportFile(format, date, username, controller.signal);
-      if (controller.signal.aborted) return;
-      if (!(blob instanceof Blob) || blob.size === 0) throw new Error('Arquivo vazio ou inválido');
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = exportFilename(format, date, username);
-      document.body.append(anchor);
-      anchor.click();
-      anchor.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      setSuccess(`Download de ${format.toUpperCase()} iniciado.`);
-    } catch (cause) {
-      if (!controller.signal.aborted)
-        setError(`Não foi possível exportar: ${getApiErrorMessage(cause)}`);
-    } finally {
-      if (activeExport.current === controller) activeExport.current = null;
-      if (!controller.signal.aborted) setExporting('');
-    }
-  }
+  const changeDate = (value) => {
+    setDate(value);
+    clearFeedback();
+  };
+  const changeUsername = (value) => {
+    setUsername(value);
+    clearFeedback();
+  };
 
   return (
     <>
@@ -84,117 +63,29 @@ export function ReportsPage() {
       </IntegrationNotice>
       <section className="card mt-5" aria-busy={!!exporting}>
         <h2 className="font-bold">Filtros disponíveis</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <label className="text-xs font-semibold muted">
-            Data
-            <input
-              type="date"
-              className="form-field mt-1"
-              value={date}
-              max={todayIso()}
-              disabled={!!exporting}
-              onChange={(event) => {
-                if (event.target.value) {
-                  setDate(event.target.value);
-                  setError('');
-                  setSuccess('');
-                }
-              }}
-            />
-          </label>
-          <label className="text-xs font-semibold muted">
-            Usuário
-            <select
-              className="form-field mt-1"
-              value={username}
-              onChange={(event) => {
-                setUsername(event.target.value);
-                setError('');
-                setSuccess('');
-              }}
-              disabled={loadingUsers || !users || !!exporting}
-            >
-              <option value="">Todos os usuários</option>
-              {username && !(users || []).some((user) => user.username === username) && (
-                <option value={username}>{username} (selecionado)</option>
-              )}
-              {(users || []).map((user) => (
-                <option key={user.username} value={user.username}>
-                  {user.full_name || user.username}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className="secondary-button"
-            disabled={!!exporting || date === todayIso()}
-            onClick={() => {
-              setDate(todayIso());
-              setError('');
-              setSuccess('');
-            }}
-          >
-            Hoje
-          </button>
-          <button
-            type="button"
-            className="secondary-button"
-            disabled={!!exporting || !username}
-            onClick={() => {
-              setUsername('');
-              setError('');
-              setSuccess('');
-            }}
-          >
-            Limpar usuário
-          </button>
-          {(username || date !== todayIso()) && (
-            <span className="text-xs font-semibold text-brand">Filtro ativo</span>
-          )}
-        </div>
-        {loadingUsers && (
-          <p role="status" className="mt-3 text-sm muted">
-            Carregando usuários…
-          </p>
-        )}
-        {!loadingUsers && users?.length === 0 && (
-          <p className="mt-3 text-sm muted">Nenhum usuário cadastrado.</p>
-        )}
-        {!loadingUsers && !users && (
-          <p role="alert" className="mt-3 text-sm text-amber-800 dark:text-amber-200">
-            A lista de usuários não carregou: {usersError}. A exportação com os filtros atuais
-            continua disponível.{' '}
-            <button type="button" className="font-semibold underline" onClick={loadUsers}>
-              Tentar novamente
-            </button>
-          </p>
-        )}
-        <div className="mt-5 flex flex-wrap gap-2">
-          <button
-            className="secondary-button"
-            disabled={!date || !!exporting}
-            onClick={() => download('csv')}
-          >
-            {exporting === 'csv' ? 'Exportando…' : 'Exportar CSV'}
-          </button>
-          <button
-            className="primary-button"
-            disabled={!date || !!exporting}
-            onClick={() => download('pdf')}
-          >
-            {exporting === 'pdf' ? 'Exportando…' : 'Exportar PDF'}
-          </button>
-        </div>
-        {exporting && (
-          <p role="status" className="mt-3 text-sm muted">
-            Preparando arquivo {exporting.toUpperCase()}…
-          </p>
-        )}
-        {error && <ErrorNotice className="mt-3">{error}</ErrorNotice>}
-        {success && <SuccessToast onDismiss={() => setSuccess('')}>{success}</SuccessToast>}
+        <ReportFilters
+          date={date}
+          onDateChange={changeDate}
+          username={username}
+          onUsernameChange={changeUsername}
+          users={users}
+          loadingUsers={loadingUsers}
+          exporting={exporting}
+        />
+        <ReportUsersState
+          loading={loadingUsers}
+          users={users}
+          error={usersError}
+          onRetry={loadUsers}
+        />
+        <ExportActions
+          date={date}
+          exporting={exporting}
+          error={error}
+          success={success}
+          onDownload={download}
+          onDismiss={dismissSuccess}
+        />
       </section>
     </>
   );

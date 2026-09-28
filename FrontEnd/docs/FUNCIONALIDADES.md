@@ -40,7 +40,7 @@ O indicador **Usuários cadastrados** usa somente `/users/`, inclusive quando h�
 
 ### Tabelas
 
-**Última atividade** mostra usuário, status de leitura, `process_name` e segundos desde a última captura. Os dados são atuais, mesmo quando a data do resumo é antiga. **Tempo por categoria** agrega `by_category` de todos os usuários presentes no resumo filtrado e ordena pela duração. Categorias não representam aplicações produtivas dentro de uma task. Ambas as áreas têm mensagens próprias de carregamento, vazio e indisponibilidade.
+**Última atividade** mostra usuário, status de leitura em badge, `process_name` e segundos desde a última captura. Os dados são atuais, mesmo quando a data do resumo é antiga. **Tempo por categoria** agrega `by_category` de todos os usuários presentes no resumo filtrado e ordena pela duração. As barras são decorativas; duração e percentual aparecem em texto. Categorias não representam aplicações produtivas dentro de uma task. Ambas as áreas têm mensagens próprias de carregamento, vazio e indisponibilidade.
 
 Um aviso informa que `/users/` é global e que a API não oferece conexão real do agente. Tasks ativas, tempo produtivo, horas extras e timeline não são calculados.
 
@@ -54,13 +54,13 @@ A página informa que o backend não oferece consulta, criação, edição ou pe
 
 ## Configurações (`#/configuracoes`)
 
-O formulário aparece após `GET /config/` válido. Permite editar somente `capture_interval_seconds` e `idle_timeout_seconds`, ambos globais e medidos em segundos. Inputs exigem inteiros positivos; a mesma regra é verificada antes do envio e na resposta do servidor. `PUT /config/` envia os dois valores juntos. Durante o salvamento os campos são bloqueados; uma resposta válida mostra “Configurações salvas”. Falha de leitura mostra retry; falha de gravação preserva o formulário com erro. Sair da página cancela uma operação em andamento.
+O formulário aparece após `GET /config/` válido. Permite editar somente `capture_interval_seconds` e `idle_timeout_seconds`, ambos globais e medidos em segundos. Inputs exigem inteiros positivos; a mesma regra é verificada antes do envio e na resposta do servidor. `PUT /config/` envia os dois valores juntos. O botão de salvar fica desabilitado sem mudanças; “Restaurar” repõe os valores lidos. Ao tentar mudar de rota com alterações pendentes, a interface pede confirmação. Refresh e fechamento da aba acionam o aviso padrão do navegador. Durante o salvamento os campos são bloqueados; uma resposta válida mostra “Configurações salvas” temporariamente. Falha de leitura mostra retry; falha de gravação preserva o formulário com erro. Sair da página cancela uma operação em andamento.
 
 O campo global de inatividade **não** configura o limite individual previsto em RF-21. O backend usa atualmente uma constante própria para calcular o status realtime; salvar esse campo não muda esse cálculo por si só. Não há controles de jornada, dias úteis, horários ou intervalo (RF-20).
 
 ## Relatórios (`#/relatorios`)
 
-A página oferece uma data e, quando `/users/` responde validamente, um filtro opcional de usuário. A consulta anuncia carregamento e distingue lista vazia de erro. Falha da lista desabilita apenas esse filtro, preserva a seleção, mostra motivo e retry; a exportação com os filtros atuais continua disponível. Os botões chamam `/dashboard/export/csv` ou `/dashboard/export/pdf` com a data e, se escolhido, `username`. Durante o download há indicação de progresso, filtros ficam bloqueados e não se inicia outro envio, mesmo em ações no mesmo evento. A conclusão anuncia “Download de CSV/PDF iniciado”, sem confirmar salvamento em disco. HTTP com falha, tipo de conteúdo ausente ou incompatível, ou arquivo vazio gera erro. Alterar filtros limpa feedback anterior; sair cancela a operação.
+A página oferece uma data e, quando `/users/` responde validamente, um filtro opcional de usuário. A consulta anuncia carregamento com skeleton e distingue lista vazia de erro. Falha da lista desabilita apenas esse filtro, preserva a seleção, mostra motivo e retry; a exportação com os filtros atuais continua disponível. Os botões chamam `/dashboard/export/csv` ou `/dashboard/export/pdf` com a data e, se escolhido, `username`. Durante o download há indicação de progresso, filtros ficam bloqueados e não se inicia outro envio, mesmo em ações no mesmo evento. A conclusão anuncia “Download de CSV/PDF iniciado” em toast que desaparece após cinco segundos, sem confirmar salvamento em disco. HTTP com falha, tipo de conteúdo ausente ou incompatível, ou arquivo vazio gera erro. Alterar filtros limpa feedback anterior; sair cancela a operação.
 
 O **CSV atual** contém as colunas `username`, `category`, `total_seconds` e uma linha por categoria retornada para cada usuário. Sem registros, pode conter apenas o cabeçalho. O **PDF atual** contém a data, o total e as categorias de cada usuário retornado. A interface salva o arquivo como `resumo_<data>.csv` ou `.pdf`, incluindo o usuário no nome quando esse filtro está ativo. Esses arquivos são exportações do resumo diário parcial, não relatórios completos de RF-24/RF-25: não contêm período, task, aplicação, classificação dentro/fora do escopo, jornada ou possível hora extra.
 
@@ -70,7 +70,7 @@ As rotas mostram o bloqueio de autenticação e um retorno ao painel. Não há f
 
 ## Acessibilidade e apresentação
 
-O layout adapta menu e colunas a mobile, tablet e desktop. Há link para pular ao conteúdo, foco visível, foco no conteúdo após navegar, labels nos controles, cabeçalhos e `caption` de tabela, mensagens de erro/status anunciáveis, navegação do diálogo móvel por teclado e redução de movimento quando solicitada pelo sistema. Tabelas extensas permitem rolagem horizontal com foco. O Chrome validou as larguras 375, 390, 768, 1366 e 1920 px; axe-core não detectou violações WCAG nos cenários testados após ajuste de contraste, inclusive no botão de atualização desabilitado. A validação manual restante está em [Testes](TESTES.md).
+O layout adapta menu e colunas a mobile, tablet e desktop. Há link para pular ao conteúdo, foco visível, foco no conteúdo após navegar, labels nos controles, cabeçalhos e `caption` de tabela, mensagens de erro/status anunciáveis, navegação do diálogo móvel por teclado e redução de movimento quando solicitada pelo sistema. Painel e Colaboradores usam cards abaixo de `sm` e tabelas a partir de `sm`; as tabelas extensas permitem rolagem horizontal com foco. O Chrome validou as larguras 375, 390, 768, 1366 e 1920 px; axe-core não detectou violações WCAG nos cenários testados após ajuste de contraste, inclusive no botão de atualização desabilitado. A validação manual restante está em [Testes](TESTES.md).
 
 ## Correspondência com os requisitos do produto
 

@@ -1,8 +1,5 @@
 import { EmptyState, LoadingSkeleton } from '../../../shared/components/AsyncFeedback';
-
-function activityStatus(person) {
-  return person.status === 'offline' ? 'Sem leitura recente' : person.status;
-}
+import { ActivityStatusBadge } from '../../../shared/components/ActivityStatusBadge';
 
 function lastRead(person) {
   return person.realtime ? `${person.realtime.seconds_since_last_activity}s atrás` : '—';
@@ -35,7 +32,9 @@ export function LastActivityTable({ people, loading, available }) {
                 <h3 className="font-semibold">{person.full_name || person.username}</h3>
                 <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
                   <dt className="muted">Estado</dt>
-                  <dd>{activityStatus(person)}</dd>
+                  <dd>
+                    <ActivityStatusBadge person={person} />
+                  </dd>
                   <dt className="muted">Aplicação</dt>
                   <dd>{person.realtime?.process_name || '—'}</dd>
                   <dt className="muted">Última leitura</dt>
@@ -70,7 +69,9 @@ export function LastActivityTable({ people, loading, available }) {
                     <th scope="row" className="py-3 font-semibold">
                       {person.full_name || person.username}
                     </th>
-                    <td>{activityStatus(person)}</td>
+                    <td>
+                      <ActivityStatusBadge person={person} />
+                    </td>
                     <td>{person.realtime?.process_name || '—'}</td>
                     <td>{lastRead(person)}</td>
                   </tr>

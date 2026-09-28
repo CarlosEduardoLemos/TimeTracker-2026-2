@@ -25,7 +25,10 @@ export function CategorySummary({ categories, totalSeconds, loading, available }
                     {fmtDuration(category.seconds)} · {percent.toFixed(1)}%
                   </span>
                 </div>
-                <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                <div
+                  aria-hidden="true"
+                  className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
+                >
                   <div
                     className="h-full rounded-full bg-brand dark:bg-indigo-400"
                     style={{ width: `${Math.min(percent, 100)}%` }}

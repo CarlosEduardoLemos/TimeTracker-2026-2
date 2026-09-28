@@ -116,6 +116,24 @@ test('lê e salva configurações com GET e PUT', async ({ page }) => {
   await expect(page.getByText('Configurações salvas.')).toBeVisible();
 });
 
+test('confirma saída de configurações com alterações pendentes', async ({ page }) => {
+  await page.goto('/#/configuracoes');
+  await page.getByLabel('Limite de inatividade (segundos)').fill('240');
+  page.once('dialog', (dialog) => dialog.dismiss());
+  await page
+    .getByRole('navigation', { name: 'Menu principal' })
+    .getByRole('link', { name: 'Painel' })
+    .click();
+  await expect(page).toHaveURL(/#\/configuracoes$/);
+  await expect(page.getByText('Alterações não salvas')).toBeVisible();
+  page.once('dialog', (dialog) => dialog.accept());
+  await page
+    .getByRole('navigation', { name: 'Menu principal' })
+    .getByRole('link', { name: 'Painel' })
+    .click();
+  await expect(page).toHaveURL(/#\/painel$/);
+});
+
 test('baixa CSV e PDF no navegador', async ({ page }) => {
   await page.goto('/#/relatorios');
   for (const format of ['CSV', 'PDF']) {
@@ -130,17 +148,38 @@ test('baixa CSV e PDF no navegador', async ({ page }) => {
   }
 });
 
-test('mostra atividade e colaboradores como cards em 390px', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/#/painel');
-  await expect(page.getByLabel('Última atividade dos usuários cadastrados')).toContainText(
-    'Ana Silva',
-  );
-  await expect(page.getByLabel('Tabela de última atividade com rolagem horizontal')).toBeHidden();
-  await page.goto('/#/colaboradores');
-  await expect(page.getByLabel('Usuários cadastrados na API').first()).toContainText('Ana Silva');
-  await expect(page.getByLabel('Tabela de colaboradores com rolagem horizontal')).toBeHidden();
-});
+for (const width of [375, 768, 1366]) {
+  test(`alternância entre cards e tabelas em ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto('/#/painel');
+    const activityCards = page.locator(
+      'div[aria-label="Última atividade dos usuários cadastrados"]',
+    );
+    const activityTable = page.getByLabel('Tabela de última atividade com rolagem horizontal');
+    if (width < 640) {
+      await expect(activityCards).toContainText('Ana Silva');
+      await expect(activityTable).toBeHidden();
+      await page.getByLabel('Data do resumo').fill('2026-09-24');
+      await expect(page.getByText('Filtro ativo')).toBeVisible();
+    } else {
+      await expect(activityTable).toContainText('Ana Silva');
+      await expect(activityCards).toBeHidden();
+    }
+    await page.goto('/#/colaboradores');
+    const collaboratorCards = page.locator('div[aria-label="Usuários cadastrados na API"]');
+    const collaboratorTable = page.getByLabel('Tabela de colaboradores com rolagem horizontal');
+    if (width < 640) {
+      await expect(collaboratorCards).toContainText('Ana Silva');
+      await expect(collaboratorTable).toBeHidden();
+    } else {
+      await expect(collaboratorTable).toContainText('Ana Silva');
+      await expect(collaboratorCards).toBeHidden();
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      width,
+    );
+  });
+}
 
 test('menu móvel mantém o último link acessível em orientação horizontal', async ({ page }) => {
   await page.setViewportSize({ width: 667, height: 320 });

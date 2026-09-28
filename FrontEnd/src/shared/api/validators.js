@@ -36,7 +36,7 @@ export function validRealtime(value) {
 }
 
 export function validSummary(value) {
-  return (
+  return Boolean(
     value &&
     isIsoDate(value.date) &&
     uniqueUsers(value.users) &&
@@ -52,7 +52,7 @@ export function validSummary(value) {
             Number.isSafeInteger(category.total_seconds) &&
             category.total_seconds >= 0,
         ),
-    )
+    ),
   );
 }
 

@@ -2,6 +2,11 @@
 
 ## Revisão de 28/09/2026
 
+- A saída de Configurações com valores alterados agora pede confirmação; atualização e fechamento da aba acionam `beforeunload`.
+- `ReportsPage` foi dividido em filtros, estados, ações e `useReportExport`. O toast fecha automaticamente após cinco segundos.
+- Status de atividade usam formatação compartilhada e badges; barras de categoria foram marcadas como decorativas porque os valores já estão em texto.
+- Foram adicionados testes diretos dos validators, estados compartilhados, filtros/atividade do painel e navegação protegida; o E2E verifica 375/768/1366 px.
+- `recharts` foi removido de `package.json` e `package-lock.json` por não ter imports no frontend atual.
 - Removidos `src/legacy/` e seus testes isolados após verificar que não havia imports da aplicação ativa.
 - Painel dividido em componentes de filtros, indicadores, atividade, categorias e aviso; atividade e colaboradores usam cards em telas pequenas.
 - Validação das respostas centralizada em `shared/api/validators.js`; mensagens de erro e feedback de requisição compartilham componentes e helper.

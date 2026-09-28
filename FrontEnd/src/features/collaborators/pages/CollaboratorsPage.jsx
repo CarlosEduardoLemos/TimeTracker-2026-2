@@ -5,6 +5,7 @@ import { requestFailure } from '../../../shared/lib/requestFailure';
 import { PageHeader } from '../../../shared/components/PageHeader';
 import { IntegrationNotice } from '../../../shared/components/IntegrationNotice';
 import { EmptyState, ErrorNotice, LoadingSkeleton } from '../../../shared/components/AsyncFeedback';
+import { ActivityStatusBadge } from '../../../shared/components/ActivityStatusBadge';
 
 export function CollaboratorsPage() {
   const [state, setState] = useState({ loading: true, users: null, realtime: null, error: null });
@@ -73,11 +74,7 @@ export function CollaboratorsPage() {
                     <dd>{person.department || '—'}</dd>
                     <dt className="muted">Última atividade</dt>
                     <dd>
-                      {!state.realtime
-                        ? 'Indisponível'
-                        : person.status === 'offline'
-                          ? 'Sem leitura recente'
-                          : person.status}
+                      <ActivityStatusBadge person={person} available={!!state.realtime} />
                     </dd>
                     <dt className="muted">Aplicação</dt>
                     <dd>{person.realtime?.process_name || '—'}</dd>
@@ -115,11 +112,7 @@ export function CollaboratorsPage() {
                       <td>{person.full_name || '—'}</td>
                       <td>{person.department || '—'}</td>
                       <td>
-                        {!state.realtime
-                          ? 'Indisponível'
-                          : person.status === 'offline'
-                            ? 'Sem leitura recente'
-                            : person.status}
+                        <ActivityStatusBadge person={person} available={!!state.realtime} />
                       </td>
                       <td>{person.realtime?.process_name || '—'}</td>
                     </tr>

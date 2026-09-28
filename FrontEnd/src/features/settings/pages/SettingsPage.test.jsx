@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SettingsPage } from './SettingsPage';
 import { api } from '../../../shared/api/api';
+import { canLeaveRoute } from '../../../shared/lib/routeLeaveGuard';
 
 vi.mock('../../../shared/api/api', () => ({ api: { settings: vi.fn(), saveSettings: vi.fn() } }));
 const settings = { capture_interval_seconds: 10, idle_timeout_seconds: 300 };
@@ -24,6 +25,29 @@ describe('SettingsPage', () => {
     expect(screen.getByLabelText('Intervalo de captura (segundos)')).toHaveValue(10);
     expect(save).toBeDisabled();
     expect(api.saveSettings).not.toHaveBeenCalled();
+  });
+  it('confirma a saída e protege o refresh apenas enquanto há alterações', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    try {
+      render(<SettingsPage />);
+      await screen.findByRole('button', { name: 'Salvar configurações' });
+      expect(canLeaveRoute()).toBe(true);
+      fireEvent.change(screen.getByLabelText('Intervalo de captura (segundos)'), {
+        target: { value: '25' },
+      });
+      expect(canLeaveRoute()).toBe(false);
+      expect(confirm).toHaveBeenCalledWith('Há alterações não salvas. Deseja sair sem salvar?');
+      const beforeUnload = new Event('beforeunload', { cancelable: true });
+      window.dispatchEvent(beforeUnload);
+      expect(beforeUnload.defaultPrevented).toBe(true);
+      fireEvent.click(screen.getByRole('button', { name: 'Restaurar' }));
+      expect(canLeaveRoute()).toBe(true);
+      const cleanUnload = new Event('beforeunload', { cancelable: true });
+      window.dispatchEvent(cleanUnload);
+      expect(cleanUnload.defaultPrevented).toBe(false);
+    } finally {
+      confirm.mockRestore();
+    }
   });
   it('impede dois envios no mesmo evento e desbloqueia após sucesso', async () => {
     let finish;
