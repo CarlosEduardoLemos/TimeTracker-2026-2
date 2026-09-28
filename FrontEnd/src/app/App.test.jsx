@@ -34,15 +34,18 @@ it('skips to content without replacing the current hash route', async () => {
   expect(await screen.findByRole('heading', { level: 1, name: 'Tasks' })).toBeInTheDocument();
 });
 
-it('moves focus to the main content after a route change, including account pages', () => {
+it('moves focus to the main content after a route change, including account pages', async () => {
   window.location.hash = '#/painel';
   render(<App />);
+  await screen.findByRole('heading', { name: 'Visão geral' });
   window.location.hash = '#/cadastro';
   fireEvent(window, new HashChangeEvent('hashchange'));
   expect(screen.getByRole('main')).toHaveFocus();
+  await screen.findByRole('heading', { name: 'Criar conta' });
   window.location.hash = '#/tasks';
   fireEvent(window, new HashChangeEvent('hashchange'));
   expect(screen.getByRole('main')).toHaveFocus();
+  await screen.findByRole('heading', { name: 'Tasks' });
 });
 
 it('shows a destination for an unknown route and updates the document title', () => {

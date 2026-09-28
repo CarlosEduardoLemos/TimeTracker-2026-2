@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../../../shared/api/api';
-import { todayIso, validUsers } from '../../../shared/lib/dashboard';
+import { getApiErrorMessage } from '../../../shared/api/errorMessage';
+import { todayIso } from '../../../shared/lib/dashboard';
 import { PageHeader } from '../../../shared/components/PageHeader';
 import { IntegrationNotice } from '../../../shared/components/IntegrationNotice';
+import { ErrorNotice, SuccessToast } from '../../../shared/components/AsyncFeedback';
+import { exportFilename } from '../lib/exportFilename';
 
 export function ReportsPage() {
   const [date, setDate] = useState(todayIso());
@@ -24,12 +27,11 @@ export function ReportsPage() {
     setUsersError('');
     try {
       const value = await api.users(controller.signal);
-      if (!validUsers(value)) throw new Error('Resposta inválida da API');
       if (!controller.signal.aborted) setUsers(value);
     } catch (cause) {
       if (!controller.signal.aborted) {
         setUsers(null);
-        setUsersError(cause instanceof Error ? cause.message : 'Falha desconhecida');
+        setUsersError(getApiErrorMessage(cause));
       }
     } finally {
       if (!controller.signal.aborted) setLoadingUsers(false);
@@ -58,7 +60,7 @@ export function ReportsPage() {
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = url;
-      anchor.download = `resumo_${date}.${format}`;
+      anchor.download = exportFilename(format, date, username);
       document.body.append(anchor);
       anchor.click();
       anchor.remove();
@@ -66,9 +68,7 @@ export function ReportsPage() {
       setSuccess(`Download de ${format.toUpperCase()} iniciado.`);
     } catch (cause) {
       if (!controller.signal.aborted)
-        setError(
-          `Não foi possível exportar: ${cause instanceof Error ? cause.message : 'Falha desconhecida'}`,
-        );
+        setError(`Não foi possível exportar: ${getApiErrorMessage(cause)}`);
     } finally {
       if (activeExport.current === controller) activeExport.current = null;
       if (!controller.signal.aborted) setExporting('');
@@ -126,6 +126,35 @@ export function ReportsPage() {
             </select>
           </label>
         </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={!!exporting || date === todayIso()}
+            onClick={() => {
+              setDate(todayIso());
+              setError('');
+              setSuccess('');
+            }}
+          >
+            Hoje
+          </button>
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={!!exporting || !username}
+            onClick={() => {
+              setUsername('');
+              setError('');
+              setSuccess('');
+            }}
+          >
+            Limpar usuário
+          </button>
+          {(username || date !== todayIso()) && (
+            <span className="text-xs font-semibold text-brand">Filtro ativo</span>
+          )}
+        </div>
         {loadingUsers && (
           <p role="status" className="mt-3 text-sm muted">
             Carregando usuários…
@@ -164,16 +193,8 @@ export function ReportsPage() {
             Preparando arquivo {exporting.toUpperCase()}…
           </p>
         )}
-        {error && (
-          <p role="alert" className="mt-3 text-sm text-red-700 dark:text-red-300">
-            {error}
-          </p>
-        )}
-        {success && (
-          <p role="status" className="mt-3 text-sm text-emerald-700 dark:text-emerald-300">
-            {success}
-          </p>
-        )}
+        {error && <ErrorNotice className="mt-3">{error}</ErrorNotice>}
+        {success && <SuccessToast onDismiss={() => setSuccess('')}>{success}</SuccessToast>}
       </section>
     </>
   );

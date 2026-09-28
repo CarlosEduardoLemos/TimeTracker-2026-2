@@ -1,12 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-
-const items = [
-  ['painel', 'Painel'],
-  ['colaboradores', 'Colaboradores'],
-  ['tasks', 'Tasks'],
-  ['relatorios', 'Relatórios'],
-  ['configuracoes', 'Configurações'],
-];
+import { menuRoutes } from '../routes';
 
 function Navigation({ route, onNavigate }) {
   return (
@@ -21,7 +14,7 @@ function Navigation({ route, onNavigate }) {
       </a>
       <p className="mt-1 text-xs muted">Acompanhamento de atividades</p>
       <nav aria-label="Menu principal" className="mt-8 grid gap-1.5">
-        {items.map(([id, label]) => (
+        {menuRoutes.map(([id, { label }]) => (
           <a
             key={id}
             href={`#/${id}`}

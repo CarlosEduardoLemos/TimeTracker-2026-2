@@ -218,4 +218,30 @@ describe('cliente da API', () => {
       'Formato de resposta inválido',
     );
   });
+
+  it('valida os contratos JSON na camada da API', async () => {
+    const payloads = [
+      { call: () => api.users(), value: [{ username: 'ana', full_name: {} }] },
+      {
+        call: () => api.realtime(),
+        value: [{ username: 'ana', status: 'online', seconds_since_last_activity: -1 }],
+      },
+      { call: () => api.summary('2026-09-25'), value: { date: '2026-09-25', users: [null] } },
+      {
+        call: () => api.settings(),
+        value: { capture_interval_seconds: 0, idle_timeout_seconds: 300 },
+      },
+      {
+        call: () => api.saveSettings({ capture_interval_seconds: 10, idle_timeout_seconds: 300 }),
+        value: {},
+      },
+    ];
+    for (const { call, value } of payloads) {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => ({ ok: true, json: async () => value })),
+      );
+      await expect(call()).rejects.toMatchObject({ type: 'invalid-response' });
+    }
+  });
 });

@@ -3,11 +3,18 @@ import { IntegrationNotice } from '../../../shared/components/IntegrationNotice'
 export function AuthPage({ mode = 'login' }) {
   const register = mode === 'cadastro';
   return (
-    <section className="card w-full max-w-md">
-      <a href="#/painel" className="text-xl font-extrabold">
+    <section className="card w-full max-w-lg p-6 sm:p-8" aria-labelledby="auth-title">
+      <a
+        href="#/painel"
+        className="text-xl font-extrabold"
+        aria-label="TimeTrack, ir para o painel"
+      >
         time<span className="text-brand">track</span>
       </a>
-      <h1 className="mt-8 text-2xl font-extrabold">
+      <p className="mt-8 text-xs font-bold uppercase tracking-wide text-brand">
+        Acesso em preparação
+      </p>
+      <h1 id="auth-title" className="mt-2 text-2xl font-extrabold">
         {register ? 'Criar conta' : 'Entrar no Dashboard'}
       </h1>
       <div className="mt-5">
@@ -16,7 +23,7 @@ export function AuthPage({ mode = 'login' }) {
           possível criar conta nem entrar por esta interface.
         </IntegrationNotice>
       </div>
-      <a className="mt-5 inline-block text-sm font-semibold text-brand underline" href="#/painel">
+      <a className="secondary-button mt-5 inline-block" href="#/painel">
         Ir para o painel
       </a>
     </section>

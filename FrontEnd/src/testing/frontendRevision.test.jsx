@@ -52,7 +52,7 @@ describe('estados de integração', () => {
   });
 
   it('marca um resumo malformado como indisponível sem quebrar o painel', async () => {
-    api.summary.mockImplementation(async (date) => ({ date, users: [null] }));
+    api.summary.mockRejectedValue(new Error('Resposta inválida da API'));
     api.users.mockResolvedValue([]);
     api.realtime.mockResolvedValue([]);
     render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
@@ -70,11 +70,11 @@ describe('estados de integração', () => {
 
   it('rejects an invalid settings response after saving', async () => {
     api.settings.mockResolvedValue({ capture_interval_seconds: 10, idle_timeout_seconds: 300 });
-    api.saveSettings.mockResolvedValue({
-      capture_interval_seconds: null,
-      idle_timeout_seconds: 300,
-    });
+    api.saveSettings.mockRejectedValue(new Error('Resposta inválida da API'));
     render(<SettingsPage />);
+    fireEvent.change(await screen.findByLabelText('Intervalo de captura (segundos)'), {
+      target: { value: '20' },
+    });
     fireEvent.click(await screen.findByRole('button', { name: 'Salvar configurações' }));
     await waitFor(() =>
       expect(screen.getByRole('alert')).toHaveTextContent('Resposta inválida da API'),
@@ -86,6 +86,9 @@ describe('estados de integração', () => {
     api.settings.mockResolvedValue({ capture_interval_seconds: 10, idle_timeout_seconds: 300 });
     api.saveSettings.mockReturnValue(new Promise(() => {}));
     const { unmount } = render(<SettingsPage />);
+    fireEvent.change(await screen.findByLabelText('Intervalo de captura (segundos)'), {
+      target: { value: '20' },
+    });
     fireEvent.click(await screen.findByRole('button', { name: 'Salvar configurações' }));
     const signal = api.saveSettings.mock.calls[0][1];
     expect(signal.aborted).toBe(false);

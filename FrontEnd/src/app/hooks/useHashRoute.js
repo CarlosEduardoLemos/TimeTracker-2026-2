@@ -1,20 +1,12 @@
 import { useEffect, useState } from 'react';
+import { routes } from '../routes';
 
 const DEFAULT_ROUTE = 'painel';
-const KNOWN_ROUTES = new Set([
-  'painel',
-  'colaboradores',
-  'tasks',
-  'relatorios',
-  'configuracoes',
-  'login',
-  'cadastro',
-]);
 
 function readRoute() {
   const raw = window.location.hash.replace(/^#\/?/, '').split('?')[0];
   if (!raw) return DEFAULT_ROUTE;
-  return KNOWN_ROUTES.has(raw) ? raw : 'notFound';
+  return Object.hasOwn(routes, raw) ? raw : 'notFound';
 }
 
 export function useHashRoute() {

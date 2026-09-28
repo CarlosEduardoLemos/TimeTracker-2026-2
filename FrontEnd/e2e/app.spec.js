@@ -126,8 +126,20 @@ test('baixa CSV e PDF no navegador', async ({ page }) => {
       new RegExp(`^resumo_\\d{4}-\\d{2}-\\d{2}\\.${format.toLowerCase()}$`),
     );
     expect(await download.failure()).toBeNull();
-    await expect(page.getByRole('status')).toHaveText(`Download de ${format} iniciado.`);
+    await expect(page.getByRole('status')).toContainText(`Download de ${format} iniciado.`);
   }
+});
+
+test('mostra atividade e colaboradores como cards em 390px', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/#/painel');
+  await expect(page.getByLabel('Última atividade dos usuários cadastrados')).toContainText(
+    'Ana Silva',
+  );
+  await expect(page.getByLabel('Tabela de última atividade com rolagem horizontal')).toBeHidden();
+  await page.goto('/#/colaboradores');
+  await expect(page.getByLabel('Usuários cadastrados na API').first()).toContainText('Ana Silva');
+  await expect(page.getByLabel('Tabela de colaboradores com rolagem horizontal')).toBeHidden();
 });
 
 test('menu móvel mantém o último link acessível em orientação horizontal', async ({ page }) => {

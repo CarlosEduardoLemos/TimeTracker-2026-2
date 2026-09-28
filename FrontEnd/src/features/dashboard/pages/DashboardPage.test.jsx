@@ -43,7 +43,7 @@ describe('DashboardPage', () => {
       refresh: vi.fn(),
     });
     render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
-    expect(screen.getByText('Online').closest('article')).toHaveTextContent('…');
+    expect(screen.getByRole('status', { name: 'Carregando online' })).toBeInTheDocument();
   });
 
   it('mostra apenas totais e estados fornecidos pela API', () => {
@@ -56,7 +56,7 @@ describe('DashboardPage', () => {
     render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
     expect(screen.getByText('Tempo registrado').closest('article')).toHaveTextContent('1h 00min');
     expect(screen.getByText('Online').closest('article')).toHaveTextContent('1');
-    expect(screen.getByText('Editor')).toBeInTheDocument();
+    expect(screen.getAllByText('Editor')).toHaveLength(2);
   });
 
   it('marca realtime indisponível sem exibir zero', () => {

@@ -15,13 +15,14 @@ afterEach(() => {
 });
 
 describe('ReportsPage', () => {
-  it('offers the existing daily exports with their limited scope explained', () => {
+  it('offers the existing daily exports with their limited scope explained', async () => {
     render(<ReportsPage />);
     expect(screen.getByRole('button', { name: 'Exportar CSV' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Exportar PDF' })).toBeEnabled();
     expect(
       screen.getByText(/O arquivo contém usuário, categoria e tempo registrado de um dia/),
     ).toBeInTheDocument();
+    await screen.findByText('Nenhum usuário cadastrado.');
   });
 
   it('anuncia loading e diferencia lista vazia de resposta inválida com retry', async () => {
@@ -34,7 +35,7 @@ describe('ReportsPage', () => {
     render(<ReportsPage />);
     expect(screen.getByRole('status')).toHaveTextContent('Carregando usuários');
     expect(screen.getByRole('combobox')).toBeDisabled();
-    await act(async () => finish([{ username: 'ana', full_name: {} }]));
+    await act(async () => finish(Promise.reject(new Error('Resposta inválida da API'))));
     expect(screen.getByRole('alert')).toHaveTextContent('Resposta inválida');
     fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }));
     await screen.findByText('Nenhum usuário cadastrado.');

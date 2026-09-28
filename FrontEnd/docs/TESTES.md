@@ -27,10 +27,10 @@ Para executar o teste de leitura com FastAPI real, inicie a API e o banco de dad
 
 | Verificação                      | Resultado                                                 | O que comprova                                                                 |
 | -------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `npm.cmd test`                   | **104 testes passaram em 22 arquivos** em 28/09/2026      | Comportamentos cobertos pelos mocks e por jsdom                                |
+| `npm.cmd test`                   | **82 testes passaram em 19 arquivos** em 28/09/2026       | Comportamentos cobertos pelos mocks e por jsdom                                |
 | `npm.cmd run lint`               | **Concluído**                                             | Regras JS, React, Hooks e JSX a11y                                             |
 | `npm.cmd run format:check`       | **Concluído**                                             | Código sob Prettier consistente                                                |
-| `npm.cmd run test:e2e` no Chrome | **22 passaram; 1 teste real ignorado sem `RUN_REAL_API`** | Fluxos no navegador, cinco larguras, ampliação CSS e análise WCAG automatizada |
+| `npm.cmd run test:e2e` no Chrome | **23 passaram; 1 teste real ignorado sem `RUN_REAL_API`** | Fluxos no navegador, cinco larguras, ampliação CSS e análise WCAG automatizada |
 | `npm.cmd run build`              | **Concluído** pelo Vite 6.4.3                             | Imports, JSX, CSS e geração dos chunks das páginas                             |
 | `git diff --check`               | **Sem erros**                                             | Ausência de erros de whitespace no diff                                        |
 | `git status --short`             | **Somente `FrontEnd/`**                                   | Escopo das alterações registradas no Git                                       |
@@ -39,27 +39,29 @@ Build bem sucedido não comprova disponibilidade da API, layout em navegador ou 
 
 ## Inventário dos testes existentes
 
-Os caminhos abaixo refletem a estrutura após a refatoração. Os testes específicos continuam próximos do código testado, incluindo aqueles em `src/legacy/`.
+Os caminhos abaixo refletem a estrutura atual. Os testes específicos continuam próximos do código testado.
 
-| Arquivo(s)                                                                                                                          | Comportamento protegido                                                                                                                             |
-| ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/app/App.test.jsx`                                                                                                              | Entrada direta em rotas com tema salvo, fallback de carregamento, link de salto, foco após navegação, 404 e título                                  |
-| `src/shared/api/api.test.js`                                                                                                        | Codificação do usuário, erro HTTP, cancelamento externo, timeout na leitura, formatos de exportação, data inválida e MIME ausente ou incorreto      |
-| `src/features/dashboard/hooks/useDashboardData.test.js`                                                                             | Três fontes, horário de atualização, dados mantidos no refresh, falha parcial e data divergente                                                     |
-| `src/app/hooks/useHashRoute.test.js`                                                                                                | Hash desconhecido e reação a `hashchange`                                                                                                           |
-| `src/app/hooks/useTheme.test.js`                                                                                                    | Preferência do sistema, preferência salva, alternância, classe/documento e `localStorage`                                                           |
-| `src/features/dashboard/hooks/useAutoRefresh.test.js`                                                                               | Intervalo, desativação, pausa na aba oculta e atualização ao retornar; usado pelo painel                                                            |
-| `src/features/dashboard/pages/DashboardPage.test.jsx`                                                                               | Loading, indicadores baseados na API, falha de realtime, filtro de usuário e contagem de cadastrados independente do realtime                       |
-| `src/testing/frontendRevision.test.jsx`                                                                                             | Falha parcial, resposta antiga, resumo malformado, configuração indisponível/inválida, cancelamento de gravação e exportação, erro HTTP no download |
-| `src/features/reports/pages/ReportsPage.test.jsx`                                                                                   | Loading/vazio/retry, envio duplicado, filtros bloqueados, download iniciado, liberação da URL de objeto e arquivo vazio                             |
-| `src/features/auth/pages/AuthPage.test.jsx`, `src/features/tasks/pages/TasksPage.test.jsx`                                          | Páginas bloqueadas explicam a dependência sem coletar credenciais nem task local                                                                    |
-| `src/app/layout/Sidebar.test.jsx`                                                                                                   | Navegação, rota ativa, diálogo móvel, Tab, Escape, foco, histórico, rolagem e mudança para desktop                                                  |
-| `src/app/ErrorBoundary.test.jsx`                                                                                                    | Mensagem segura após exceção e ausência de log de payload em produção                                                                               |
-| `src/shared/components/MetricCard.test.jsx`, `src/legacy/components/Card.test.jsx`, `src/legacy/components/SectionHeading.test.jsx` | Semântica e apresentação básica de componentes                                                                                                      |
-| `src/legacy/components/ActivityChart.test.jsx`, `PeopleCard.test.jsx`, `Header.test.jsx`, `ReportsAndAgent.test.jsx`                | Componentes preservados fora do painel atual; estados, acessibilidade e controles desses componentes isolados                                       |
-| `src/shared/lib/dashboard.test.js`                                                                                                  | Formatação de tempo/data, soma, filtros e contagens sem alterar a lista original                                                                    |
+| Arquivo(s)                                                                                 | Comportamento protegido                                                                                                                             |
+| ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/app/App.test.jsx`                                                                     | Entrada direta em rotas com tema salvo, fallback de carregamento, link de salto, foco após navegação, 404 e título                                  |
+| `src/shared/api/api.test.js`                                                               | Codificação do usuário, erro HTTP, cancelamento externo, timeout na leitura, formatos de exportação, data inválida e MIME ausente ou incorreto      |
+| `src/features/dashboard/hooks/useDashboardData.test.js`                                    | Três fontes, horário de atualização, dados mantidos no refresh, falha parcial e data divergente                                                     |
+| `src/app/hooks/useHashRoute.test.js`                                                       | Hash desconhecido e reação a `hashchange`                                                                                                           |
+| `src/app/hooks/useTheme.test.js`                                                           | Preferência do sistema, preferência salva, alternância, classe/documento e `localStorage`                                                           |
+| `src/features/dashboard/hooks/useAutoRefresh.test.js`                                      | Intervalo, desativação, pausa na aba oculta e atualização ao retornar; usado pelo painel                                                            |
+| `src/features/dashboard/pages/DashboardPage.test.jsx`                                      | Loading, indicadores baseados na API, falha de realtime, filtro de usuário e contagem de cadastrados independente do realtime                       |
+| `src/testing/frontendRevision.test.jsx`                                                    | Falha parcial, resposta antiga, resumo malformado, configuração indisponível/inválida, cancelamento de gravação e exportação, erro HTTP no download |
+| `src/features/reports/pages/ReportsPage.test.jsx`                                          | Loading/vazio/retry, envio duplicado, filtros bloqueados, download iniciado, liberação da URL de objeto e arquivo vazio                             |
+| `src/features/auth/pages/AuthPage.test.jsx`, `src/features/tasks/pages/TasksPage.test.jsx` | Páginas bloqueadas explicam a dependência sem coletar credenciais nem task local                                                                    |
+| `src/app/layout/Sidebar.test.jsx`                                                          | Navegação, rota ativa, diálogo móvel, Tab, Escape, foco, histórico, rolagem e mudança para desktop                                                  |
+| `src/app/ErrorBoundary.test.jsx`                                                           | Mensagem segura após exceção e ausência de log de payload em produção                                                                               |
+| `src/app/PageErrorBoundary.test.jsx`                                                       | Isolamento da falha e nova tentativa na página                                                                                                      |
+| `src/features/dashboard/components/CategorySummary.test.jsx`                               | Duração e percentual de categoria com dados do resumo                                                                                               |
+| `src/features/reports/lib/exportFilename.test.js`                                          | Nome seguro do download com filtro de usuário                                                                                                       |
+| `src/shared/components/MetricCard.test.jsx`                                                | Semântica e apresentação básica de indicadores                                                                                                      |
+| `src/shared/lib/dashboard.test.js`                                                         | Formatação de tempo/data, soma, filtros e contagens sem alterar a lista original                                                                    |
 
-Os testes de componentes preservados não significam que gráfico semanal, timeline ou exportação completa estejam ativos na aplicação. Playwright cobre retry de Colaboradores, leitura e gravação de Configurações, CSV/PDF, menu móvel, estados offline e erro do servidor. O teste de FastAPI real foi ignorado porque a API não respondeu em `http://localhost:8000` durante esta revisão. Veja [Pendências](PENDENCIAS.md).
+Playwright cobre retry de Colaboradores, leitura e gravação de Configurações, CSV/PDF, cards móveis, menu móvel, estados offline e erro do servidor. O teste de FastAPI real é opt-in e foi ignorado sem `RUN_REAL_API`. Veja [Pendências](PENDENCIAS.md).
 
 ## Cenários críticos a manter em futuras mudanças
 
@@ -102,7 +104,7 @@ O healthcheck da API em `http://localhost:8000/` não respondeu. O teste real pe
 
 ## Validação da refatoração da estrutura — 26/09/2026
 
-Após a reorganização em `app/`, `features/`, `shared/`, `legacy/` e `testing/`:
+Após a reorganização em `app/`, `features/`, `shared/` e `testing/`:
 
 - `npm.cmd test`: 103 testes passaram em 22 arquivos, incluindo os componentes preservados.
 - `npm.cmd run lint` e `npm.cmd run format:check`: passaram.

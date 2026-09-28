@@ -210,21 +210,9 @@ As descrições históricas de Sprint 1/2 e EP-01 mencionam dados simulados e mo
 - **Workaround frontend:** testes automatizados existentes são proteção parcial; não equivalem a inspeção humana.
 - **Motivo do bloqueio:** definição de suporte e recursos de validação externos não estão disponíveis nesta tarefa.
 
-### F-04 — Componentes preservados sem uso na aplicação ativa — Baixa
-
-- **Problema/requisito:** decidir reaproveitamento/remoção conforme desenho futuro de RF-27, sem implementar visualizações fictícias.
-- **Frontend afetado:** `ActivityChart`, `Header`, `PeopleCard`, `ReportsAndAgent` e componentes auxiliares em `src/legacy/`.
-- **Backend relacionado:** novas fontes de I-05/I-06 e definições de produto.
-- **Atual/impacto:** fora da árvore ativa; vários possuem consumidores em testes. Busca de imports/entradas confirmou que não são carregados no build atual. Não há ganho de bundle ao removê-los.
-- **Definição necessária:** confirmar visualizações futuras e política de preservação; depois reaproveitar ou remover arquivos e testes que percam finalidade.
-- **Workaround frontend:** componentes, constantes e testes permanecem isolados em `src/legacy/`; continuam sem conexão com a aplicação ativa ou com dados inexistentes. `useAutoRefresh` passou a atender o painel e saiu dessa pendência.
-- **Motivo do bloqueio:** os arquivos preservados têm consumidores nos testes existentes ou nas dependências dos componentes testados; sua remoção exige decidir também o destino desses testes.
-- **Arquivos mantidos:** `src/legacy/components/ActivityChart.jsx` aguarda dados de período/task para possível reaproveitamento; `Header.jsx` e `PeopleCard.jsx` representam filtros e cartões associados à futura visão gerencial; `ReportsAndAgent.jsx` contém controles de relatório completo ainda sem contrato. `Card.jsx`, `SectionHeading.jsx`, `src/legacy/constants/ui.js` e seus testes permanecem por serem dependências desses componentes. A disponibilidade futura de I-05/I-06 e a definição visual decidirão seu destino.
-
 ## Ordem de execução
 
 1. Proteger dados e gravações (B-01/B-02), corrigir integridade e inicialização (B-03 a B-08).
 2. Definir identidade/equipe e task/consentimento (I-01 a I-03).
 3. Definir jornada, conexão, consultas completas e fuso (I-04 a I-07).
 4. Integrar UI e validar serviço real (F-01/I-08), decidir PWA e matriz de suporte (F-02/F-03).
-5. Revisitar componentes preservados (F-04).

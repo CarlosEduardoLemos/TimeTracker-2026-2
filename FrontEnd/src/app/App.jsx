@@ -1,76 +1,53 @@
-import { lazy, Suspense, useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { Sidebar } from './layout/Sidebar';
 import { useTheme } from './hooks/useTheme';
 import { useHashRoute } from './hooks/useHashRoute';
+import { PageErrorBoundary } from './PageErrorBoundary';
+import { routes } from './routes';
 
-const DashboardPage = lazy(() =>
-  import('../features/dashboard/pages/DashboardPage').then((module) => ({
-    default: module.DashboardPage,
-  })),
-);
-const CollaboratorsPage = lazy(() =>
-  import('../features/collaborators/pages/CollaboratorsPage').then((module) => ({
-    default: module.CollaboratorsPage,
-  })),
-);
-const TasksPage = lazy(() =>
-  import('../features/tasks/pages/TasksPage').then((module) => ({ default: module.TasksPage })),
-);
-const ReportsPage = lazy(() =>
-  import('../features/reports/pages/ReportsPage').then((module) => ({
-    default: module.ReportsPage,
-  })),
-);
-const SettingsPage = lazy(() =>
-  import('../features/settings/pages/SettingsPage').then((module) => ({
-    default: module.SettingsPage,
-  })),
-);
-const AuthPage = lazy(() =>
-  import('../features/auth/pages/AuthPage').then((module) => ({ default: module.AuthPage })),
-);
-
-const pages = {
-  painel: DashboardPage,
-  colaboradores: CollaboratorsPage,
-  tasks: TasksPage,
-  relatorios: ReportsPage,
-  configuracoes: SettingsPage,
-};
 export default function App() {
   const route = useHashRoute();
   const [dark, toggleTheme] = useTheme();
   const main = useRef(null);
   const previousRoute = useRef(route);
+  const config = routes[route];
+  const Page = config?.component;
+
   useEffect(() => {
-    const titles = {
-      painel: 'Painel',
-      colaboradores: 'Colaboradores',
-      tasks: 'Tasks',
-      relatorios: 'Relatórios',
-      configuracoes: 'Configurações',
-      login: 'Entrar',
-      cadastro: 'Criar conta',
-      notFound: 'Página não encontrada',
-    };
-    document.title = `${titles[route]} | TimeTrack`;
+    document.title = `${config?.title || 'Página não encontrada'} | TimeTrack`;
     if (previousRoute.current !== route) main.current?.focus();
     previousRoute.current = route;
-  }, [route]);
+  }, [route, config]);
 
-  if (route === 'login' || route === 'cadastro')
+  const content = Page ? (
+    <PageErrorBoundary key={route}>
+      <Suspense fallback={<p role="status">Carregando interface…</p>}>
+        <Page dark={dark} toggleTheme={toggleTheme} mode={route} />
+      </Suspense>
+    </PageErrorBoundary>
+  ) : (
+    <section className="card">
+      <h1 className="text-2xl font-bold">Página não encontrada</h1>
+      <p className="mt-2 text-sm muted">
+        O endereço informado não corresponde a uma página do TimeTrack.
+      </p>
+      <a className="mt-4 inline-block font-semibold text-brand underline" href="#/painel">
+        Ir para o painel
+      </a>
+    </section>
+  );
+
+  if (config?.auth)
     return (
       <main
         ref={main}
         tabIndex="-1"
         className="grid min-h-screen place-items-center bg-page p-4 dark:bg-slate-950 dark:text-white"
       >
-        <Suspense fallback={<p role="status">Carregando interface…</p>}>
-          <AuthPage mode={route} />
-        </Suspense>
+        {content}
       </main>
     );
-  const Page = pages[route];
+
   return (
     <div className="min-h-screen bg-page text-ink dark:bg-slate-950 dark:text-slate-100">
       <a
@@ -90,21 +67,7 @@ export default function App() {
         tabIndex="-1"
         className="mx-auto w-full max-w-[1600px] px-5 pb-10 pt-20 sm:px-8 lg:ml-64 lg:w-[calc(100%_-_16rem)] lg:px-10 lg:py-10"
       >
-        {Page ? (
-          <Suspense fallback={<p role="status">Carregando interface…</p>}>
-            <Page dark={dark} toggleTheme={toggleTheme} />
-          </Suspense>
-        ) : (
-          <section className="card">
-            <h1 className="text-2xl font-bold">Página não encontrada</h1>
-            <p className="mt-2 text-sm muted">
-              O endereço informado não corresponde a uma página do TimeTrack.
-            </p>
-            <a className="mt-4 inline-block font-semibold text-brand underline" href="#/painel">
-              Ir para o painel
-            </a>
-          </section>
-        )}
+        {content}
       </main>
     </div>
   );

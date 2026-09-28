@@ -1,4 +1,5 @@
 import { isIsoDate } from '../lib/dashboard';
+import { validRealtime, validSettings, validSummary, validUsers } from './validators';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 const TIMEOUT = 15000;
@@ -102,6 +103,13 @@ async function request(path, { signal, ...options } = {}, read = (response) => r
   }
 }
 
+async function validated(promise, validator) {
+  const value = await promise;
+  if (!validator(value))
+    throw new ApiError('Resposta inválida da API', { type: 'invalid-response' });
+  return value;
+}
+
 function summaryPath(date, username = '') {
   if (!isIsoDate(date)) {
     throw new Error('Selecione uma data válida');
@@ -117,12 +125,16 @@ function exportPath(format, date, username = '') {
 }
 
 export const api = {
-  users: (signal) => request('/users/', { signal }),
-  realtime: (signal) => request('/activities/realtime', { signal }),
-  summary: async (date, username = '', signal) => request(summaryPath(date, username), { signal }),
-  settings: (signal) => request('/config/', { signal }),
+  users: (signal) => validated(request('/users/', { signal }), validUsers),
+  realtime: (signal) => validated(request('/activities/realtime', { signal }), validRealtime),
+  summary: async (date, username = '', signal) =>
+    validated(request(summaryPath(date, username), { signal }), validSummary),
+  settings: (signal) => validated(request('/config/', { signal }), validSettings),
   saveSettings: (payload, signal) =>
-    request('/config/', { method: 'PUT', body: JSON.stringify(payload), signal }),
+    validated(
+      request('/config/', { method: 'PUT', body: JSON.stringify(payload), signal }),
+      validSettings,
+    ),
   async exportFile(format, date, username = '', signal) {
     return request(exportPath(format, date, username), { signal }, (response) => {
       const expectedType = format === 'csv' ? 'text/csv' : 'application/pdf';

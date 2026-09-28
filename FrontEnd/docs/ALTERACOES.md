@@ -1,5 +1,15 @@
 # Melhorias do frontend — 25/09/2026
 
+## Revisão de 28/09/2026
+
+- Removidos `src/legacy/` e seus testes isolados após verificar que não havia imports da aplicação ativa.
+- Painel dividido em componentes de filtros, indicadores, atividade, categorias e aviso; atividade e colaboradores usam cards em telas pequenas.
+- Validação das respostas centralizada em `shared/api/validators.js`; mensagens de erro e feedback de requisição compartilham componentes e helper.
+- Configurações indicam alterações pendentes, oferecem restauração e evitam `PUT` sem mudanças. Relatórios incluem usuário filtrado no nome do download e anunciam sucesso em toast.
+- Metadados e componentes das rotas ficam em `app/routes.js`, com barreira de erro por página. Tasks e acesso receberam estados informativos sem simular contratos ausentes.
+
+As seções seguintes registram revisões anteriores e preservam os caminhos da época.
+
 Os caminhos nas revisões históricas abaixo correspondem à estrutura existente na época. A refatoração de 26/09/2026 e a revisão de 28/09/2026 estão registradas abaixo; os caminhos atuais estão em [Arquitetura](ARQUITETURA.md).
 
 ## Escopo

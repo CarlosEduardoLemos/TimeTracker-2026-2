@@ -21,7 +21,7 @@ Frontend do **TimeTrack**, responsável pela interface web do Dashboard PWA. A a
 - **CSS global (`src/app/styles/index.css`)** — tokens de cor, componentes compartilhados, estados de foco, responsividade e suporte a movimento reduzido.
 - **PostCSS 8.5.28** — processamento do CSS.
 - **Autoprefixer 10.4.16** — compatibilidade de propriedades CSS.
-- **Recharts 2.10.3** — gráficos e visualizações do dashboard.
+- **Recharts 2.10.3** — dependência instalada; as barras atuais do painel são renderizadas com CSS.
 
 ### Recursos do navegador
 
@@ -74,9 +74,6 @@ FrontEnd/
 │   │   ├── api/
 │   │   ├── components/
 │   │   └── lib/
-│   ├── legacy/           # Componentes preservados fora do fluxo ativo
-│   │   ├── components/
-│   │   └── constants/
 │   ├── testing/          # Setup e testes transversais
 │   └── main.jsx          # Entrada do React
 ├── .env.example
@@ -93,7 +90,7 @@ FrontEnd/
 
 Testes específicos de componentes permanecem próximos ao código que validam. O teste transversal de revisão do frontend fica em `src/testing/`. Arquivos gerados por build, cobertura e Playwright (`dist/`, `coverage/`, `test-output/` e `test-results/`) são saídas locais e estão no `.gitignore`; não fazem parte da árvore de código-fonte.
 
-Uma nova tela entra em `features/<funcionalidade>/pages/`; hooks exclusivos ficam na mesma funcionalidade. Recursos reutilizados por várias telas entram em `shared/`. `app/` compõe essas funcionalidades e `legacy/` mantém o código preservado com seus testes, sem imports pela aplicação ativa. Consulte [Arquitetura](docs/ARQUITETURA.md) para as regras de dependência.
+Uma nova tela entra em `features/<funcionalidade>/pages/`; hooks e componentes exclusivos ficam na mesma funcionalidade. Recursos reutilizados por várias telas entram em `shared/`. `app/routes.js` reúne os metadados e os componentes das rotas. A validação de respostas fica em `shared/api/validators.js`. Consulte [Arquitetura](docs/ARQUITETURA.md) para as regras de dependência.
 
 ## Executar
 

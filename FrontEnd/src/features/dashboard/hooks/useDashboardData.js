@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../../../shared/api/api';
-import { validRealtime, validSummary, validUsers } from '../../../shared/lib/dashboard';
 import { requestFailure } from '../../../shared/lib/requestFailure';
 import { useAutoRefresh } from './useAutoRefresh';
 
@@ -37,11 +36,10 @@ export function useDashboardData(date, username) {
     const availability = {
       summary:
         summary.status === 'fulfilled' &&
-        validSummary(summary.value) &&
         summary.value.date === date &&
         (!username || summary.value.users.every((user) => user.username === username)),
-      users: users.status === 'fulfilled' && validUsers(users.value),
-      realtime: realtime.status === 'fulfilled' && validRealtime(realtime.value),
+      users: users.status === 'fulfilled',
+      realtime: realtime.status === 'fulfilled',
     };
     setState({
       loading: false,
