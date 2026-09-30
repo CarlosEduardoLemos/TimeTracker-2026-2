@@ -80,7 +80,7 @@ As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID
 
 ### B-04 — Limite salvo não aplicado ao realtime — Média
 
-- **Status:** AGUARDANDO BACKEND.
+- **Status:** PARCIAL; BACKEND PENDENTE.
 - **Problema/requisito:** configuração editável não governa o cálculo exibido; [RF-14](../../requisitos/requisitos/rn_rf.md#rf-14--controlar-atividade-e-inatividade)/[RF-21](../../requisitos/requisitos/rn_rf.md#rf-21--configurar-limite-de-inatividade).
 - **Frontend afetado:** `SettingsPage`, indicadores do painel e tabela de colaboradores.
 - **Backend relacionado:** `app/crud.py:get_realtime_view`, `app/utils.py:MAX_IDLE_SECONDS`, `/config/`.
