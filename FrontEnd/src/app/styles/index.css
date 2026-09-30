@@ -1,0 +1,185 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --brand: #5b4be0;
+  --page: #f6f7fb;
+  --ink: #20233b;
+  --muted: #596579;
+  --line: #e6e8f0;
+  --focus: #6956e9;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --page: #020617;
+  --ink: #f8fafc;
+  --muted: #94a3b8;
+  --line: #334155;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--page);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background:
+    radial-gradient(circle at top right, rgb(105 86 233 / 0.08), transparent 28rem), var(--page);
+  color: var(--ink);
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+[data-theme='dark'] body {
+  color: #f8fafc;
+  background:
+    radial-gradient(circle at top right, rgb(99 102 241 / 0.12), transparent 28rem), var(--page);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+
+::selection {
+  background: rgb(105 86 233 / 0.18);
+}
+
+.primary-button {
+  @apply inline-flex items-center justify-center rounded-lg bg-brand px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md disabled:translate-y-0 disabled:cursor-not-allowed disabled:shadow-none;
+}
+
+.secondary-button {
+  @apply inline-flex items-center justify-center rounded-lg border border-line bg-white px-4 py-2.5 text-xs font-bold text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md disabled:translate-y-0 disabled:cursor-not-allowed disabled:shadow-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800;
+}
+
+.form-field {
+  @apply block w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-indigo-950;
+}
+
+.card {
+  @apply rounded-2xl border border-line bg-white p-5 shadow-sm transition-shadow duration-200 dark:border-slate-700 dark:bg-slate-900;
+}
+
+.card:hover {
+  @apply shadow-md;
+}
+
+.sidebar-link {
+  @apply rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors;
+}
+
+.sidebar-link[aria-current='page'] {
+  @apply bg-indigo-50 text-brand dark:bg-indigo-950/50 dark:text-indigo-300;
+}
+
+.sidebar-link:not([aria-current='page']) {
+  @apply text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white;
+}
+
+.muted {
+  @apply text-slate-600 dark:text-slate-400;
+}
+
+.dark a.text-brand {
+  @apply text-indigo-300;
+}
+
+.eyebrow {
+  @apply mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-brand;
+}
+
+.font-display {
+  letter-spacing: -0.025em;
+}
+
+.control {
+  @apply inline-flex min-h-10 rounded-lg border border-line bg-white px-3 py-2 text-slate-600 shadow-sm transition dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300;
+}
+
+.icon-control {
+  @apply inline-grid h-10 w-10 place-items-center rounded-lg border border-line bg-white text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md disabled:translate-y-0 disabled:shadow-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800;
+}
+
+.chart-tooltip {
+  @apply rounded-lg border border-slate-700/60 bg-slate-900/95 px-3 py-2 shadow-xl;
+}
+
+.status-dot {
+  @apply inline-block h-2 w-2 rounded-full bg-current;
+}
+
+.skip-link {
+  @apply fixed left-4 top-4 z-50 -translate-y-24 rounded-lg bg-slate-900 px-4 py-2 text-white shadow-lg transition focus:translate-y-0;
+}
+
+a:focus-visible,
+main:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex='0']:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1023px) {
+  body {
+    background:
+      radial-gradient(circle at 100% 0, rgb(105 86 233 / 0.07), transparent 20rem), var(--page);
+  }
+}
+
+@media (max-width: 639px) {
+  .card {
+    padding: 1rem;
+  }
+  .control {
+    max-width: 100%;
+  }
+  h1 {
+    line-height: 1.2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

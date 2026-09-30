@@ -10,6 +10,9 @@
     "test": "vitest run --configLoader runner",
     "test:watch": "vitest --configLoader runner",
     "test:coverage": "vitest run --coverage --configLoader runner",
+    "typecheck": "tsc --project tsconfig.contracts.json --noEmit",
+    "check": "npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm run build",
+    "check:full": "npm run check && npm run test:e2e",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -18,8 +21,7 @@
   },
   "dependencies": {
     "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "recharts": "2.10.3"
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
@@ -40,6 +42,7 @@
     "postcss": "8.5.28",
     "prettier": "^3.9.9",
     "tailwindcss": "3.4.17",
+    "typescript": "^5.9.3",
     "vite": "6.4.3",
     "vitest": "4.1.11"
   }
