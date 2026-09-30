@@ -20,13 +20,13 @@ export function DashboardMetrics({ loading, available, filtered, summary, users,
         loading={loading}
         label="Ausentes"
         value={status('ausente')}
-        detail="mais de 5 min sem novo evento"
+        detail="estado ausente informado pela API"
       />
       <MetricCard
         loading={loading}
-        label="Sem leitura recente"
+        label="Offline (API)"
         value={status('offline')}
-        detail="estado informado pela API após mais de 15 min sem evento"
+        detail="estado offline informado pela API; não confirma desconexão"
       />
       <MetricCard
         loading={loading}

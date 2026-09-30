@@ -46,8 +46,8 @@ export function CollaboratorsPage() {
       <PageHeader title="Colaboradores" description="Usuários cadastrados na API atual." />
       <IntegrationNotice>
         RF-03/RF-05 exigem código de associação e lista restrita ao gestor autenticado. A API atual
-        retorna todos os usuários. Online, Ausente e Offline refletem o tempo desde a última
-        atividade; Offline não confirma que o Agent perdeu conexão com o servidor. “Sem dados”
+        retorna todos os usuários. Online, Ausente e Offline são estados calculados pela API a
+        partir da captura e de sua inatividade; eles não confirmam a conexão do Agent. “Sem dados”
         indica que o usuário não consta na janela realtime de até 24 horas.
       </IntegrationNotice>
       {state.error && (

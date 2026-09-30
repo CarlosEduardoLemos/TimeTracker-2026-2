@@ -135,7 +135,7 @@ Estes roteiros ainda **precisam ser executados manualmente** no ambiente alvo. R
 2. Aguarde o fim da consulta e observe o alerta, os indicadores e **Última atividade**.
 3. Remova o bloqueio e clique em **Tentar novamente** no alerta, ou em **Atualizar**.
 
-**Resultado esperado:** o alerta identifica a falha de **Atividade**; **Online**, **Ausentes** e **Sem leitura recente** mostram `—`, e a última atividade fica indisponível. **Usuários cadastrados** e **Tempo registrado** continuam usando suas fontes disponíveis. Após a nova consulta, os dados de atividade voltam se a API responder. Falha de realtime não deve aparecer como zero pessoas online.
+**Resultado esperado:** o alerta identifica a falha de **Atividade**; **Online**, **Ausentes** e **Offline (API)** mostram `—`, e a última atividade fica indisponível. **Usuários cadastrados** e **Tempo registrado** continuam usando suas fontes disponíveis. Após a nova consulta, os dados de atividade voltam se a API responder. Falha de realtime não deve aparecer como zero pessoas online.
 
 #### Exportação com dados reais
 

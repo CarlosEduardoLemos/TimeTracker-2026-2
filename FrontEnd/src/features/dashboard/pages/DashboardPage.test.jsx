@@ -76,10 +76,10 @@ describe('DashboardPage', () => {
 
     render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
 
-    expect(screen.getAllByText('Sem leitura recente').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Offline (API)').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Sem dados').length).toBeGreaterThan(0);
     const metrics = within(screen.getByLabelText('Indicadores disponíveis'));
-    expect(metrics.getByText('Sem leitura recente').closest('article')).toHaveTextContent('1');
+    expect(metrics.getByText('Offline (API)').closest('article')).toHaveTextContent('1');
     expect(metrics.getByText('Sem dados').closest('article')).toHaveTextContent('1');
   });
 

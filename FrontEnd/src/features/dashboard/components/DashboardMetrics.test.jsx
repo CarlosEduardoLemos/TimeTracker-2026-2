@@ -14,7 +14,13 @@ const props = {
 it('mostra contagens e tempo apenas das fontes disponíveis', () => {
   const { rerender } = render(<DashboardMetrics {...props} />);
   expect(screen.getByText('Online').closest('article')).toHaveTextContent('1');
-  expect(screen.getByText('Sem leitura recente').closest('article')).toHaveTextContent('1');
+  expect(screen.getByText('Offline (API)').closest('article')).toHaveTextContent('1');
+  expect(screen.getByText('Ausentes').closest('article')).toHaveTextContent(
+    'estado ausente informado pela API',
+  );
+  expect(screen.getByText('Offline (API)').closest('article')).toHaveTextContent(
+    'não confirma desconexão',
+  );
   expect(screen.getByText('Sem dados').closest('article')).toHaveTextContent('0');
   expect(screen.getByText('Tempo registrado').closest('article')).toHaveTextContent('1h 01min');
   expect(screen.getByText('Usuários cadastrados').closest('article')).toHaveTextContent('2');

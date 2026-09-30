@@ -15,6 +15,7 @@ Revisão: **30/09/2026**. `backend/`, `agent/` e a pasta [requisitos](../../requ
 | B-07 | Datas futuras e tempo relativo negativo                           | Backend              | Média      | AGUARDANDO BACKEND         |
 | B-08 | Segurança e fidelidade dos arquivos exportados                    | Backend              | Média      | AGUARDANDO BACKEND         |
 | B-09 | Configuração global sem unicidade garantida                       | Backend              | Média      | AGUARDANDO BACKEND         |
+| B-10 | Flag de inatividade pode gerar status `offline`                   | Backend              | Média      | AGUARDANDO BACKEND         |
 | I-01 | Conta, login e sessão do gestor                                   | Integração           | Alta       | BLOQUEADO                  |
 | I-02 | Associação gestor–colaborador e código                            | Integração           | Alta       | BLOQUEADO                  |
 | I-03 | Tasks, atribuição, escopo e monitoramento consentido              | Integração           | Alta       | BLOQUEADO                  |
@@ -144,6 +145,17 @@ As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID
 - **Workaround frontend:** bloquear envios duplicados protege interações locais, mas não concorrência entre clientes nem validação do armazenamento.
 - **Motivo do bloqueio:** unicidade, concorrência e limites do banco precisam ser impostos no backend, sem inventar limites de negócio no navegador.
 
+### B-10 — Flag de inatividade pode gerar status `offline` — Média
+
+- **Status:** AGUARDANDO BACKEND.
+- **Problema/requisito:** a regra mistura inatividade de uso e conexão do agente, embora [RN-10/RF-14](../../requisitos/requisitos/rn_rf.md#rf-14--controlar-atividade-e-inatividade) e [RN-11/RF-16](../../requisitos/requisitos/rn_rf.md#rf-16--acompanhar-colaboradores-online) tratem esses conceitos separadamente.
+- **Frontend afetado:** indicadores e badges de status no Dashboard e em Colaboradores.
+- **Backend relacionado:** classificação de `/activities/realtime` baseada em `is_idle` e no tempo desde o último evento.
+- **Atual/impacto:** quando `is_idle=true`, a API pode retornar `offline` mesmo para uma captura recém-recebida. Logo, `offline` não representa necessariamente ausência de evento recente nem desconexão do Agent.
+- **Alteração necessária:** separar estado de atividade/inatividade do estado de conexão, definindo Online/Offline com sessão ou heartbeat do Agent.
+- **Workaround frontend:** exibir o status retornado com texto neutro, sem reinterpretar o campo ou afirmar desconexão.
+- **Motivo da pendência:** o frontend não consegue inferir conexão real a partir dos campos atuais; a semântica precisa ser definida no backend.
+
 ## Pendências de integração Frontend + Backend
 
 As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), [Sprint 2](../../requisitos/sprints/sprint2.md) e [EP-01](../../requisitos/epicos/EP-01.md) mencionam dados simulados e monitoramento “fingindo” task. Elas não autorizam mocks em produção nesta revisão: prevalecem as restrições do usuário e as regras atuais de [task ativa](../../requisitos/requisitos/rn_rf.md#rn-05--monitoramento-vinculado-à-task) e [ciência do colaborador](../../requisitos/requisitos/rn_rf.md#rn-06--transparência-e-ciência). Existe também divergência entre a [tela de referência do Dashboard](../../requisitos/screens/dashboard.md#8-regras-gerais) (sem métricas de produtividade) e [RN-19](../../requisitos/requisitos/rn_rf.md#rn-19--visão-gerencial-do-dashboard)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico) (tempo produtivo por escopo); I-06 exige esclarecer a apresentação antes da implementação, sem rankings.
@@ -198,7 +210,7 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Problema/requisito:** [RF-05](../../requisitos/requisitos/rn_rf.md#rf-05--gerenciar-colaboradores-associados)/[RF-16](../../requisitos/requisitos/rn_rf.md#rf-16--acompanhar-colaboradores-online)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico) e [CA-04](../../requisitos/requisitos/ca.md#ca-04--estado-e-execução-da-task) exigem Online enquanto conectado/autenticado.
 - **Frontend afetado:** métricas de estado e tabela de última atividade.
 - **Backend relacionado:** `/activities/realtime`, estados calculados por tempo desde atividade e retenção de até 24 horas.
-- **Atual/impacto:** `online` representa atividade recente, `ausente` mais de 5 minutos sem evento e `offline` mais de 15 minutos sem evento. Ausência do usuário na resposta (sem atividade disponível ou além das 24 horas) não comprova desconexão. O Agent existe, mas não há heartbeat/sessão autenticada; a interface explica essa aproximação.
+- **Atual/impacto:** `offline` pode ocorrer quando `is_idle=true`, mesmo após uma captura recente, ou quando passam mais de 15 minutos sem evento. `ausente` também é calculado por tempo sem evento. Ausência do usuário na resposta (sem atividade disponível ou além das 24 horas) não comprova desconexão. O Agent existe, mas não há heartbeat/sessão autenticada; a interface explica essa aproximação. Ver B-10.
 - **Contrato necessário:** definir heartbeat/sessão autenticada, expiração, estados de conexão e sua relação com atividade/inatividade.
 - **Workaround frontend:** mostrar última leitura com aviso é aceitável para o contrato atual; inferir conexão real não é.
 - **Motivo do bloqueio:** navegador do gestor não observa diretamente a conexão do agente.
@@ -284,7 +296,7 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 
 ## Ordem de execução
 
-1. Proteger dados e gravações (B-01/B-02), corrigir integridade e inicialização (B-03 a B-08).
+1. Proteger dados e gravações (B-01/B-02), corrigir integridade, inicialização e estados realtime (B-03 a B-10).
 2. Definir identidade/equipe e task/consentimento (I-01 a I-03).
 3. Definir jornada, conexão, consultas completas e fuso (I-04 a I-07).
 4. Integrar UI e validar serviço real (F-01/I-08), decidir PWA e matriz de suporte (F-02/F-03).

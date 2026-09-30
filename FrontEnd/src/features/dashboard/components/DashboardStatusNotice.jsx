@@ -5,8 +5,8 @@ export function DashboardStatusNotice() {
     <div className="mb-5">
       <IntegrationNotice>
         A lista da API é global e ainda não representa uma equipe vinculada ao gestor. Os estados
-        Online, Ausente e Offline são derivados da última atividade recebida. Offline não confirma
-        que o Agent perdeu conexão com o servidor.
+        Online, Ausente e Offline são estados calculados pela API a partir das capturas. Offline não
+        confirma que o Agent perdeu conexão com o servidor.
       </IntegrationNotice>
     </div>
   );

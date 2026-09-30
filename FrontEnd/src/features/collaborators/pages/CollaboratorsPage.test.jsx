@@ -48,7 +48,7 @@ describe('CollaboratorsPage', () => {
 
     const table = await screen.findByRole('table', { name: 'Usuários cadastrados na API' });
     const anaRow = within(table).getByRole('rowheader', { name: 'ana' }).closest('tr');
-    expect(anaRow).toHaveTextContent('Sem leitura recente');
+    expect(anaRow).toHaveTextContent('Offline (API)');
     expect(anaRow).not.toHaveTextContent('Indisponível');
   });
 
@@ -60,7 +60,7 @@ describe('CollaboratorsPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Atividade: rede indisponível');
     const table = screen.getByRole('table');
     expect(within(table).getAllByText('Indisponível')).toHaveLength(2);
-    expect(within(table).queryByText('Sem leitura recente')).not.toBeInTheDocument();
+    expect(within(table).queryByText('Offline (API)')).not.toBeInTheDocument();
     expect(screen.getAllByRole('article')).toHaveLength(2);
   });
 
