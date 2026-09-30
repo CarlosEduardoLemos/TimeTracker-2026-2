@@ -12,7 +12,7 @@ export function ActivityStatusBadge({ person, available = true }) {
   const status = available ? person.status : 'unavailable';
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-semibold ${colors[status] || colors.offline}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-semibold ${colors[status] || colors.unavailable}`}
     >
       <span aria-hidden="true" className="text-[9px]">
         ●
