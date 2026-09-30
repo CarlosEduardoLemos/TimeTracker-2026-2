@@ -244,4 +244,20 @@ describe('cliente da API', () => {
       await expect(call()).rejects.toMatchObject({ type: 'invalid-response' });
     }
   });
+
+  it('aceita offline em uma resposta realtime válida', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => [
+          { username: 'ana', status: 'offline', seconds_since_last_activity: 901 },
+        ],
+      })),
+    );
+
+    await expect(api.realtime()).resolves.toEqual([
+      { username: 'ana', status: 'offline', seconds_since_last_activity: 901 },
+    ]);
+  });
 });

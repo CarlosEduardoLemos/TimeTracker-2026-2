@@ -17,7 +17,7 @@ export function deriveTeam(users = [], realtime = []) {
   const byUsername = new Map(realtime.map((entry) => [entry.username, entry]));
   return users.map((user) => {
     const latest = byUsername.get(user.username) || null;
-    return { ...user, realtime: latest, status: latest?.status || 'offline' };
+    return { ...user, realtime: latest, status: latest?.status || 'no-data' };
   });
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { categoryTotals, countPeopleByStatus, filterRealtimePeople } from './dashboard';
+import { categoryTotals, countPeopleByStatus, deriveTeam, filterRealtimePeople } from './dashboard';
 
 describe('dashboard utilities', () => {
   it('filters realtime people only when a collaborator is selected', () => {
@@ -23,6 +23,18 @@ describe('dashboard utilities', () => {
     expect(countPeopleByStatus(people, 'online')).toBe(2);
     expect(countPeopleByStatus(people, 'offline')).toBe(1);
     expect(countPeopleByStatus(undefined, 'online')).toBe(0);
+  });
+
+  it('distingue offline informado pela API de usuário sem entrada realtime', () => {
+    const team = deriveTeam(
+      [{ username: 'ana' }, { username: 'bia' }],
+      [{ username: 'ana', status: 'offline', seconds_since_last_activity: 901 }],
+    );
+
+    expect(team.map(({ username, status }) => ({ username, status }))).toEqual([
+      { username: 'ana', status: 'offline' },
+      { username: 'bia', status: 'no-data' },
+    ]);
   });
 
   it('combines categories across users and orders them by total duration', () => {

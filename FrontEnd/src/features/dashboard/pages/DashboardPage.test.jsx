@@ -63,6 +63,26 @@ describe('DashboardPage', () => {
     expect(screen.getAllByText('Editor')).toHaveLength(2);
   });
 
+  it('mostra offline da API e separa usuários sem entrada realtime', () => {
+    const data = {
+      ...fullData,
+      users: [
+        { username: 'ana', full_name: 'Ana' },
+        { username: 'bia', full_name: 'Bia' },
+      ],
+      realtime: [{ username: 'ana', status: 'offline', seconds_since_last_activity: 901 }],
+    };
+    useDashboardData.mockReturnValue({ data, loading: false, refreshing: false, refresh: vi.fn() });
+
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
+
+    expect(screen.getAllByText('Sem leitura recente').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Sem dados').length).toBeGreaterThan(0);
+    const metrics = within(screen.getByLabelText('Indicadores disponíveis'));
+    expect(metrics.getByText('Sem leitura recente').closest('article')).toHaveTextContent('1');
+    expect(metrics.getByText('Sem dados').closest('article')).toHaveTextContent('1');
+  });
+
   it('marca realtime indisponível sem exibir zero', () => {
     useDashboardData.mockReturnValue({
       data: {

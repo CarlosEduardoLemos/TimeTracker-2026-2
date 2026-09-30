@@ -5,7 +5,7 @@ const users = [
   { id: '2', username: 'bia', full_name: 'Bia Lima', department: 'TI' },
 ];
 const realtime = [
-  { username: 'ana', status: 'online', seconds_since_last_activity: 4, process_name: 'Editor' },
+  { username: 'ana', status: 'offline', seconds_since_last_activity: 901, process_name: 'Editor' },
 ];
 
 async function mockApi(page) {
@@ -61,6 +61,8 @@ test('abre o painel, filtra data e usuário e navega até a rota 404', async ({ 
   await page.goto('/#/painel');
   await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
   await expect(page.getByRole('table').first()).toContainText('Ana Silva');
+  await expect(page.getByRole('table').first()).toContainText('Sem leitura recente');
+  await expect(page.getByRole('table').first()).toContainText('Sem dados');
   await page.getByLabel('Data do resumo').fill('2026-09-24');
   await page.getByRole('combobox', { name: 'Usuário' }).selectOption('ana');
   await expect(page.getByLabel('Indicadores disponíveis')).toContainText('1h 00min');

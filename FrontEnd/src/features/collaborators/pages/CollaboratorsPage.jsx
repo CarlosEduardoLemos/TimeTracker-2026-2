@@ -46,7 +46,9 @@ export function CollaboratorsPage() {
       <PageHeader title="Colaboradores" description="Usuários cadastrados na API atual." />
       <IntegrationNotice>
         RF-03/RF-05 exigem código de associação e lista restrita ao gestor autenticado. A API atual
-        retorna todos os usuários; o estado de conexão do Agente não está disponível.
+        retorna todos os usuários. Online, Ausente e Offline refletem o tempo desde a última
+        atividade; Offline não confirma que o Agent perdeu conexão com o servidor. “Sem dados”
+        indica que o usuário não consta na janela realtime de até 24 horas.
       </IntegrationNotice>
       {state.error && (
         <ErrorNotice className="mt-5" onRetry={load}>

@@ -1,6 +1,6 @@
 ﻿# Testes e validação do frontend
 
-Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Os resultados abaixo foram confirmados em 28/09/2026; o inventário completo das alterações está em [Alterações](ALTERACOES.md).
+Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Os resultados registrados abaixo refletem a revisão de 30/09/2026; o inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
 ## Preparação e comandos
 
@@ -34,18 +34,17 @@ Os E2E regulares interceptam as respostas HTTP; para conferir API e CORS reais, 
 
 ## Resultado automatizado registrado
 
-| Verificação                      | Resultado                                                                                                  | O que comprova                                                                |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `npm.cmd run check`              | **Concluído** em 28/09/2026                                                                                | Executa lint, formatação, typecheck, cobertura e build em sequência           |
-| `npm.cmd run check:full`         | **Concluído** anteriormente em 28/09/2026                                                                  | Executa `check` e a suíte E2E no Chrome                                       |
-| `npm.cmd run test:coverage`      | **136 testes em 38 arquivos passaram**; 95,6% statements, 93,78% branches, 95,95% functions e 97,47% lines | Cobertura V8 acima dos mínimos globais e dos limites críticos                 |
-| `npm.cmd run typecheck`          | **Concluído**                                                                                              | JSDoc e `checkJs` na camada de contratos da API                               |
-| `npm.cmd run lint`               | **Concluído**                                                                                              | Regras JS, React, Hooks, JSX a11y e fronteiras de camadas                     |
-| `npm.cmd run format:check`       | **Concluído**                                                                                              | Código sob Prettier consistente                                               |
-| `npm.cmd run test:e2e` no Chrome | **26 passaram; 2 testes reais ignorados sem `RUN_REAL_API`**                                               | Fluxos no navegador, seis larguras, ampliação CSS e análise WCAG automatizada |
-| `npm.cmd run build`              | **Concluído** pelo Vite 6.4.3                                                                              | Imports, JSX, CSS e geração dos chunks das páginas                            |
-| `git diff --check`               | **Sem erros**                                                                                              | Ausência de erros de whitespace no diff                                       |
-| `git status --short`             | **Somente `FrontEnd/`**                                                                                    | Escopo das alterações registradas no Git                                      |
+| Verificação                      | Resultado                                                                                                  | O que comprova                                                         |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `npm.cmd run check`              | **Concluído** em 30/09/2026                                                                                | Executa lint, formatação, typecheck, cobertura e build em sequência    |
+| `npm.cmd run test:coverage`      | **141 testes em 38 arquivos passaram**; 95,69% statements, 93,98% branches, 95,97% functions e 97,5% lines | Cobertura V8 acima dos mínimos globais e dos limites críticos          |
+| `npm.cmd run typecheck`          | **Concluído** em 30/09/2026                                                                                | JSDoc e `checkJs` na camada de contratos da API                        |
+| `npm.cmd run lint`               | **Concluído** em 30/09/2026                                                                                | Regras JS, React, Hooks, JSX a11y e fronteiras de camadas              |
+| `npm.cmd run format:check`       | **Concluído** em 30/09/2026                                                                                | Código e documentação sob Prettier consistentes                        |
+| `npm.cmd run test:e2e` no Chrome | **26 passaram; 2 testes reais ignorados sem `RUN_REAL_API`**                                               | Fluxos no navegador, estados offline/sem dados, layouts e análise WCAG |
+| `npm.cmd run build`              | **Concluído** em 30/09/2026 pelo Vite 6.4.3                                                                | Imports, JSX, CSS e geração dos chunks das páginas                     |
+| `git diff --check`               | **Sem erros**                                                                                              | Ausência de erros de whitespace no diff                                |
+| `git status --short`             | **Somente `FrontEnd/`**                                                                                    | Escopo das alterações registradas no Git                               |
 
 Build bem sucedido não comprova disponibilidade da API, layout em navegador ou ausência de erro no console durante uso real.
 
@@ -56,16 +55,16 @@ Os caminhos abaixo refletem a estrutura atual. Os testes específicos continuam 
 | Arquivo(s)                                                                                                      | Comportamento protegido                                                                                                                             |
 | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/app/App.test.jsx`                                                                                          | Entrada direta em rotas com tema salvo, fallback de carregamento, link de salto, foco após navegação, 404 e título                                  |
-| `src/shared/api/api.test.js`                                                                                    | Codificação do usuário, erro HTTP, cancelamento externo, timeout na leitura, formatos de exportação, data inválida e MIME ausente ou incorreto      |
-| `src/shared/api/validators.test.js`                                                                             | Contratos válidos e inválidos de usuários, realtime, resumo e configurações                                                                         |
+| `src/shared/api/api.test.js`                                                                                    | Codificação do usuário, `offline` realtime aceito, erro HTTP, cancelamento, timeout, exportação, data e MIME                                        |
+| `src/shared/api/validators.test.js`                                                                             | Estados realtime `online`/`ausente`/`offline` aceitos e desconhecido rejeitado; demais contratos válidos e inválidos                                |
 | `src/shared/api/errorMessage.test.js`, `src/shared/lib/requestFailure.test.js`                                  | Mensagens seguras para erros, cancelamento, falha de contrato e rejeição por fonte                                                                  |
 | `src/features/dashboard/hooks/useDashboardData.test.js`                                                         | Três fontes, horário de atualização, dados mantidos no refresh, falha parcial e data divergente                                                     |
 | `src/app/hooks/useHashRoute.test.js`                                                                            | Hash desconhecido e reação a `hashchange`                                                                                                           |
 | `src/app/hooks/useTheme.test.js`                                                                                | Preferência do sistema, preferência salva, alternância, classe/documento e `localStorage`                                                           |
 | `src/features/dashboard/hooks/useAutoRefresh.test.js`                                                           | Intervalo, desativação, pausa na aba oculta e atualização ao retornar; usado pelo painel                                                            |
-| `src/features/dashboard/pages/DashboardPage.test.jsx`                                                           | Loading, indicadores baseados na API, falha de realtime, filtro de usuário e contagem de cadastrados independente do realtime                       |
-| `src/features/collaborators/pages/CollaboratorsPage.test.jsx`                                                   | Duas fontes de dados, cards e tabela, falhas parciais e totais, lista vazia, retry e cancelamento ao desmontar                                      |
-| `src/features/dashboard/components/DashboardFilters.test.jsx`, `LastActivityTable.test.jsx`                     | Mudança/limpeza dos filtros; status, carregamento, vazio e indisponibilidade da atividade                                                           |
+| `src/features/dashboard/pages/DashboardPage.test.jsx`                                                           | Loading, indicadores com `offline`/sem dados, falha de realtime, filtro e contagem de cadastrados                                                   |
+| `src/features/collaborators/pages/CollaboratorsPage.test.jsx`                                                   | Duas fontes de dados, `offline`, sem dados, falhas parciais, lista vazia, retry e cancelamento                                                      |
+| `src/features/dashboard/components/DashboardFilters.test.jsx`, `LastActivityTable.test.jsx`                     | Filtros, status, tempo relativo em segundos/minutos/horas, carregamento, vazio e indisponibilidade                                                  |
 | `src/features/dashboard/components/DashboardMetrics.test.jsx`, `DashboardStatusNotice.test.jsx`                 | Indicadores com dados disponíveis/indisponíveis e aviso sobre limites dos dados do agente                                                           |
 | `src/testing/frontendRevision.test.jsx`                                                                         | Falha parcial, resposta antiga, resumo malformado, configuração indisponível/inválida, cancelamento de gravação e exportação, erro HTTP no download |
 | `src/features/reports/pages/ReportsPage.test.jsx`                                                               | Loading/vazio/retry, envio duplicado, filtros bloqueados, download iniciado, liberação da URL de objeto e arquivo vazio                             |
@@ -84,13 +83,14 @@ Os caminhos abaixo refletem a estrutura atual. Os testes específicos continuam 
 | `src/shared/lib/routeLeaveGuard.test.js`, `activityStatus.test.js`                                              | Registro/remoção da proteção de saída e rótulos de status da atividade                                                                              |
 | `src/testing/architecture.test.js`                                                                              | Imports válidos e violações de camadas em imports, reexports e imports dinâmicos                                                                    |
 
-Playwright cobre retry de Colaboradores, leitura e gravação de Configurações, confirmação ao sair com alterações pendentes, CSV/PDF, alternância entre cards e tabelas em 375/768/1366 px, menu móvel, estados offline e erro do servidor. Os dois testes de FastAPI real são opt-in e foram ignorados sem `RUN_REAL_API`. Veja [Pendências](PENDENCIAS.md).
+Playwright cobre também a resposta realtime com `offline` e o usuário sem entrada (sem rejeição da API), além de retry de Colaboradores, Configurações, CSV/PDF, layouts responsivos, menu móvel e erros. Os dois testes de FastAPI real são opt-in e dependem do ambiente descrito em [Pendências](PENDENCIAS.md).
 
 ## Cenários críticos a manter em futuras mudanças
 
 - Diferenciar **lista vazia válida** de falha/JSON inválido em cada fonte.
 - Impedir que resposta de consulta anterior ou de outra data substitua o filtro atual.
 - Impedir que uma falha de realtime apareça como zero de usuários online.
+- Aceitar `online`, `ausente` e `offline` no realtime, rejeitar estados desconhecidos e distinguir `offline` informado pela API de usuário sem entrada realtime.
 - Cancelar solicitações quando filtros mudam ou a página sai de cena; encerrar timeout e listeners.
 - Validar inteiros positivos antes de gravar configurações e não anunciar sucesso quando a resposta for inválida.
 - Não baixar HTML, arquivo vazio ou resposta HTTP de erro como CSV/PDF.

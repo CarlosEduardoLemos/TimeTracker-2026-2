@@ -12,7 +12,7 @@
 
 /**
  * @typedef {User & {
- *   status: 'online' | 'ausente',
+ *   status: 'online' | 'ausente' | 'offline',
  *   seconds_since_last_activity: number,
  *   hostname?: string | null,
  *   process_name?: string | null,

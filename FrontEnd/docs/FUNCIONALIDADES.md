@@ -30,13 +30,14 @@ O escopo solicitado para filtros, indicadores e timeline está na [tela de refer
 
 ### Indicadores exibidos
 
-| Indicador            | Cálculo e fonte                                                                              | Limite da interpretação                                                                |
-| -------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Online               | Contagem de usuários da lista, filtrados se necessário, cujo status realtime é `online`      | Status de leitura calculado pelo backend; não é prova de conexão autenticada do agente |
-| Ausentes             | Contagem com status realtime `ausente`                                                       | Indica leitura recente marcada como ociosa ou acima do limite do backend               |
-| Sem leitura recente  | Usuários cadastrados que não aparecem na resposta realtime                                   | Derivado no frontend da janela de 15 minutos; não equivale a offline de rede           |
-| Tempo registrado     | Soma de `total_seconds` dos usuários no resumo da data selecionada                           | Tempo agregado de atividades, sem classificar produtividade por task                   |
-| Usuários cadastrados | Sem filtro, tamanho de `/users/`; com filtro, contagem do `username` selecionado nessa lista | Não é equipe vinculada a gestor; independe da disponibilidade do realtime              |
+| Indicador            | Cálculo e fonte                                                                              | Limite da interpretação                                                          |
+| -------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Online               | Contagem de usuários da lista, filtrados se necessário, cujo status realtime é `online`      | Atividade recente segundo o backend; não é prova de conexão autenticada do Agent |
+| Ausentes             | Contagem com status realtime `ausente`                                                       | Mais de 5 minutos sem novo evento, conforme status retornado pelo backend        |
+| Sem leitura recente  | Contagem com status realtime `offline`                                                       | Mais de 15 minutos sem novo evento; não confirma desconexão do Agent             |
+| Sem dados            | Usuários cadastrados sem entrada na resposta realtime                                        | O endpoint conserva entradas por até 24 horas; ausência não significa `offline`  |
+| Tempo registrado     | Soma de `total_seconds` dos usuários no resumo da data selecionada                           | Tempo agregado de atividades, sem classificar produtividade por task             |
+| Usuários cadastrados | Sem filtro, tamanho de `/users/`; com filtro, contagem do `username` selecionado nessa lista | Não é equipe vinculada a gestor; independe da disponibilidade do realtime        |
 
 Se usuários ou realtime falharem, contagens de estado aparecem como indisponíveis, e não como zero. Se o resumo falhar ou vier com data diferente, o tempo registrado e as categorias ficam indisponíveis. O alerta identifica a fonte e informa o motivo da falha quando disponível, incluindo o `detail` da API. Um resumo válido com lista vazia produz zero de tempo e mensagem “Sem registros na data selecionada”.
 
@@ -46,11 +47,11 @@ O indicador **Usuários cadastrados** usa somente `/users/`, inclusive quando h�
 
 **Última atividade** mostra usuário, status de leitura em badge, `process_name` e segundos desde a última captura. Os dados são atuais, mesmo quando a data do resumo é antiga. **Tempo por categoria** agrega `by_category` de todos os usuários presentes no resumo filtrado e ordena pela duração. As barras são decorativas; duração e percentual aparecem em texto. Categorias não representam aplicações produtivas dentro de uma task. Ambas as áreas têm mensagens próprias de carregamento, vazio e indisponibilidade.
 
-Um aviso informa que `/users/` é global e que a API não oferece conexão real do agente. Tasks ativas, tempo produtivo, horas extras e timeline não são calculados.
+Um aviso informa que `/users/` é global e que os estados Online, Ausente e Offline vêm do tempo desde a última atividade; Offline não confirma que o Agent perdeu conexão com o servidor. Tasks ativas, tempo produtivo, horas extras e timeline não são calculados.
 
 ## Colaboradores (`#/colaboradores`)
 
-A tabela exibe `username`, `full_name` e `department` da lista global. Quando realtime está disponível, acrescenta estado da última leitura e processo mais recente. Se realtime falhar, os usuários ainda aparecem e as colunas de atividade indicam indisponibilidade. Se a lista de usuários falhar, não se apresenta uma lista vazia como resultado real. Há estado de carregamento, aviso de falha, botão “Tentar novamente” e mensagem para lista validamente vazia. Esta tela não mostra código de associação, gestor, permissões ou conexão confirmada do agente.
+A tabela exibe `username`, `full_name` e `department` da lista global. Quando realtime está disponível, acrescenta estado da última leitura e processo mais recente. `offline` é “Sem leitura recente”; usuário sem entrada realtime em até 24 horas é “Sem dados”. Se realtime falhar, os usuários ainda aparecem e as colunas de atividade indicam indisponibilidade. Se a lista de usuários falhar, não se apresenta uma lista vazia como resultado real. Há estado de carregamento, aviso de falha, botão “Tentar novamente” e mensagem para lista validamente vazia. Esta tela não mostra código de associação, gestor, permissões ou conexão confirmada do Agent.
 
 ## Tasks (`#/tasks`)
 
@@ -60,7 +61,7 @@ A página informa que o backend não oferece consulta, criação, edição ou pe
 
 O formulário aparece após `GET /config/` válido. Permite editar somente `capture_interval_seconds` e `idle_timeout_seconds`, ambos globais e medidos em segundos. Inputs exigem inteiros positivos; a mesma regra é verificada antes do envio e na resposta do servidor. `PUT /config/` envia os dois valores juntos. O botão de salvar fica desabilitado sem mudanças; “Restaurar” repõe os valores lidos. Ao tentar mudar de rota com alterações pendentes, a interface pede confirmação. Refresh e fechamento da aba acionam o aviso padrão do navegador. Durante o salvamento os campos são bloqueados; uma resposta válida mostra “Configurações salvas” temporariamente. Falha de leitura mostra retry; falha de gravação preserva o formulário com erro. Sair da página cancela uma operação em andamento.
 
-O campo global de inatividade **não** configura o limite individual previsto em [RF-21](../../requisitos/requisitos/rn_rf.md#rf-21--configurar-limite-de-inatividade). O backend usa atualmente uma constante própria para calcular o status realtime; salvar esse campo não muda esse cálculo por si só. Não há controles de jornada, dias úteis, horários ou intervalo ([RF-20](../../requisitos/requisitos/rn_rf.md#rf-20--configurar-jornada)).
+O Agent consulta `/config/` e atualiza periodicamente seus intervalos de captura e inatividade. O realtime ainda usa limites próprios de 5 e 15 minutos; salvar o campo global não garante que a classificação do backend passe a usar esse valor ([RF-21](../../requisitos/requisitos/rn_rf.md#rf-21--configurar-limite-de-inatividade), pendência B-04). Não há controles de jornada, dias úteis, horários ou intervalo ([RF-20](../../requisitos/requisitos/rn_rf.md#rf-20--configurar-jornada)).
 
 ## Relatórios (`#/relatorios`)
 

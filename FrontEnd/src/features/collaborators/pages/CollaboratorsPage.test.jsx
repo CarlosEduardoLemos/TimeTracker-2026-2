@@ -29,14 +29,27 @@ describe('CollaboratorsPage', () => {
     expect(anaRow).toHaveTextContent('Ana Souza');
     expect(anaRow).toHaveTextContent('Online');
     expect(anaRow).toHaveTextContent('Editor');
-    expect(biaRow).toHaveTextContent('Sem leitura recente');
+    expect(biaRow).toHaveTextContent('Sem dados');
 
     const cards = screen.getAllByRole('article');
     expect(cards).toHaveLength(2);
     expect(within(cards[0]).getByText('Ana Souza')).toBeInTheDocument();
     expect(cards[0]).toHaveTextContent('Editor');
-    expect(cards[1]).toHaveTextContent('Sem leitura recente');
+    expect(cards[1]).toHaveTextContent('Sem dados');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('exibe offline retornado pela API sem rejeitar a atividade', async () => {
+    api.users.mockResolvedValue(users);
+    api.realtime.mockResolvedValue([
+      { username: 'ana', status: 'offline', seconds_since_last_activity: 901 },
+    ]);
+    render(<CollaboratorsPage />);
+
+    const table = await screen.findByRole('table', { name: 'Usuários cadastrados na API' });
+    const anaRow = within(table).getByRole('rowheader', { name: 'ana' }).closest('tr');
+    expect(anaRow).toHaveTextContent('Sem leitura recente');
+    expect(anaRow).not.toHaveTextContent('Indisponível');
   });
 
   it('mantém usuários visíveis quando a atividade falha, sem sugerir estado offline', async () => {

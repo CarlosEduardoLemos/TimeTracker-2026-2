@@ -16,8 +16,9 @@ describe('contratos da API', () => {
     const entry = { username: 'ana', status: 'online', seconds_since_last_activity: 0 };
     expect(validRealtime([entry])).toBe(true);
     expect(validRealtime([{ ...entry, status: 'ausente', process_name: null }])).toBe(true);
+    expect(validRealtime([{ ...entry, status: 'offline' }])).toBe(true);
     expect(validRealtime([entry, entry])).toBe(false);
-    expect(validRealtime([{ ...entry, status: 'offline' }])).toBe(false);
+    expect(validRealtime([{ ...entry, status: 'desconhecido' }])).toBe(false);
     expect(validRealtime([{ ...entry, seconds_since_last_activity: -1 }])).toBe(false);
     expect(validRealtime([{ ...entry, seconds_since_last_activity: 0.5 }])).toBe(false);
     expect(validRealtime([{ ...entry, process_name: {} }])).toBe(false);

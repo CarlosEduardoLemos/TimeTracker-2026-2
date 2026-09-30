@@ -2,6 +2,16 @@
 
 Changelog por data, em ordem da mais recente para a mais antiga. As entradas de 25 e 26/09/2026 preservam os caminhos usados na época. Consulte [Arquitetura](ARQUITETURA.md) para os caminhos atuais e [Testes](TESTES.md) para os resultados automatizados mais recentes; os números de execuções intermediárias não são reproduzidos aqui.
 
+## 30/09/2026
+
+### Compatibilidade com o realtime atualizado
+
+- `validRealtime` e o contrato JSDoc agora aceitam `offline`; o validator continua rejeitando estados desconhecidos. Testes de API, Dashboard, Colaboradores e E2E cobrem o novo estado.
+- `deriveTeam` preserva `offline` retornado pelo backend e usa `no-data` quando o usuário não aparece no realtime. A interface mostra “Sem leitura recente” e “Sem dados” como situações distintas.
+- O Dashboard explica os limites temporais do realtime, sem tratar `offline` como falha de conexão do Agent. A tabela formata a última leitura em segundos, minutos e horas.
+- `PENDENCIAS.md` registra o consumo periódico de `/config/` pelo Agent, mantém B-04 como parcialmente normalizada com trabalho pendente no backend, mantém I-05 bloqueada e deixa I-08 pendente do ambiente real.
+- Arquitetura, funcionalidades e roteiros de teste documentam os estados `online`/`ausente`/`offline`, retenção de até 24 horas e ausência de heartbeat autenticado.
+
 ## 28/09/2026
 
 ### Garantias automatizadas adicionais
