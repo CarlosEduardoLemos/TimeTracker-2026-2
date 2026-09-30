@@ -12,6 +12,7 @@ Changelog por data, em ordem da mais recente para a mais antiga. As entradas de 
 - `PENDENCIAS.md` registra o consumo periódico de `/config/` pelo Agent, mantém B-04 como parcialmente normalizada com trabalho pendente no backend, mantém I-05 bloqueada e deixa I-08 pendente do ambiente real.
 - Arquitetura, funcionalidades e roteiros de teste documentam os estados `online`/`ausente`/`offline`, retenção de até 24 horas e ausência de heartbeat autenticado.
 - Os detalhes do Dashboard e de Colaboradores não atribuem limites fixos ou desconexão ao estado `offline`; B-10 registra a classificação de inatividade como pendência do backend.
+- O `ActivityStatusBadge` usa o estilo de indisponibilidade como fallback para estados desconhecidos; o teste cobre esse caso.
 
 ## 28/09/2026
 
