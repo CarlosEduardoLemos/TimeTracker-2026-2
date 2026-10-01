@@ -7,13 +7,9 @@ import { CategorySummary } from '../components/CategorySummary';
 import { DashboardStatusNotice } from '../components/DashboardStatusNotice';
 import { ErrorNotice } from '../../../shared/components/AsyncFeedback';
 import { PageHeader } from '../../../shared/components/PageHeader';
-import {
-  categoryTotals,
-  deriveTeam,
-  filterRealtimePeople,
-  todayIso,
-  totalSeconds,
-} from '../../../shared/lib/dashboard';
+import { todayIso } from '../../../shared/lib/date';
+import { deriveTeam, filterRealtimePeople } from '../../../shared/lib/team';
+import { categoryTotals, totalSeconds } from '../lib/summary';
 
 export function DashboardPage({ dark, toggleTheme }) {
   const [date, setDate] = useState(todayIso());

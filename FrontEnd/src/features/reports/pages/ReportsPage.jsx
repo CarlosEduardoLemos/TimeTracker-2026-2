@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../../../shared/api/api';
 import { getApiErrorMessage } from '../../../shared/api/errorMessage';
-import { todayIso } from '../../../shared/lib/dashboard';
+import { todayIso } from '../../../shared/lib/date';
 import { PageHeader } from '../../../shared/components/PageHeader';
 import { IntegrationNotice } from '../../../shared/components/IntegrationNotice';
 import { ReportFilters } from '../components/ReportFilters';

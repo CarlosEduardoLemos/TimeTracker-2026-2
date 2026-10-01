@@ -1,4 +1,4 @@
-import { isIsoDate } from '../lib/dashboard';
+import { isIsoDate } from '../lib/date';
 
 function optionalText(value) {
   return value == null || typeof value === 'string';

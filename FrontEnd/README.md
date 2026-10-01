@@ -67,10 +67,10 @@ FrontEnd/
 │   │   └── styles/
 │   ├── features/         # Páginas e lógica de cada funcionalidade
 │   │   ├── auth/pages/
-│   │   ├── collaborators/pages/
-│   │   ├── dashboard/    # pages/, hooks/ e components/ do painel
+│   │   ├── collaborators/ # pages/, hooks/ e components/
+│   │   ├── dashboard/    # pages/, hooks/, components/ e lib/ do painel
 │   │   ├── reports/      # pages/, hooks/, components/ e lib/
-│   │   ├── settings/pages/
+│   │   ├── settings/     # pages/, hooks/ e components/
 │   │   └── tasks/pages/
 │   ├── shared/           # Recursos usados por diferentes funcionalidades
 │   │   ├── api/
@@ -125,7 +125,9 @@ Um teste separado consulta a API real. Inicie a API e o banco, defina `RUN_REAL_
 
 ## Documentação
 
+- [Índice da documentação](docs/README.md)
 - [Arquitetura](docs/ARQUITETURA.md)
+- [Contratos da API](docs/CONTRATOS_API.md)
 - [Funcionalidades](docs/FUNCIONALIDADES.md)
 - [Testes](docs/TESTES.md)
 - [Histórico de alterações e auditoria](docs/ALTERACOES.md)

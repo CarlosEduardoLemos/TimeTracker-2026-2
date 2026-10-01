@@ -79,7 +79,7 @@ Os caminhos abaixo refletem a estrutura atual. Os testes específicos continuam 
 | `src/features/reports/lib/exportFilename.test.js`                                                               | Nome seguro do download com filtro de usuário                                                                                                       |
 | `src/shared/components/MetricCard.test.jsx`, `PageHeader.test.jsx`, `IntegrationNotice.test.jsx`                | Indicadores, título/descrição/ações do cabeçalho e conteúdo dos avisos de integração                                                                |
 | `src/shared/components/AsyncFeedback.test.jsx`, `ActivityStatusBadge.test.jsx`                                  | Anúncios, retry, toast temporário, skeletons e rótulos de status                                                                                    |
-| `src/shared/lib/dashboard.test.js`                                                                              | Formatação de tempo/data, agregação de categorias, filtros e contagens sem alterar a lista original                                                 |
+| `src/shared/lib/team.test.js`, `src/features/dashboard/lib/summary.test.js`                                     | União e filtros da equipe, contagens de status e agregação de categorias                                                                            |
 | `src/shared/lib/routeLeaveGuard.test.js`, `activityStatus.test.js`                                              | Registro/remoção da proteção de saída e rótulos de status da atividade                                                                              |
 | `src/testing/architecture.test.js`                                                                              | Imports válidos e violações de camadas em imports, reexports e imports dinâmicos                                                                    |
 
@@ -166,7 +166,7 @@ Vitest usa mocks de `fetch` e jsdom. Playwright usa Chrome com respostas HTTP si
 
 - `src/features/settings/pages/SettingsPage.test.jsx`: sucesso, dois submits no mesmo evento, bloqueio/liberação de campos, falha de rede, limpeza de erro e nova tentativa.
 - `src/shared/api/api.test.js`: sinal já cancelado sem rede, cancelamento após leitura iniciada, distinção de timeout externo/interno e MIME com sufixo inválido.
-- `src/shared/lib/dashboard.test.js`: textos malformados, identidades duplicadas, tempo negativo/fracionário, data inexistente e duração acima da precisão segura.
+- `src/shared/api/validators.test.js`: textos malformados, identidades duplicadas, duração negativa/fracionária, data inexistente e duração acima da precisão segura.
 - `src/features/dashboard/hooks/useDashboardData.test.js`: resumo de outro usuário e horário sem dados após falha de todas as fontes.
 - `src/features/dashboard/pages/DashboardPage.test.jsx`: usuário selecionado continua visível sem lista disponível.
 - `src/app/hooks/useTheme.test.js`: leitura e gravação bloqueadas no localStorage não impedem a alternância.

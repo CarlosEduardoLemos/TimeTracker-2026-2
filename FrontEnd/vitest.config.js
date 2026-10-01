@@ -6,7 +6,6 @@ const criticalFiles = [
   'src/shared/api/api.js',
   'src/shared/api/validators.js',
   'src/shared/api/errorMessage.js',
-  'src/shared/lib/dashboard.js',
   'src/shared/lib/activityStatus.js',
   'src/shared/lib/requestFailure.js',
   'src/shared/lib/routeLeaveGuard.js',

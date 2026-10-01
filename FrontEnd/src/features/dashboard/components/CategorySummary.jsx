@@ -1,5 +1,5 @@
 import { EmptyState, LoadingSkeleton } from '../../../shared/components/AsyncFeedback';
-import { fmtDuration } from '../../../shared/lib/dashboard';
+import { fmtDuration } from '../../../shared/lib/duration';
 
 export function CategorySummary({ categories, totalSeconds, loading, available }) {
   const total = totalSeconds || categories.reduce((sum, category) => sum + category.seconds, 0);

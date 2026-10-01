@@ -1,4 +1,4 @@
-import { todayIso } from '../../../shared/lib/dashboard';
+import { todayIso } from '../../../shared/lib/date';
 
 export function DashboardFilters({
   date,

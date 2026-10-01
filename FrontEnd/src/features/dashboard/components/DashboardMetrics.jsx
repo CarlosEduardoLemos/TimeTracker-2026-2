@@ -1,5 +1,7 @@
 import { MetricCard } from '../../../shared/components/MetricCard';
-import { countPeopleByStatus, fmtDuration, totalSeconds } from '../../../shared/lib/dashboard';
+import { countPeopleByStatus } from '../../../shared/lib/team';
+import { fmtDuration } from '../../../shared/lib/duration';
+import { totalSeconds } from '../lib/summary';
 
 export function DashboardMetrics({ loading, available, filtered, summary, users, username }) {
   const status = (name) =>
