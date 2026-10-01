@@ -128,6 +128,5 @@ Um teste separado consulta a API real. Inicie a API e o banco, defina `RUN_REAL_
 - [Arquitetura](docs/ARQUITETURA.md)
 - [Funcionalidades](docs/FUNCIONALIDADES.md)
 - [Testes](docs/TESTES.md)
-- [Auditoria](docs/AUDITORIA.md)
-- [Alterações](docs/ALTERACOES.md)
+- [Histórico de alterações e auditoria](docs/ALTERACOES.md)
 - [Pendências](docs/PENDENCIAS.md)
