@@ -1,4 +1,4 @@
-import { isIsoDate } from '../lib/dashboard';
+import { isIsoDate } from '../lib/date';
 
 function optionalText(value) {
   return value == null || typeof value === 'string';
@@ -26,7 +26,7 @@ export function validRealtime(value) {
     uniqueUsers(value) &&
     value.every(
       (entry) =>
-        ['online', 'ausente'].includes(entry.status) &&
+        ['online', 'ausente', 'offline'].includes(entry.status) &&
         Number.isSafeInteger(entry.seconds_since_last_activity) &&
         entry.seconds_since_last_activity >= 0 &&
         optionalText(entry.process_name) &&

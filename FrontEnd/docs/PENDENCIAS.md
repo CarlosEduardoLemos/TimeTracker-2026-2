@@ -1,6 +1,6 @@
 ﻿# Pendências do frontend e dependências externas
 
-Revisão: **28/09/2026**. `backend/` e a pasta [requisitos](../../requisitos/visao.md) foram consultados somente para leitura. Nenhum contrato foi alterado. Os IDs clicáveis em **Problema/requisito** levam às seções de origem em [RN/RF](../../requisitos/requisitos/rn_rf.md), [RNF](../../requisitos/requisitos/rnf.md) ou [critérios de aceite](../../requisitos/requisitos/ca.md). Situação, prioridade, impacto e contrato necessário são conclusões da revisão do código e da API, não texto dos requisitos. Prioridade alta indica risco de acesso, integridade ou bloqueio funcional; média indica lacuna relevante; baixa indica manutenção.
+Revisão: **30/09/2026**. `backend/`, `agent/` e a pasta [requisitos](../../requisitos/visao.md) foram consultados somente para leitura. Nenhum contrato externo foi alterado. Os IDs clicáveis em **Problema/requisito** levam às seções de origem em [RN/RF](../../requisitos/requisitos/rn_rf.md), [RNF](../../requisitos/requisitos/rnf.md) ou [critérios de aceite](../../requisitos/requisitos/ca.md). Situação, prioridade, impacto e contrato necessário são conclusões da revisão do código e da API, não texto dos requisitos. Prioridade alta indica risco de acesso, integridade ou bloqueio funcional; média indica lacuna relevante; baixa indica manutenção.
 
 ## Resumo das pendências
 
@@ -9,12 +9,13 @@ Revisão: **28/09/2026**. `backend/` e a pasta [requisitos](../../requisitos/vis
 | B-01 | Autorização dos endpoints e isolamento dos dados                  | Backend              | Alta       | AGUARDANDO BACKEND         |
 | B-02 | CORS e HTTPS por ambiente                                         | Backend              | Alta       | AGUARDANDO BACKEND         |
 | B-03 | Seed incompatível com chave UUID                                  | Backend              | Alta       | AGUARDANDO BACKEND         |
-| B-04 | Limite salvo não aplicado ao realtime                             | Backend              | Média      | AGUARDANDO BACKEND         |
+| B-04 | Limite salvo não aplicado ao realtime                             | Backend              | Média      | PARCIAL; BACKEND PENDENTE  |
 | B-05 | Capturas empatadas no realtime                                    | Backend              | Média      | AGUARDANDO BACKEND         |
 | B-06 | Reenvio de atividades sem deduplicação                            | Backend              | Alta       | AGUARDANDO BACKEND         |
 | B-07 | Datas futuras e tempo relativo negativo                           | Backend              | Média      | AGUARDANDO BACKEND         |
 | B-08 | Segurança e fidelidade dos arquivos exportados                    | Backend              | Média      | AGUARDANDO BACKEND         |
 | B-09 | Configuração global sem unicidade garantida                       | Backend              | Média      | AGUARDANDO BACKEND         |
+| B-10 | Flag de inatividade pode gerar status `offline`                   | Backend              | Média      | AGUARDANDO BACKEND         |
 | I-01 | Conta, login e sessão do gestor                                   | Integração           | Alta       | BLOQUEADO                  |
 | I-02 | Associação gestor–colaborador e código                            | Integração           | Alta       | BLOQUEADO                  |
 | I-03 | Tasks, atribuição, escopo e monitoramento consentido              | Integração           | Alta       | BLOQUEADO                  |
@@ -22,7 +23,7 @@ Revisão: **28/09/2026**. `backend/` e a pasta [requisitos](../../requisitos/vis
 | I-05 | Conexão real do agente                                            | Integração           | Média      | BLOQUEADO                  |
 | I-06 | Dashboard, timeline e relatórios completos                        | Integração           | Alta       | BLOQUEADO                  |
 | I-07 | Referência de fuso e virada do dia                                | Integração           | Média      | BLOQUEADO                  |
-| I-08 | Teste de integração com serviço real                              | Integração           | Média      | BLOQUEADO                  |
+| I-08 | Teste de integração com serviço real                              | Integração           | Média      | PENDENTE DE AMBIENTE       |
 | F-01 | Integração das telas após contratos                               | Frontend             | Alta       | BLOQUEADO                  |
 | F-02 | Instalação PWA e política offline                                 | Frontend             | Média      | FRONTEND FUTURO            |
 | F-03 | Validação humana e matriz de navegadores                          | Frontend             | Média      | FRONTEND FUTURO            |
@@ -36,6 +37,8 @@ Os status descrevem a dependência atual; a prioridade indica impacto. Eles não
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **BLOQUEADO**                  | A funcionalidade não pode ser concluída com os contratos, dados ou ambiente disponíveis no momento. Depende de uma definição ou implementação externa, como autenticação no backend para o login do gestor. |
 | **AGUARDANDO BACKEND**         | A correção precisa ser feita ou garantida no servidor, como a autorização dos endpoints.                                                                                                                    |
+| **PARCIAL; BACKEND PENDENTE**  | O Agent já consome a configuração, mas a classificação realtime ainda depende de limites próprios do backend.                                                                                               |
+| **PENDENTE DE AMBIENTE**       | O cenário de integração está preparado; falta serviço real, banco, origem configurada e dados autorizados para executá-lo.                                                                                  |
 | **FRONTEND FUTURO**            | Trabalho previsto para uma etapa posterior do frontend, como instalação PWA ou validação em dispositivos reais.                                                                                             |
 | **AGUARDANDO REVISÃO EXTERNA** | Depende da revisão de um documento fora de `FrontEnd/`; neste caso, `requisitos/responsividade.md`.                                                                                                         |
 
@@ -78,12 +81,12 @@ As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID
 
 ### B-04 — Limite salvo não aplicado ao realtime — Média
 
-- **Status:** AGUARDANDO BACKEND.
+- **Status:** PARCIAL; BACKEND PENDENTE.
 - **Problema/requisito:** configuração editável não governa o cálculo exibido; [RF-14](../../requisitos/requisitos/rn_rf.md#rf-14--controlar-atividade-e-inatividade)/[RF-21](../../requisitos/requisitos/rn_rf.md#rf-21--configurar-limite-de-inatividade).
 - **Frontend afetado:** `SettingsPage`, indicadores do painel e tabela de colaboradores.
 - **Backend relacionado:** `app/crud.py:get_realtime_view`, `app/utils.py:MAX_IDLE_SECONDS`, `/config/`.
-- **Atual/impacto:** GET/PUT persiste valores globais, mas realtime usa constante do processo. Salvar não altera esse cálculo.
-- **Alteração necessária:** backend/agente devem usar a configuração aplicável e testar sua propagação; configuração individual depende de I-04.
+- **Atual/impacto:** o Agent consulta `/config/` e atualiza periodicamente `capture_interval_seconds` e `idle_timeout_seconds`; a classificação realtime do backend ainda usa limites próprios de 5 e 15 minutos. Salvar não altera esses limites de classificação.
+- **Alteração necessária:** backend deve aplicar os limites configurados no realtime e validar a propagação; configuração individual depende de I-04.
 - **Workaround frontend:** aviso explícito, já presente. Recalcular status localmente não é aceitável.
 - **Motivo do bloqueio:** semântica do status e aplicação da configuração pertencem ao servidor/agente.
 
@@ -104,7 +107,7 @@ As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID
 - **Problema/requisito:** ausência de chave de idempotência/unicidade de reenvio; [RF-19](../../requisitos/requisitos/rn_rf.md#rf-19--sincronizar-registros)/[CA-05](../../requisitos/requisitos/ca.md#ca-05--armazenamento-e-sincronização)/[CA-09](../../requisitos/requisitos/ca.md#ca-09--privacidade-e-segurança).
 - **Frontend afetado:** total registrado no painel e arquivos de relatório.
 - **Backend relacionado:** `ActivityLogCreate`, `create_activity_log`, modelo `ActivityLog`.
-- **Atual/impacto:** cada POST insere uma atividade; reenvios podem duplicar duração agregada.
+- **Atual/impacto:** o Agent usa fila persistente e retry, enquanto cada POST ainda pode inserir uma atividade; reenvios podem duplicar duração agregada.
 - **Alteração necessária:** definir identidade do registro e deduplicação servidor/agente com confirmação de sincronização.
 - **Workaround frontend:** não existe; remover totais ou deduplicar agregados no navegador perderia dados legítimos.
 - **Motivo do bloqueio:** o dashboard recebe agregados sem identidade dos registros originais.
@@ -141,6 +144,17 @@ As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID
 - **Alteração necessária:** garantir singleton de forma transacional e determinar registro canônico no servidor; também definir limites superiores dos inteiros compatíveis com as colunas do banco, hoje validados apenas com `ge=1` nos schemas.
 - **Workaround frontend:** bloquear envios duplicados protege interações locais, mas não concorrência entre clientes nem validação do armazenamento.
 - **Motivo do bloqueio:** unicidade, concorrência e limites do banco precisam ser impostos no backend, sem inventar limites de negócio no navegador.
+
+### B-10 — Flag de inatividade pode gerar status `offline` — Média
+
+- **Status:** AGUARDANDO BACKEND.
+- **Problema/requisito:** a regra mistura inatividade de uso e conexão do agente, embora [RN-10/RF-14](../../requisitos/requisitos/rn_rf.md#rf-14--controlar-atividade-e-inatividade) e [RN-11/RF-16](../../requisitos/requisitos/rn_rf.md#rf-16--acompanhar-colaboradores-online) tratem esses conceitos separadamente.
+- **Frontend afetado:** indicadores e badges de status no Dashboard e em Colaboradores.
+- **Backend relacionado:** classificação de `/activities/realtime` baseada em `is_idle` e no tempo desde o último evento.
+- **Atual/impacto:** quando `is_idle=true`, a API pode retornar `offline` mesmo para uma captura recém-recebida. Logo, `offline` não representa necessariamente ausência de evento recente nem desconexão do Agent.
+- **Alteração necessária:** separar estado de atividade/inatividade do estado de conexão, definindo Online/Offline com sessão ou heartbeat do Agent.
+- **Workaround frontend:** exibir o status retornado com texto neutro, sem reinterpretar o campo ou afirmar desconexão.
+- **Motivo da pendência:** o frontend não consegue inferir conexão real a partir dos campos atuais; a semântica precisa ser definida no backend.
 
 ## Pendências de integração Frontend + Backend
 
@@ -195,8 +209,8 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Status:** BLOQUEADO.
 - **Problema/requisito:** [RF-05](../../requisitos/requisitos/rn_rf.md#rf-05--gerenciar-colaboradores-associados)/[RF-16](../../requisitos/requisitos/rn_rf.md#rf-16--acompanhar-colaboradores-online)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico) e [CA-04](../../requisitos/requisitos/ca.md#ca-04--estado-e-execução-da-task) exigem Online enquanto conectado/autenticado.
 - **Frontend afetado:** métricas de estado e tabela de última atividade.
-- **Backend relacionado:** `/activities/realtime`, janela de 15 minutos.
-- **Atual/impacto:** status deriva de última leitura e inatividade; ausência na janela não comprova desconexão. A interface explica a aproximação.
+- **Backend relacionado:** `/activities/realtime`, estados calculados por tempo desde atividade e retenção de até 24 horas.
+- **Atual/impacto:** `offline` pode ocorrer quando `is_idle=true`, mesmo após uma captura recente, ou quando passam mais de 15 minutos sem evento. `ausente` também é calculado por tempo sem evento. Ausência do usuário na resposta (sem atividade disponível ou além das 24 horas) não comprova desconexão. O Agent existe, mas não há heartbeat/sessão autenticada; a interface explica essa aproximação. Ver B-10.
 - **Contrato necessário:** definir heartbeat/sessão autenticada, expiração, estados de conexão e sua relação com atividade/inatividade.
 - **Workaround frontend:** mostrar última leitura com aviso é aceitável para o contrato atual; inferir conexão real não é.
 - **Motivo do bloqueio:** navegador do gestor não observa diretamente a conexão do agente.
@@ -225,14 +239,14 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 
 ### I-08 — Teste de integração com serviço real — Média
 
-- **Status:** BLOQUEADO.
+- **Status:** PENDENTE DE AMBIENTE.
 - **Problema/requisito:** confirmar CORS, dados e conteúdo de exportação; [CA-07](../../requisitos/requisitos/ca.md#ca-07--consulta-relatórios-e-exportação)/[CA-09](../../requisitos/requisitos/ca.md#ca-09--privacidade-e-segurança)/[CA-10](../../requisitos/requisitos/ca.md#ca-10--dashboard-analítico).
 - **Frontend afetado:** `e2e/real-api.spec.js` e telas com API.
 - **Backend relacionado:** FastAPI/banco em execução com dados de teste; origem configurada.
-- **Atual/impacto:** E2E principal intercepta HTTP somente nos testes; teste real é opt-in e não escreve dados. Sem serviço disponível não comprova integração/arquivos reais.
+- **Atual/impacto:** há frontend, backend e Agent para um fluxo ponta a ponta; E2E principal intercepta HTTP somente nos testes. O teste real é opt-in e não escreve dados. Ainda falta serviço real, banco, origem configurada e dados autorizados para comprovar integração/arquivos reais.
 - **Contrato/alteração necessária:** disponibilizar ambiente de teste autorizado, dados e origem; executar `RUN_REAL_API=1 npm.cmd run test:e2e:real` e conferir CSV/PDF, falhas e reinício. Sem alteração de endpoints.
 - **Workaround frontend:** fixtures de teste protegem comportamento do cliente, mas não comprovam a API real.
-- **Motivo do bloqueio:** o ambiente depende de serviço e banco externos; esta revisão não inicia nem modifica backend/banco.
+- **Motivo da pendência:** o ambiente depende de serviço e banco disponíveis e de dados de teste autorizados; executar o cenário requer o ambiente real configurado.
 
 ## Pendências futuras do Frontend
 
@@ -282,7 +296,7 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 
 ## Ordem de execução
 
-1. Proteger dados e gravações (B-01/B-02), corrigir integridade e inicialização (B-03 a B-08).
+1. Proteger dados e gravações (B-01/B-02), corrigir integridade, inicialização e estados realtime (B-03 a B-10).
 2. Definir identidade/equipe e task/consentimento (I-01 a I-03).
 3. Definir jornada, conexão, consultas completas e fuso (I-04 a I-07).
 4. Integrar UI e validar serviço real (F-01/I-08), decidir PWA e matriz de suporte (F-02/F-03).

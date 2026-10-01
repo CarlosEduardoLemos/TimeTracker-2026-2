@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { categoryTotals, countPeopleByStatus, filterRealtimePeople } from './dashboard';
+import { countPeopleByStatus, deriveTeam, filterRealtimePeople } from './team';
 
-describe('dashboard utilities', () => {
+describe('team utilities', () => {
   it('filters realtime people only when a collaborator is selected', () => {
     const people = [
       { username: 'ana', status: 'online' },
@@ -25,23 +25,15 @@ describe('dashboard utilities', () => {
     expect(countPeopleByStatus(undefined, 'online')).toBe(0);
   });
 
-  it('combines categories across users and orders them by total duration', () => {
-    const summary = {
-      users: [
-        {
-          by_category: [
-            { category: 'Reunião', total_seconds: 600 },
-            { category: 'Código', total_seconds: 1800 },
-          ],
-        },
-        { by_category: [{ category: 'Reunião', total_seconds: 2400 }] },
-      ],
-    };
+  it('preserves API offline and distinguishes users without realtime data', () => {
+    const team = deriveTeam(
+      [{ username: 'ana' }, { username: 'bia' }],
+      [{ username: 'ana', status: 'offline', seconds_since_last_activity: 901 }],
+    );
 
-    expect(categoryTotals(summary)).toEqual([
-      { name: 'Reunião', seconds: 3000 },
-      { name: 'Código', seconds: 1800 },
+    expect(team.map(({ username, status }) => ({ username, status }))).toEqual([
+      { username: 'ana', status: 'offline' },
+      { username: 'bia', status: 'no-data' },
     ]);
-    expect(categoryTotals(null)).toEqual([]);
   });
 });

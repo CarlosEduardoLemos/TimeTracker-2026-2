@@ -1,8 +1,18 @@
 import { EmptyState, LoadingSkeleton } from '../../../shared/components/AsyncFeedback';
 import { ActivityStatusBadge } from '../../../shared/components/ActivityStatusBadge';
 
+export function formatLastRead(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) return '—';
+  if (seconds < 60) return `${Math.floor(seconds)}s atrás`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}min atrás`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return remainingMinutes ? `${hours}h ${remainingMinutes}min atrás` : `${hours}h atrás`;
+}
+
 function lastRead(person) {
-  return person.realtime ? `${person.realtime.seconds_since_last_activity}s atrás` : '—';
+  return person.realtime ? formatLastRead(person.realtime.seconds_since_last_activity) : '—';
 }
 
 export function LastActivityTable({ people, loading, available }) {

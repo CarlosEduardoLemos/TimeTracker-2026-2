@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { expect, it, vi } from 'vitest';
-import { todayIso } from '../../../shared/lib/dashboard';
+import { todayIso } from '../../../shared/lib/date';
 import { DashboardFilters } from './DashboardFilters';
 
 const base = {

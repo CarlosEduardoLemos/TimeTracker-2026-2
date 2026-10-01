@@ -1,52 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { api } from '../../../shared/api/api';
-import { getApiErrorMessage } from '../../../shared/api/errorMessage';
-import { todayIso } from '../../../shared/lib/dashboard';
+import { useState } from 'react';
+import { todayIso } from '../../../shared/lib/date';
 import { PageHeader } from '../../../shared/components/PageHeader';
 import { IntegrationNotice } from '../../../shared/components/IntegrationNotice';
 import { ReportFilters } from '../components/ReportFilters';
 import { ReportUsersState } from '../components/ReportUsersState';
 import { ExportActions } from '../components/ExportActions';
 import { useReportExport } from '../hooks/useReportExport';
+import { useReportUsers } from '../hooks/useReportUsers';
 
 export function ReportsPage() {
   const [date, setDate] = useState(todayIso());
   const [username, setUsername] = useState('');
-  const [users, setUsers] = useState(null);
-  const [loadingUsers, setLoadingUsers] = useState(true);
-  const [usersError, setUsersError] = useState('');
-  const activeUsers = useRef(null);
-  const usersSequence = useRef(0);
+  const { users, loadingUsers, usersError, loadUsers } = useReportUsers();
   const { exporting, error, success, download, clearFeedback, dismissSuccess } = useReportExport(
     date,
     username,
   );
-
-  const loadUsers = useCallback(async () => {
-    activeUsers.current?.abort();
-    const controller = new AbortController();
-    activeUsers.current = controller;
-    const current = ++usersSequence.current;
-    const isCurrent = () => !controller.signal.aborted && current === usersSequence.current;
-    setLoadingUsers(true);
-    setUsersError('');
-    try {
-      const value = await api.users(controller.signal);
-      if (isCurrent()) setUsers(value);
-    } catch (cause) {
-      if (isCurrent()) {
-        setUsers(null);
-        setUsersError(getApiErrorMessage(cause));
-      }
-    } finally {
-      if (isCurrent()) setLoadingUsers(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadUsers();
-    return () => activeUsers.current?.abort();
-  }, [loadUsers]);
 
   const changeDate = (value) => {
     setDate(value);

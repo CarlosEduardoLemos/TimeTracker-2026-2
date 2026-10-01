@@ -7,7 +7,11 @@ it('formata o estado sem afirmar conexão do Agente', () => {
   expect(screen.getByText('Online')).toBeInTheDocument();
   expect(screen.queryByText(/Agente conectado/i)).not.toBeInTheDocument();
   rerender(<ActivityStatusBadge person={{ status: 'offline' }} />);
-  expect(screen.getByText('Sem leitura recente')).toBeInTheDocument();
+  expect(screen.getByText('Offline (API)')).toBeInTheDocument();
+  rerender(<ActivityStatusBadge person={{ status: 'no-data' }} />);
+  expect(screen.getByText('Sem dados')).toHaveClass('bg-slate-100');
+  rerender(<ActivityStatusBadge person={{ status: 'desconhecido' }} />);
+  expect(screen.getByText('Indisponível')).toHaveClass('bg-zinc-100');
   rerender(<ActivityStatusBadge person={{ status: 'online' }} available={false} />);
-  expect(screen.getByText('Indisponível')).toBeInTheDocument();
+  expect(screen.getByText('Indisponível')).toHaveClass('bg-zinc-100');
 });

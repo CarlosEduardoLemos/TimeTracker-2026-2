@@ -4,6 +4,8 @@ Frontend do **TimeTrack**, responsável pela interface web do dashboard. A aplic
 
 > **Escopo atual:** autenticação, associação de equipe, tasks e alguns filtros/indicadores previstos nos requisitos dependem de contratos de backend que ainda não estão disponíveis. O frontend sinaliza essas limitações na interface em vez de simular dados.
 
+O realtime apresenta os estados `online`, `ausente` e `offline` recebidos da API; usuários sem entrada realtime são identificados como “Sem dados”. Consulte [Arquitetura](docs/ARQUITETURA.md) e [Funcionalidades](docs/FUNCIONALIDADES.md) para a semântica e os limites desses estados.
+
 ## Tecnologias e recursos
 
 ### Runtime e aplicação
@@ -65,10 +67,10 @@ FrontEnd/
 │   │   └── styles/
 │   ├── features/         # Páginas e lógica de cada funcionalidade
 │   │   ├── auth/pages/
-│   │   ├── collaborators/pages/
-│   │   ├── dashboard/    # pages/, hooks/ e components/ do painel
+│   │   ├── collaborators/ # pages/, hooks/ e components/
+│   │   ├── dashboard/    # pages/, hooks/, components/ e lib/ do painel
 │   │   ├── reports/      # pages/, hooks/, components/ e lib/
-│   │   ├── settings/pages/
+│   │   ├── settings/     # pages/, hooks/ e components/
 │   │   └── tasks/pages/
 │   ├── shared/           # Recursos usados por diferentes funcionalidades
 │   │   ├── api/
@@ -123,9 +125,10 @@ Um teste separado consulta a API real. Inicie a API e o banco, defina `RUN_REAL_
 
 ## Documentação
 
+- [Índice da documentação](docs/README.md)
 - [Arquitetura](docs/ARQUITETURA.md)
+- [Contratos da API](docs/CONTRATOS_API.md)
 - [Funcionalidades](docs/FUNCIONALIDADES.md)
 - [Testes](docs/TESTES.md)
-- [Auditoria](docs/AUDITORIA.md)
-- [Alterações](docs/ALTERACOES.md)
+- [Histórico de alterações](docs/ALTERACOES.md)
 - [Pendências](docs/PENDENCIAS.md)

@@ -1,4 +1,4 @@
-import { isIsoDate } from '../lib/dashboard';
+import { isIsoDate } from '../lib/date';
 import { validRealtime, validSettings, validSummary, validUsers } from './validators';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
