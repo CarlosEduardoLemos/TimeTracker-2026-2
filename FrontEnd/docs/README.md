@@ -15,6 +15,6 @@ Use este índice para localizar informações sobre o estado atual, a arquitetur
 ## Testes e histórico
 
 - [Testes](TESTES.md): verificações automatizadas, evidências e roteiros manuais.
-- [Alterações](ALTERACOES.md): histórico detalhado das alterações e auditoria consolidada.
+- [Alterações](ALTERACOES.md): histórico cronológico e resumo das revisões.
 
 Atualize o documento correspondente quando mudar uma tela, uma decisão técnica, um contrato ou o resultado de uma verificação. Este índice serve como entrada e não duplica o conteúdo desses documentos.

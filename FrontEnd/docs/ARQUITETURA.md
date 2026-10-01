@@ -30,7 +30,7 @@ Este documento descreve o código executado atualmente em `FrontEnd/`: estrutura
 | `src/features/dashboard/pages/DashboardPage.jsx`                                 | Composição de filtros, indicadores, atividade e categorias.                |
 | `src/features/collaborators/hooks/useCollaboratorsData.js` e `components/`       | Consultas, combinação de usuários/realtime e visualização responsiva.      |
 | `src/features/settings/hooks/useSettings.js` e `components/SettingsForm.jsx`     | Leitura, edição, validação, gravação e guarda de alterações não salvas.    |
-| `src/features/reports/pages/ReportsPage.jsx`, `hooks/useReportExport.js`         | Filtros e ciclo do download diário em CSV/PDF.                             |
+| `src/features/reports/`                                                          | Página, consulta de usuários e exportação organizadas por responsabilidade. |
 | `src/features/auth/pages/AuthPage.jsx`, `src/features/tasks/pages/TasksPage.jsx` | Mensagens de indisponibilidade; não coletam credenciais nem dados de task. |
 | `src/app/layout/Sidebar.jsx`                                                     | Navegação desktop e diálogo móvel.                                         |
 

@@ -130,5 +130,5 @@ Um teste separado consulta a API real. Inicie a API e o banco, defina `RUN_REAL_
 - [Contratos da API](docs/CONTRATOS_API.md)
 - [Funcionalidades](docs/FUNCIONALIDADES.md)
 - [Testes](docs/TESTES.md)
-- [Histórico de alterações e auditoria](docs/ALTERACOES.md)
+- [Histórico de alterações](docs/ALTERACOES.md)
 - [Pendências](docs/PENDENCIAS.md)
