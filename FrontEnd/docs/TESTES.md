@@ -1,6 +1,6 @@
 ﻿# Testes e validação do frontend
 
-Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Os resultados registrados abaixo refletem a revisão de 30/09/2026; o inventário completo das alterações está em [Alterações](ALTERACOES.md).
+Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Os resultados mais recentes da issue #114 foram registrados em 02/10/2026; resultados anteriores permanecem identificados pela data de execução. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
 ## Preparação e comandos
 
@@ -45,6 +45,11 @@ Os E2E regulares interceptam as respostas HTTP; para conferir API e CORS reais, 
 | `npm.cmd run build`              | **Concluído** em 30/09/2026 pelo Vite 6.4.3                                                                | Imports, JSX, CSS e geração dos chunks das páginas                     |
 | `git diff --check`               | **Sem erros**                                                                                              | Ausência de erros de whitespace no diff                                |
 | `git status --short`             | **Somente `FrontEnd/`**                                                                                    | Escopo das alterações registradas no Git                               |
+| `npm.cmd test` (issue #114)      | **148 testes em 40 arquivos passaram** em 02/10/2026                                                       | Regressão completa e novos testes do card e do Dashboard               |
+| `npm.cmd run lint` (issue #114)  | **Concluído** em 02/10/2026                                                                                | ESLint no frontend                                                     |
+| `prettier --check` (issue #114)  | **Concluído** em 02/10/2026 nos arquivos alterados                                                         | Formatação dos componentes, testes e documentação atualizados          |
+| `npm.cmd run build` (issue #114) | **Concluído** em 02/10/2026 pelo Vite 6.4.3                                                                | Build de produção após a integração visual                             |
+| `git diff --check` (issue #114)  | **Sem erros** em 02/10/2026                                                                                | Whitespace do diff da implementação                                    |
 
 Build bem sucedido não comprova disponibilidade da API, layout em navegador ou ausência de erro no console durante uso real.
 
@@ -63,6 +68,7 @@ Os caminhos abaixo refletem a estrutura atual. Os testes específicos continuam 
 | `src/app/hooks/useTheme.test.js`                                                                                | Preferência do sistema, preferência salva, alternância, classe/documento e `localStorage`                                                           |
 | `src/features/dashboard/hooks/useAutoRefresh.test.js`                                                           | Intervalo, desativação, pausa na aba oculta e atualização ao retornar; usado pelo painel                                                            |
 | `src/features/dashboard/pages/DashboardPage.test.jsx`                                                           | Loading, indicadores com `offline`/sem dados, falha de realtime, filtro e contagem de cadastrados                                                   |
+| `src/features/dashboard/components/AssociationCodeCard.test.jsx`                                                | Código de seis dígitos, zeros iniciais, Clipboard API, sucesso/falha, loading, erro e formato inválido                                              |
 | `src/features/collaborators/pages/CollaboratorsPage.test.jsx`                                                   | Duas fontes de dados, `offline`, sem dados, falhas parciais, lista vazia, retry e cancelamento                                                      |
 | `src/features/dashboard/components/DashboardFilters.test.jsx`, `LastActivityTable.test.jsx`                     | Filtros, status, tempo relativo em segundos/minutos/horas, carregamento, vazio e indisponibilidade                                                  |
 | `src/features/dashboard/components/DashboardMetrics.test.jsx`, `DashboardStatusNotice.test.jsx`                 | Indicadores com dados disponíveis/indisponíveis e aviso sobre limites dos dados do agente                                                           |

@@ -2,6 +2,16 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
+## 02/10/2026
+
+### Issue #114 — apresentação do código de associação no Dashboard
+
+- `features/dashboard/components/AssociationCodeCard.jsx` adiciona um card acessível e responsivo com estados de carregamento, erro e indisponibilidade, validação de seis dígitos como string, cópia via Clipboard API e feedback de sucesso/falha.
+- `DashboardPage.jsx` apresenta o card junto ao conteúdo principal, sem vinculá-lo às consultas dos filtros analíticos.
+- O backend local não oferece campo ou endpoint de associação, e a autenticação do gestor ainda está bloqueada. O card não usa dados de produção simulados nem cria uma chamada sem contrato; a dependência existente I-02 foi atualizada em `PENDENCIAS.md`.
+- Os testes de interface do card e do Dashboard cobrem código com zeros iniciais, cópia, falhas, carregamento, indisponibilidade e renderização.
+- Validação executada: Vitest com 148 testes em 40 arquivos, ESLint, Prettier nos arquivos alterados, build de produção e `git diff --check` passaram. Não foi executado E2E nem teste contra API real.
+
 ## 01/10/2026
 
 ### Organização do código e da documentação
