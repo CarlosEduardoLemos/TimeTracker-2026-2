@@ -1,8 +1,10 @@
-﻿# Pendências do frontend e dependências externas
+# Pendências do frontend e dependências externas
 
-Revisão: **30/09/2026**. `backend/`, `agent/` e a pasta [requisitos](../../requisitos/visao.md) foram consultados somente para leitura. Nenhum contrato externo foi alterado. Os IDs clicáveis em **Problema/requisito** levam às seções de origem em [RN/RF](../../requisitos/requisitos/rn_rf.md), [RNF](../../requisitos/requisitos/rnf.md) ou [critérios de aceite](../../requisitos/requisitos/ca.md). Situação, prioridade, impacto e contrato necessário são conclusões da revisão do código e da API, não texto dos requisitos. Prioridade alta indica risco de acesso, integridade ou bloqueio funcional; média indica lacuna relevante; baixa indica manutenção.
+Revisão: **02/10/2026**. `backend/`, `agent/` e a pasta [requisitos](../../requisitos/visao.md) foram consultados somente para leitura. Nenhum contrato externo foi alterado. Os IDs clicáveis em **Problema/requisito** levam às seções de origem em [RN/RF](../../requisitos/requisitos/rn_rf.md), [RNF](../../requisitos/requisitos/rnf.md) ou [critérios de aceite](../../requisitos/requisitos/ca.md). Situação, prioridade, impacto e contrato necessário são conclusões da revisão do código e da API, não texto dos requisitos. Prioridade alta indica risco de acesso, integridade ou bloqueio funcional; média indica lacuna relevante; baixa indica manutenção.
 
 ## Resumo das pendências
+
+**Atualização de alinhamentos da liderança: 02/10/2026.** As decisões abaixo foram incorporadas às entradas I-01, I-03, I-05/B-10, I-06, I-07, B-03 e B-06. Elas registram a direção acordada; não significam que backend, Agent ou contratos já tenham sido alterados.
 
 | ID   | Pendência                                                         | Área                 | Prioridade | Status                     |
 | ---- | ----------------------------------------------------------------- | -------------------- | ---------- | -------------------------- |
@@ -76,6 +78,7 @@ As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID
 - **Backend relacionado:** `seed.py`, `app/models.py`.
 - **Atual/impacto:** incompatibilidade identificada por leitura; pode impedir seed/inicialização. Não foi executado seed nem teste de banco.
 - **Alteração necessária:** alinhar seed ao tipo/chave e validar inicialização de configurações.
+- **Alinhamento da liderança:** o possível bug foi identificado para alinhamento com Danyyel junto aos demais ajustes críticos do backend; ainda não há confirmação de correção.
 - **Workaround frontend:** apenas mostrar erro e permitir retry; não corrige inicialização.
 - **Motivo do bloqueio:** exige edição e validação de código/banco do backend.
 
@@ -109,6 +112,7 @@ As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID
 - **Backend relacionado:** `ActivityLogCreate`, `create_activity_log`, modelo `ActivityLog`.
 - **Atual/impacto:** o Agent usa fila persistente e retry, enquanto cada POST ainda pode inserir uma atividade; reenvios podem duplicar duração agregada.
 - **Alteração necessária:** definir identidade do registro e deduplicação servidor/agente com confirmação de sincronização.
+- **Alinhamento da liderança:** o possível bug de reenvio/duplicidade foi encaminhado para alinhamento com Danyyel; a correção e a estratégia de idempotência ainda precisam ser confirmadas.
 - **Workaround frontend:** não existe; remover totais ou deduplicar agregados no navegador perderia dados legítimos.
 - **Motivo do bloqueio:** o dashboard recebe agregados sem identidade dos registros originais.
 
@@ -151,14 +155,16 @@ As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID
 - **Problema/requisito:** a regra mistura inatividade de uso e conexão do agente, embora [RN-10/RF-14](../../requisitos/requisitos/rn_rf.md#rf-14--controlar-atividade-e-inatividade) e [RN-11/RF-16](../../requisitos/requisitos/rn_rf.md#rf-16--acompanhar-colaboradores-online) tratem esses conceitos separadamente.
 - **Frontend afetado:** indicadores e badges de status no Dashboard e em Colaboradores.
 - **Backend relacionado:** classificação de `/activities/realtime` baseada em `is_idle` e no tempo desde o último evento.
-- **Atual/impacto:** quando `is_idle=true`, a API pode retornar `offline` mesmo para uma captura recém-recebida. Logo, `offline` não representa necessariamente ausência de evento recente nem desconexão do Agent.
-- **Alteração necessária:** separar estado de atividade/inatividade do estado de conexão, definindo Online/Offline com sessão ou heartbeat do Agent.
+- **Comportamento no backend consultado:** quando `is_idle=true`, a API pode retornar `offline` mesmo para uma captura recém-recebida. Portanto, o estado atual não comprova ausência de registro recente da máquina.
+- **Decisão da liderança:** considerar o Agent `offline` quando a máquina ficar mais de 15 minutos sem um novo registro no banco de dados. Inatividade de uso (`is_idle`) não deve, por si só, significar que o Agent perdeu conexão.
+- **Atual/impacto:** a regra acordada ainda não está garantida pelo contrato/runtime atual: a resposta pode classificar `offline` a partir de `is_idle` ou do intervalo sem evento. O frontend continua exibindo o estado fornecido pela API sem reinterpretá-lo.
+- **Alteração necessária:** implementar no backend a regra acordada, associada à última gravação por máquina, e expor um estado/tempo de conexão coerente. Confirmar como identificar a máquina e tratar registros ausentes ou atrasados.
 - **Workaround frontend:** exibir o status retornado com texto neutro, sem reinterpretar o campo ou afirmar desconexão.
-- **Motivo da pendência:** o frontend não consegue inferir conexão real a partir dos campos atuais; a semântica precisa ser definida no backend.
+- **Motivo da pendência:** o critério de produto foi definido, mas precisa ser implementado e exposto pelo backend; o frontend não consegue inferir a última gravação da máquina a partir dos campos atuais.
 
 ## Pendências de integração Frontend + Backend
 
-As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), [Sprint 2](../../requisitos/sprints/sprint2.md) e [EP-01](../../requisitos/epicos/EP-01.md) mencionam dados simulados e monitoramento “fingindo” task. Elas não autorizam mocks em produção nesta revisão: prevalecem as restrições do usuário e as regras atuais de [task ativa](../../requisitos/requisitos/rn_rf.md#rn-05--monitoramento-vinculado-à-task) e [ciência do colaborador](../../requisitos/requisitos/rn_rf.md#rn-06--transparência-e-ciência). Existe também divergência entre a [tela de referência do Dashboard](../../requisitos/screens/dashboard.md#8-regras-gerais) (sem métricas de produtividade) e [RN-19](../../requisitos/requisitos/rn_rf.md#rn-19--visão-gerencial-do-dashboard)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico) (tempo produtivo por escopo); I-06 exige esclarecer a apresentação antes da implementação, sem rankings.
+As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), [Sprint 2](../../requisitos/sprints/sprint2.md) e [EP-01](../../requisitos/epicos/EP-01.md) mencionam dados simulados e monitoramento “fingindo” task. Elas não autorizam mocks em produção nesta revisão: prevalecem as restrições do usuário e as regras atuais de [task ativa](../../requisitos/requisitos/rn_rf.md#rn-05--monitoramento-vinculado-à-task) e [ciência do colaborador](../../requisitos/requisitos/rn_rf.md#rn-06--transparência-e-ciência). A liderança definiu que o Dashboard deve apresentar somente as horas gastas em cada task e não deve exibir rankings. I-06 continua bloqueada pela ausência de tarefas, registros vinculados e consultas agregadas; a tela de referência e RN-19/RF-27 podem precisar ser alinhados a essa decisão em documentação mantida fora de `FrontEnd/`.
 
 ### I-01 — Conta, login e sessão do gestor — Alta
 
@@ -167,7 +173,8 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Frontend afetado:** `AuthPage`, `App`, cliente HTTP e navegação.
 - **Backend relacionado:** routers/schemas atuais não oferecem conta do gestor, login ou sessão.
 - **Atual/impacto:** login/cadastro são páginas informativas, sem coleta de credenciais; não há gestor autenticado.
-- **Contrato necessário:** definir cadastro, login/logout, sessão, expiração, erros e proteção contra CSRF conforme a estratégia escolhida; servidor aplica B-01.
+- **Decisão da liderança:** a utilização de JWT será avaliada; a estratégia ainda não foi aprovada.
+- **Contrato necessário:** definir cadastro, login/logout, sessão, expiração, erros e proteção contra CSRF conforme a estratégia escolhida; se JWT for aprovado, especificar emissão, renovação/expiração, armazenamento e transmissão. O servidor aplica B-01.
 - **Workaround frontend:** não existe; formulário visual ou senha local não autentica.
 - **Motivo do bloqueio:** implementar o fluxo exige identidade verificável e acordo sobre transporte da sessão.
 
@@ -189,7 +196,8 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Frontend afetado:** `TasksPage`, painel e relatórios.
 - **Backend relacionado:** modelos/schemas/routers não contêm task; atividades não contêm vínculo, início/fim ou classificação de escopo.
 - **Atual/impacto:** tela de tasks informa indisponibilidade; API recebe atividade sem exigir task ativa ou ciência. Categorias não equivalem às aplicações produtivas de uma task.
-- **Contrato necessário:** persistência/CRUD de tasks, descrição, colaboradores atribuídos, aplicações do escopo, estados, uma task ativa por colaborador e aviso de alterações ao agente antes da aplicação; confirmação de ciência e regras de autorização.
+- **Alinhamento da liderança para Sprint 2:** será solicitado a Danyyel que crie uma task padrão. A solicitação ainda não equivale a task disponível na API nem define se ela será criada como seed, configuração ou registro operacional.
+- **Contrato necessário:** persistência/CRUD de tasks, descrição, colaboradores atribuídos, aplicações do escopo, estados, uma task ativa por colaborador e aviso de alterações ao agente antes da aplicação; confirmação de ciência, regras de autorização e forma de disponibilizar a task padrão.
 - **Workaround frontend:** não existe; armazenamento local, CRUD fictício ou reaproveitar categorias violaria a regra de negócio.
 - **Motivo do bloqueio:** depende do modelo central de monitoramento e de implementação backend/agente.
 
@@ -210,8 +218,9 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Problema/requisito:** [RF-05](../../requisitos/requisitos/rn_rf.md#rf-05--gerenciar-colaboradores-associados)/[RF-16](../../requisitos/requisitos/rn_rf.md#rf-16--acompanhar-colaboradores-online)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico) e [CA-04](../../requisitos/requisitos/ca.md#ca-04--estado-e-execução-da-task) exigem Online enquanto conectado/autenticado.
 - **Frontend afetado:** métricas de estado e tabela de última atividade.
 - **Backend relacionado:** `/activities/realtime`, estados calculados por tempo desde atividade e retenção de até 24 horas.
-- **Atual/impacto:** `offline` pode ocorrer quando `is_idle=true`, mesmo após uma captura recente, ou quando passam mais de 15 minutos sem evento. `ausente` também é calculado por tempo sem evento. Ausência do usuário na resposta (sem atividade disponível ou além das 24 horas) não comprova desconexão. O Agent existe, mas não há heartbeat/sessão autenticada; a interface explica essa aproximação. Ver B-10.
-- **Contrato necessário:** definir heartbeat/sessão autenticada, expiração, estados de conexão e sua relação com atividade/inatividade.
+- **Decisão da liderança:** o Agent deverá ser considerado offline após mais de 15 minutos sem novo registro no banco de dados daquela máquina. `is_idle` representa inatividade de uso e não deve substituir esse critério de conexão.
+- **Atual/impacto:** a regra foi definida, mas ainda não está implementada/confirmada no backend. `offline` ainda pode decorrer de `is_idle` ou do intervalo sem evento; ausência na lista após a retenção de 24 horas também não permite inferir o último registro da máquina. O Agent existe, mas não há sessão autenticada; ver B-10.
+- **Contrato necessário:** expor informação calculada a partir da última gravação por máquina e aplicar o limite acordado de 15 minutos, distinguindo conexão de inatividade; autenticação de sessão permanece dependente de I-01.
 - **Workaround frontend:** mostrar última leitura com aviso é aceitável para o contrato atual; inferir conexão real não é.
 - **Motivo do bloqueio:** navegador do gestor não observa diretamente a conexão do agente.
 
@@ -221,10 +230,11 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Problema/requisito:** [RF-24](../../requisitos/requisitos/rn_rf.md#rf-24--gerar-relatórios)/[RF-25](../../requisitos/requisitos/rn_rf.md#rf-25--exportar-relatórios)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico) e [CA-07](../../requisitos/requisitos/ca.md#ca-07--consulta-relatórios-e-exportação)/[CA-10](../../requisitos/requisitos/ca.md#ca-10--dashboard-analítico).
 - **Frontend afetado:** `DashboardPage`, `ReportsPage` e visualizações preservadas.
 - **Backend relacionado:** `DailySummaryResponse`, `/dashboard/summary`, `/dashboard/export/csv|pdf`.
-- **Atual/impacto:** data única, usuário, duração registrada e categoria; CSV/PDF do mesmo resumo. Sem task ativa, período, produtividade, tempo ativo/inativo agregado, jornada ou timeline confiável.
-- **Contrato necessário:** consultas autorizadas por período/colaborador/task; aplicações dentro/fora do escopo, períodos de utilização/inatividade e métricas coerentes com jornada. Exportação deve respeitar exatamente os filtros e as permissões.
-- **Workaround frontend:** manter resumo/exportação diária, já funcional. Não inventar série, produtividade ou reconstruir períodos a partir de realtime. Rankings/notas/comparações são proibidos pela [RN-19](../../requisitos/requisitos/rn_rf.md#rn-19--visão-gerencial-do-dashboard).
-- **Motivo do bloqueio:** fonte agregada atual não fornece os dados e classificações exigidos.
+- **Decisão da liderança:** o Dashboard deve apresentar somente as horas gastas em cada task; rankings não serão utilizados.
+- **Atual/impacto:** a API atual fornece data, usuário, duração registrada por categoria e CSV/PDF do resumo. Não há task ativa nem duração agregada por task, período ou timeline confiável.
+- **Contrato necessário:** consultas autorizadas que forneçam duração por task e filtros definidos; dados de task precisam estar vinculados aos registros. Exportação deve respeitar filtros e permissões. A definição exclui rankings; não define por si só métricas adicionais de produtividade.
+- **Workaround frontend:** manter resumo/exportação diária atual. Não inventar duração por task, série temporal ou reconstruir períodos a partir de realtime. A decisão de não usar rankings está registrada; implementação por task aguarda os dados e consultas do backend.
+- **Motivo do bloqueio:** a fonte agregada atual não fornece duração por task nem as consultas necessárias para apresentar as horas gastas em cada tarefa.
 
 ### I-07 — Referência de fuso e virada do dia — Média
 
@@ -232,10 +242,11 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Problema/requisito:** significado do filtro diário e períodos da jornada; [RF-20](../../requisitos/requisitos/rn_rf.md#rf-20--configurar-jornada)/[RF-24](../../requisitos/requisitos/rn_rf.md#rf-24--gerar-relatórios)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico).
 - **Frontend afetado:** `todayIso`, filtros de data, resumo e exportação.
 - **Backend relacionado:** `captured_at` com timezone e `func.date` em `get_daily_summary`.
-- **Atual/impacto:** frontend usa dia local do navegador; agregação usa data de captura no banco. Registros perto da meia-noite podem pertencer a outro dia dependendo do ambiente.
-- **Contrato necessário:** definir fuso de referência e semântica do parâmetro `date`, armazenamento/agregação e conversão de horários.
-- **Workaround frontend:** não existe correção segura sem definição; conferir a data retornada evita apenas resposta de outra consulta.
-- **Motivo do bloqueio:** alterar o fuso no navegador unilateralmente não corrige a agregação do banco.
+- **Decisão da liderança:** usar o fuso de Brasília. Será alinhada com Danyyel a configuração equivalente no backend; a intenção é usar variável de ambiente para permitir configuração futura por região. O nome e o mecanismo exatos da variável ainda não foram definidos.
+- **Atual/impacto:** o frontend usa o dia local do navegador e a agregação usa a data da captura no banco. A decisão de produto está definida, mas não está aplicada de forma coordenada no frontend/backend; registros próximos à virada do dia seguem dependentes de configuração consistente.
+- **Contrato necessário:** configurar o fuso de referência no servidor por variável de ambiente e acordar como o frontend conhece/usa essa mesma região para datas padrão, filtro `date`, armazenamento e agregação. Não fixar outro fuso nem inventar nome de variável antes do alinhamento.
+- **Workaround frontend:** não há correção segura unilateral; a data enviada pelo navegador e a agregação do banco precisam compartilhar a configuração regional acordada.
+- **Motivo do bloqueio:** a decisão de Brasília está registrada, mas depende de alinhamento e configuração coordenada no backend e no frontend, incluindo o contrato para a variável de ambiente planejada.
 
 ### I-08 — Teste de integração com serviço real — Média
 
