@@ -177,10 +177,10 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Problema/requisito:** [RF-03](../../requisitos/requisitos/rn_rf.md#rf-03--disponibilizar-código-de-associação)/[RF-04](../../requisitos/requisitos/rn_rf.md#rf-04--associar-colaborador)/[RF-05](../../requisitos/requisitos/rn_rf.md#rf-05--gerenciar-colaboradores-associados), [CA-01](../../requisitos/requisitos/ca.md#ca-01--identificação-acesso-e-associação)/[CA-07](../../requisitos/requisitos/ca.md#ca-07--consulta-relatórios-e-exportação) e [associação no RBAC](../../requisitos/rbac.md#6-associação).
 - **Frontend afetado:** painel, colaboradores, relatórios e futura exibição do código do gestor.
 - **Backend relacionado:** `User` e `/users/`; não há modelo gestor/equipe/código.
-- **Atual/impacto:** usuários globais; nenhum código ou vínculo real é exibido. Não é possível representar equipe autorizada.
-- **Contrato necessário:** código de seis dígitos validado no servidor, associação persistente e consultas restritas ao gestor; definir ciclo de vida/erros do código e do vínculo com o agente.
-- **Workaround frontend:** aviso de lista global, já presente; filtro local não é controle de acesso.
-- **Motivo do bloqueio:** dados e regras de vínculo não existem na API.
+- **Atual/impacto:** usuários globais; nenhum código ou vínculo real é fornecido. A issue #113 é a dependência de backend indicada para geração/consulta do código; não foi possível confirmar seu estado remoto nesta revisão. No código local consultado, não existe `association_code`, endpoint `/auth/me` ou `/manager/association-code`, modelo gestor/equipe, autenticação ou sessão JWT.
+- **Contrato necessário:** código de seis dígitos como string validado no servidor, associado ao gestor autenticado; confirmar endpoint/resposta, autorização e ciclo de vida/erros do código e do vínculo. A consulta precisa usar a sessão definida em I-01 e ser independente dos filtros analíticos.
+- **Workaround frontend:** issue #114 implementa o card visual desacoplado, com carregamento, erro, indisponibilidade, cópia acessível e validação visual do formato. No Dashboard atual, o card informa indisponibilidade e não exibe valor de produção. Não foi adicionada chamada de rede nem dado fictício. O código só será apresentado quando fornecido como string válida por uma futura integração.
+- **Motivo do bloqueio:** os dados e regras do vínculo ainda não existem na API local, e o gestor não pode autenticar. A integração real da issue #114 depende da conclusão/definição de #113 e de I-01, incluindo estratégia de JWT/sessão; o card e seus testes de interface estão concluídos no frontend.
 
 ### I-03 — Tasks, atribuição, escopo e monitoramento consentido — Alta
 
