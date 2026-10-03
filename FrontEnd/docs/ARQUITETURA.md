@@ -19,22 +19,25 @@ Este documento descreve o código executado atualmente em `FrontEnd/`: estrutura
 
 `app` pode importar `features` e `shared`; cada funcionalidade pode importar `shared` e seus próprios arquivos. `shared` não deve depender de `app` ou `features`. A regra local em `lint/architecture.js` verifica imports relativos, reexports e imports dinâmicos literais em `npm run lint`. Imports de pacotes externos ficam fora dessa regra. Use imports diretos, inclusive nos imports dinâmicos das páginas, sem arquivos de reexportação.
 
-| Caminho                                                                          | Responsabilidade                                                           |
-| -------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `src/shared/api/api.js`                                                          | Cliente HTTP único, timeout, cancelamento, parâmetros e downloads.         |
-| `src/shared/api/validators.js`                                                   | Validação das respostas de usuários, realtime, resumo e configurações.     |
-| `src/shared/lib/date.js`, `duration.js`, `team.js`, `activityStatus.js`          | Funções reutilizadas para datas, duração, equipe e rótulos de status.      |
-| `src/features/dashboard/hooks/useDashboardData.js`                               | Estado e atualização das fontes do painel: resumo, usuários e realtime.    |
-| `src/features/dashboard/hooks/useAutoRefresh.js`                                 | Atualização periódica apenas com a aba visível e atualização ao retornar.  |
-| `src/features/dashboard/lib/summary.js`                                          | Soma de duração e consolidação de categorias do painel.                    |
-| `src/features/dashboard/pages/DashboardPage.jsx`                                 | Composição de filtros, indicadores, atividade e categorias.                |
-| `src/features/collaborators/hooks/useCollaboratorsData.js` e `components/`       | Consultas, combinação de usuários/realtime e visualização responsiva.      |
-| `src/features/settings/hooks/useSettings.js` e `components/SettingsForm.jsx`     | Leitura, edição, validação, gravação e guarda de alterações não salvas.    |
+| Caminho                                                                          | Responsabilidade                                                            |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `src/shared/api/api.js`                                                          | Cliente HTTP único, timeout, cancelamento, parâmetros e downloads.          |
+| `src/shared/api/validators.js`                                                   | Validação das respostas de usuários, realtime, resumo e configurações.      |
+| `src/shared/lib/date.js`, `duration.js`, `team.js`, `activityStatus.js`          | Funções reutilizadas para datas, duração, equipe e rótulos de status.       |
+| `src/features/dashboard/hooks/useDashboardData.js`                               | Estado e atualização das fontes do painel: resumo, usuários e realtime.     |
+| `src/features/dashboard/hooks/useAutoRefresh.js`                                 | Atualização periódica apenas com a aba visível e atualização ao retornar.   |
+| `src/features/dashboard/lib/summary.js`                                          | Soma de duração e consolidação de categorias do painel.                     |
+| `src/features/dashboard/pages/DashboardPage.jsx`                                 | Composição de filtros, indicadores, atividade e categorias.                 |
+| `src/features/dashboard/components/AssociationCodeCard.jsx`                      | Apresentação isolada do código de associação, cópia e estados da interface. |
+| `src/features/collaborators/hooks/useCollaboratorsData.js` e `components/`       | Consultas, combinação de usuários/realtime e visualização responsiva.       |
+| `src/features/settings/hooks/useSettings.js` e `components/SettingsForm.jsx`     | Leitura, edição, validação, gravação e guarda de alterações não salvas.     |
 | `src/features/reports/`                                                          | Página, consulta de usuários e exportação organizadas por responsabilidade. |
-| `src/features/auth/pages/AuthPage.jsx`, `src/features/tasks/pages/TasksPage.jsx` | Mensagens de indisponibilidade; não coletam credenciais nem dados de task. |
-| `src/app/layout/Sidebar.jsx`                                                     | Navegação desktop e diálogo móvel.                                         |
+| `src/features/auth/pages/AuthPage.jsx`, `src/features/tasks/pages/TasksPage.jsx` | Mensagens de indisponibilidade; não coletam credenciais nem dados de task.  |
+| `src/app/layout/Sidebar.jsx`                                                     | Navegação desktop e diálogo móvel.                                          |
 
 ## Fluxo de dados do painel
+
+`AssociationCodeCard` é composto diretamente por `DashboardPage` e não faz parte de `useDashboardData`: sua identidade é independente da data e do usuário selecionados. Como não existe contrato de associação nem sessão do gestor, o Dashboard não fornece código e o card exibe indisponibilidade. Uma futura integração deverá buscar o valor por uma camada de dados própria quando o endpoint e a autenticação forem definidos.
 
 1. `DashboardPage` inicia com a data local do navegador e usuário vazio. A mudança de data ou usuário altera os argumentos de `useDashboardData`.
 2. O hook cancela a consulta anterior, incrementa um identificador de sequência e solicita resumo, usuários e realtime em paralelo com `Promise.allSettled`.

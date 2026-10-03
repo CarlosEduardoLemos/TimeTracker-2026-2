@@ -16,6 +16,12 @@ Este documento registra as rotas que o frontend consome e o comportamento implem
 | `GET /config/`              | Nenhum                                                  | `{ capture_interval_seconds, idle_timeout_seconds, updated_at? }`                                                                                  | Configurações                     |
 | `PUT /config/`              | JSON com os dois inteiros positivos                     | Mesmo objeto de configuração                                                                                                                       | Configurações                     |
 
+## Código de associação — ainda sem integração
+
+O backend consultado não fornece `association_code`, `GET /auth/me` ou `GET /manager/association-code`, e o frontend não possui sessão autenticada do gestor. A issue #113 é a dependência para definir e fornecer o contrato; I-01 registra a dependência de autenticação. O estado remoto atual da issue #113 não pôde ser confirmado nesta revisão.
+
+`AssociationCodeCard` é somente uma interface visual e recebe `code`, `loading` e `error` por props. Quando integrado, o valor deverá chegar como string numérica de seis dígitos, validada no limite da API; nenhum contrato, endpoint ou validator de associação foi adicionado sem uma resposta real do backend. O card não faz `fetch` e não usa os filtros analíticos.
+
 ## Erros, validação e cancelamento
 
 `api.js` produz `ApiError` com `type`, `status`, `statusText`, `detail` e `cause`. O corpo JSON de falhas HTTP é lido para exibir `detail` do FastAPI; sem `detail`, a mensagem usa o status. `type` distingue `client` (4xx), `server` (5xx), `network`, `timeout`, `canceled` e `invalid-response`. Detalhes de validação em lista são resumidos pelas mensagens `msg`; o texto exibido é limitado a 500 caracteres.

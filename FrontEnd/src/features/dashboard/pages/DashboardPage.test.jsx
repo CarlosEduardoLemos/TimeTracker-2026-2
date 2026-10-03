@@ -20,6 +20,16 @@ const fullData = {
 beforeEach(() => vi.clearAllMocks());
 
 describe('DashboardPage', () => {
+  it('renderiza o card de associação fora dos filtros analíticos', () => {
+    useDashboardData.mockReturnValue({ data: fullData, loading: false, refresh: vi.fn() });
+    render(<DashboardPage />);
+
+    expect(screen.getByRole('heading', { name: 'Código de associação' })).toBeInTheDocument();
+    expect(
+      screen.getByText('Código indisponível enquanto a API de associação não estiver disponível.'),
+    ).toBeInTheDocument();
+  });
+
   it('preserva o filtro visível quando a lista de usuários fica indisponível', () => {
     useDashboardData.mockReturnValue({ data: fullData, loading: false, refresh: vi.fn() });
     const { rerender } = render(<DashboardPage />);

@@ -22,6 +22,12 @@ A lista de áreas solicitadas vem do [sitemap do Dashboard PWA](../../requisitos
 
 O escopo solicitado para filtros, indicadores e timeline está na [tela de referência do Dashboard](../../requisitos/screens/dashboard.md#objetivo) e em [RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico). Os itens abaixo registram apenas o painel que funciona hoje.
 
+### Código de associação
+
+O Dashboard inclui `AssociationCodeCard`, com o título **Código de associação**, apresentação destacada de uma string com exatamente seis dígitos e botão **Copiar Código**. O card preserva zeros à esquerda, anuncia o resultado da cópia com `aria-live="polite"` e informa falhas do Clipboard API sem interromper a página. Também oferece estados de carregamento, erro e indisponibilidade.
+
+No estado atual, a API não fornece o código e a autenticação do gestor não está disponível. Por isso, o Dashboard apresenta a indisponibilidade e mantém a cópia desabilitada; nenhum código real é carregado ou gerado no navegador. O componente recebe `code`, `loading` e `error` por props e não consulta a rede. Sua apresentação permanece independente dos filtros de data e usuário. A integração real depende do contrato da issue #113 e da sessão do gestor registrada em I-01 na [lista de pendências](PENDENCIAS.md).
+
 ### Filtros e atualização
 
 - **Data do resumo:** inicia na data local do navegador, não aceita data vazia e oferece datas até o dia atual. É enviada ao backend apenas para `/dashboard/summary`.
