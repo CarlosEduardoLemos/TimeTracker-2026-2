@@ -36,7 +36,6 @@ Os E2E regulares interceptam as respostas HTTP; para conferir API e CORS reais, 
 
 | Verificação                      | Resultado                                                                                                  | O que comprova                                                         |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `npm.cmd run test:e2e`           | **24 passaram, 2 falharam, 2 ignorados** em 05/10/2026; Chromium 153.0.8010.12 no Windows                  | 28 cenários executados em Chromium gerenciado pelo Playwright          |
 | `npm.cmd run lint`               | **Concluído** em 05/10/2026                                                                                | ESLint no frontend                                                     |
 | `npm.cmd run format:check`       | **Concluído** em 05/10/2026                                                                                | Código e documentação sob Prettier consistentes                        |
 | `npm.cmd run typecheck`          | **Concluído** em 05/10/2026                                                                                | JSDoc e `checkJs` na camada de contratos da API                        |
@@ -60,7 +59,13 @@ Os E2E regulares interceptam as respostas HTTP; para conferir API e CORS reais, 
 
 Build bem sucedido não comprova disponibilidade da API, layout em navegador ou ausência de erro no console durante uso real.
 
-Na execução E2E de 05/10/2026, a auditoria de contraste no menu mobile escuro falhou para `.eyebrow` (razão 2,99:1, abaixo do mínimo 4,5:1). Outro cenário esperava “Sem leitura recente”, mas a interface renderizou “15min atrás” para o registro simulado. Os dois cenários reais foram ignorados por dependerem de `RUN_REAL_API=1`.
+Na tentativa anterior de 05/10/2026, a auditoria de contraste no menu mobile escuro falhou para `.eyebrow` (razão 2,99:1, abaixo do mínimo 4,5:1). Outro cenário esperava “Sem leitura recente”, mas a interface renderizou “15min atrás” para o registro simulado. O contraste foi corrigido com uma cor específica para tema escuro e a expectativa do teste foi alinhada ao comportamento descrito em Funcionalidades. Na execução posterior, ambos passaram; os dois cenários reais continuaram ignorados por dependerem de `RUN_REAL_API=1`.
+
+### Validação após correções — 05/10/2026
+
+- `npm.cmd run test:e2e`: 26 passaram, 0 falharam e 2 foram ignorados, usando Chromium gerenciado pelo Playwright 153.0.8010.12 no Windows. O teste Axe do menu mobile escuro passou sem violações.
+- `lint`, `format:check`, `typecheck`, `test:coverage`, `build` e `check`: passaram. Vitest executou 150 testes em 41 arquivos; cobertura: 95,68% statements, 94% branches, 96,13% functions e 97,59% lines.
+- `git diff --check` passou; `git status --short` mostrou apenas arquivos em `FrontEnd/`.
 
 ## Inventário dos testes existentes
 
