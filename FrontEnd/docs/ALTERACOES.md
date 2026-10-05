@@ -10,6 +10,7 @@ Histórico de alterações por data, em ordem da mais recente para a mais antiga
 - `README.md`, `docs/TESTES.md` e a instrução de teste real em `docs/PENDENCIAS.md` usam `npm run`. A documentação informa que PowerShell com política restritiva pode exigir `npm.cmd`; os registros históricos mantêm o comando que foi executado em cada época.
 - `src/shared/lib/duration.test.js` cobre valores padrão, limites de hora/minuto, strings numéricas, valores negativos e valores não finitos. Os testes existentes de `ReportsPage` já cobrem falha/retry, cancelamento e resultado fora de ordem; não foi necessário adicionar testes artificiais para linhas sem branch funcional.
 - Validação: lint, format check, typecheck, cobertura (150 testes em 41 arquivos) e build passaram. O E2E não iniciou porque o executável Chromium do Playwright não está instalado no ambiente; os dois testes reais foram ignorados por opt-in.
+- Na nova execução E2E, após instalar Chromium 153.0.8010.12, 24 dos 28 cenários passaram, 2 falharam e 2 testes reais foram ignorados. As falhas foram o contraste insuficiente de `.eyebrow` no menu mobile escuro (2,99:1) e uma expectativa de texto desatualizada (`Sem leitura recente` versus `15min atrás`); detalhes estão em `docs/TESTES.md`.
 
 ## 02/10/2026
 

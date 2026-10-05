@@ -27,7 +27,7 @@ Para executar os testes com FastAPI real, inicie a API e o banco de dados separa
 | API não responde ou telas mostram dados indisponíveis | Confira `VITE_API_URL` em `.env` (padrão `http://localhost:8000`), inicie FastAPI e banco e reinicie o Vite após mudar `.env`. Confira a chamada com falha na aba Rede do navegador.                              |
 | Erro de CORS no navegador                             | Confira se o backend permite a origem exata do frontend, incluindo protocolo e porta (`http://localhost:5173` no desenvolvimento; `http://127.0.0.1:5173` no preview dos E2E). A configuração é feita no backend. |
 | Playwright não encontra o navegador                   | Execute `npx playwright install chromium`. Se usar Chrome já instalado, defina `$env:PLAYWRIGHT_CHANNEL = 'chrome'` antes do comando de teste.                                                                    |
-| `test:e2e:real` aparece como ignorado                 | Inicie FastAPI e banco, configure `VITE_API_URL`, defina `$env:RUN_REAL_API = '1'` e execute `npm.cmd run test:e2e:real` novamente. Sem essa variável, o teste real é ignorado de propósito.                      |
+| `test:e2e:real` aparece como ignorado                 | Inicie FastAPI e banco, configure `VITE_API_URL`, defina `$env:RUN_REAL_API = '1'` e execute `npm run test:e2e:real` novamente. Sem essa variável, o teste real é ignorado de propósito.                          |
 | Preview E2E não inicia                                | Libere a porta `5173`: o executor usa `127.0.0.1:5173` com `--strictPort`.                                                                                                                                        |
 
 Os E2E regulares interceptam as respostas HTTP; para conferir API e CORS reais, use o teste opt-in e os roteiros manuais abaixo.
@@ -36,6 +36,7 @@ Os E2E regulares interceptam as respostas HTTP; para conferir API e CORS reais, 
 
 | Verificação                      | Resultado                                                                                                  | O que comprova                                                         |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `npm.cmd run test:e2e`           | **24 passaram, 2 falharam, 2 ignorados** em 05/10/2026; Chromium 153.0.8010.12 no Windows                  | 28 cenários executados em Chromium gerenciado pelo Playwright          |
 | `npm.cmd run lint`               | **Concluído** em 05/10/2026                                                                                | ESLint no frontend                                                     |
 | `npm.cmd run format:check`       | **Concluído** em 05/10/2026                                                                                | Código e documentação sob Prettier consistentes                        |
 | `npm.cmd run typecheck`          | **Concluído** em 05/10/2026                                                                                | JSDoc e `checkJs` na camada de contratos da API                        |
@@ -58,6 +59,8 @@ Os E2E regulares interceptam as respostas HTTP; para conferir API e CORS reais, 
 | `git diff --check` (issue #114)  | **Sem erros** em 02/10/2026                                                                                | Whitespace do diff da implementação                                    |
 
 Build bem sucedido não comprova disponibilidade da API, layout em navegador ou ausência de erro no console durante uso real.
+
+Na execução E2E de 05/10/2026, a auditoria de contraste no menu mobile escuro falhou para `.eyebrow` (razão 2,99:1, abaixo do mínimo 4,5:1). Outro cenário esperava “Sem leitura recente”, mas a interface renderizou “15min atrás” para o registro simulado. Os dois cenários reais foram ignorados por dependerem de `RUN_REAL_API=1`.
 
 ## Inventário dos testes existentes
 
