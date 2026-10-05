@@ -16,6 +16,12 @@ Este documento registra as rotas que o frontend consome e o comportamento implem
 | `GET /config/`              | Nenhum                                                  | `{ capture_interval_seconds, idle_timeout_seconds, updated_at? }`                                                                                  | Configurações                     |
 | `PUT /config/`              | JSON com os dois inteiros positivos                     | Mesmo objeto de configuração                                                                                                                       | Configurações                     |
 
+## Tasks e jornada diária — contratos ausentes
+
+A revisão de `backend/app/models.py`, `schemas.py` e dos routers não encontrou modelo/schema de Task, consulta/criação de Task, nem endpoint ou campos de primeiro/último registro diário. `categories` representa classificação de atividade e não é substituto para Tasks. O Agent também não inclui `task_id` no payload de atividade.
+
+O frontend não envia chamadas para contratos presumidos. A jornada diária só poderá ser integrada após o backend confirmar endpoint, schema e agrupamento em `America/Sao_Paulo`; o formato ilustrativo e seus impactos estão em [Pendências](PENDENCIAS.md). `captured_at` enviado pelo Agent como UTC não prova que `date(captured_at)` seja agrupado por Brasília.
+
 ## Código de associação — ainda sem integração
 
 O backend consultado não fornece `association_code`, `GET /auth/me` ou `GET /manager/association-code`, e o frontend não possui sessão autenticada do gestor. A issue #113 é a dependência para definir e fornecer o contrato; I-01 registra a dependência de autenticação. O estado remoto atual da issue #113 não pôde ser confirmado nesta revisão.

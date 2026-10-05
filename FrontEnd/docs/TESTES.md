@@ -1,6 +1,6 @@
 ﻿# Testes e validação do frontend
 
-Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Os resultados mais recentes da issue #114 foram registrados em 02/10/2026; resultados anteriores permanecem identificados pela data de execução. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
+Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Em 05/10/2026, lint, typecheck, cobertura, build, E2E mockado e `git diff --check` passaram. `npm run format:check` e `npm run check` não passaram porque o Prettier reporta 100 arquivos não alterados fora do formato; os 13 arquivos desta revisão passaram na verificação direcionada do Prettier. A API real não foi validada: não havia ambiente autorizado configurado. Resultados anteriores permanecem identificados pela data de execução. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
 ## Preparação e comandos
 
@@ -19,6 +19,17 @@ npm.cmd run check:full
 `vitest.config.js` usa `jsdom`, plugin React e `src/testing/setup.js` com `@testing-library/jest-dom`; só inclui `src/**/*.test.{js,jsx}`. A cobertura configura `src/**/*.{js,jsx}` e exclui `src/testing/**`. Playwright gera o build, sobe o preview, executa os testes no Chrome/Chromium e encerra o servidor. O executor fixa `VITE_API_URL=http://localhost:8000` nos E2E simulados; com `RUN_REAL_API=1`, respeita a origem configurada. Para instalar o Chromium gerenciado pelo Playwright, execute `npx playwright install chromium`; em máquina com Chrome instalado, defina `PLAYWRIGHT_CHANNEL=chrome`. `PLAYWRIGHT_CHANNEL` pode ser removida quando o Chromium gerenciado estiver disponível.
 
 Para executar os testes com FastAPI real, inicie a API e o banco de dados separadamente, configure `VITE_API_URL` para a origem correta, defina `RUN_REAL_API=1` e rode `npm.cmd run test:e2e:real`. Os testes não enviam POST/PUT; GET /config/ pode inicializar configurações no servidor se ainda não existirem. Eles verificam painel, CORS observado no navegador, GET de configurações, erros de página e downloads CSV/PDF reais com status, MIME e assinatura/conteúdo básico. A comparação dos valores exportados com registros conhecidos continua manual.
+
+## Resultado da revisão de 05/10/2026
+
+- `npm run lint`: passou.
+- `npm run format:check`: falhou no repositório, apontando 100 arquivos sem alteração nesta revisão; Prettier direcionado aos 13 arquivos alterados passou.
+- `npm run typecheck`: passou.
+- `npm run test:coverage`: 148 testes em 40 arquivos passaram; statements 95,52%, branches 93,82%, functions 96,13% e lines 97,59%.
+- `npm run build`: passou.
+- `npm run check`: falhou no estágio de formatação pelos mesmos arquivos preexistentes; os estágios posteriores foram executados individualmente e passaram.
+- `npm run test:e2e`: 27 passaram e 2 testes reais ficaram sem execução pelo opt-in já existente. O E2E comprova acesso sem login, filtros e navegação até a página informativa de Tasks; criação real de Tasks e jornada não podem ser comprovadas sem os contratos do backend.
+- `git diff --check`: passou. `git status --short` mostrou somente arquivos dentro de `FrontEnd/`.
 
 ## Problemas comuns
 

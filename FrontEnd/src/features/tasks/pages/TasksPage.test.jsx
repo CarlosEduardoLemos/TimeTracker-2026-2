@@ -8,6 +8,9 @@ it('explains the task dependency without offering unsaved input', () => {
   expect(
     screen.getByText(/backend ainda não oferece consulta ou persistência de tasks/),
   ).toBeInTheDocument();
+  expect(
+    screen.getByText(/não inicia nem controla o monitoramento pelo Agent/),
+  ).toBeInTheDocument();
   expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /Salvar task/ })).not.toBeInTheDocument();
 });

@@ -26,12 +26,6 @@ function Navigation({ route, onNavigate }) {
           </a>
         ))}
       </nav>
-      <div className="mt-auto rounded-lg bg-slate-50 p-3 text-xs muted dark:bg-slate-800">
-        A identificação do usuário será exibida após integração.{' '}
-        <a href="#/cadastro" onClick={onNavigate} className="mt-2 block font-semibold text-brand">
-          Criar conta
-        </a>
-      </div>
     </>
   );
 }

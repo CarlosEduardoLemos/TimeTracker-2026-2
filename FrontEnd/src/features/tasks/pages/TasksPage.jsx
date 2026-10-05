@@ -7,7 +7,9 @@ export function TasksPage() {
       <PageHeader title="Tasks" description="Criação e edição de tasks do gestor." />
       <IntegrationNotice>
         O backend ainda não oferece consulta ou persistência de tasks, associação de colaboradores
-        nem aplicações do escopo. Esta página será habilitada quando esses contratos existirem.
+        nem aplicações do escopo. Esta página será habilitada quando esses contratos existirem. A
+        criação persistida pelo Dashboard, quando disponível, não inicia nem controla o
+        monitoramento pelo Agent.
       </IntegrationNotice>
       <section className="card mt-5 max-w-3xl text-center" aria-labelledby="tasks-empty-title">
         <div

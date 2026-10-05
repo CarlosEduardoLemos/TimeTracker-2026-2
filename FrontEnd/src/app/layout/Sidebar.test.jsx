@@ -97,8 +97,9 @@ describe('Sidebar', () => {
     render(<Sidebar route="painel" />);
     expect(screen.queryByText('Luan Menezes')).not.toBeInTheDocument();
     expect(
-      screen.getByText(/identificação do usuário será exibida após integração/i),
-    ).toBeInTheDocument();
+      screen.queryByText(/identificação do usuário será exibida após integração/i),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Criar conta' })).not.toBeInTheDocument();
   });
 
   it('opens and closes the mobile menu with Escape', () => {
@@ -117,13 +118,13 @@ describe('Sidebar', () => {
 
     const dialog = screen.getByRole('dialog', { name: 'Menu principal mobile' });
     const closeButton = within(dialog).getByRole('button', { name: 'Fechar menu' });
-    const registerLink = within(dialog).getByRole('link', { name: 'Criar conta' });
+    const lastLink = within(dialog).getByRole('link', { name: 'Configurações' });
 
     closeButton.focus();
     fireEvent.keyDown(window, { key: 'Tab', shiftKey: true });
-    expect(registerLink).toHaveFocus();
+    expect(lastLink).toHaveFocus();
 
-    registerLink.focus();
+    lastLink.focus();
     fireEvent.keyDown(window, { key: 'Tab' });
     expect(closeButton).toHaveFocus();
   });

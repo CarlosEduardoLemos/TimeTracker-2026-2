@@ -2,6 +2,14 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
+## 05/10/2026 — Preparação para o MVP de 13/10
+
+- Revisados os contratos atuais de backend, Agent e requisitos disponíveis no checkout. `origin/main` local coincide com `main` em `bbc8628`; `git fetch origin main` não pôde atualizar `.git/FETCH_HEAD` por permissão do ambiente.
+- Não foram encontrados Task model/schema, consulta/criação de Tasks, endpoint/campos de primeiro e último registro diário, timezone Brasília na agregação, nem `task_id` no payload do Agent. Nenhuma chamada HTTP sem contrato foi adicionada.
+- Ocultados do Dashboard o `AssociationCodeCard` indisponível e, da navegação, o link “Criar conta”. Rotas e módulos existentes foram preservados; acesso sem login continua direto.
+- Atualizados testes unitários e E2E para verificar acesso sem login, ocultação dos elementos indisponíveis e navegação à tela informativa de Tasks. Criação de task e jornada permanecem bloqueadas por contratos externos.
+- Validação: `lint`, `typecheck`, `test:coverage` (148 testes; 95,52% statements, 93,82% branches, 96,13% functions e 97,59% lines), `build`, E2E mockado (27 passaram; 2 cenários reais não executados) e `git diff --check` passaram. `format:check` e `check` falharam por 100 arquivos não alterados fora do formato; os 13 arquivos desta revisão passaram na verificação direcionada do Prettier. Integração real não foi executada por falta de ambiente autorizado.
+
 ## 02/10/2026
 
 ### Issue #114 — apresentação do código de associação no Dashboard
