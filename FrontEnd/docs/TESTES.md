@@ -1,6 +1,6 @@
 ﻿# Testes e validação do frontend
 
-Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Os resultados mais recentes da issue #114 foram registrados em 02/10/2026; resultados anteriores permanecem identificados pela data de execução. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
+Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. A validação mais recente foi executada em 05/10/2026; resultados anteriores permanecem identificados pela data de execução. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
 ## Preparação e comandos
 
@@ -9,16 +9,16 @@ Execute na pasta `FrontEnd` com as dependências do `package-lock.json` instalad
 ```powershell
 cd FrontEnd
 npm ci
-npm.cmd run check
+npm run check
 $env:PLAYWRIGHT_CHANNEL = 'chrome' # se usar Chrome instalado em vez do Chromium do Playwright
-npm.cmd run check:full
+npm run check:full
 ```
 
-`npm.cmd run check` executa lint, verificação de formatação, checagem estática dos contratos, testes com cobertura e build em sequência. `npm.cmd run check:full` acrescenta o E2E; `npm.cmd run test:e2e` executa somente o E2E. Para desenvolvimento, `npm.cmd run test:watch` mantém Vitest em observação. `npm.cmd run typecheck` usa `checkJs` no cliente e nos contratos da API, sem exigir tipagem de todas as telas JSX. `npm.cmd run test:coverage` gera cobertura V8 em texto e HTML e exige mínimos globais de 85% para statements, functions e lines, e 80% para branches. Os diretórios `shared/api`, `shared/lib`, `features/dashboard/hooks` e `features/reports/hooks` exigem, cada um, 90% para statements, functions e lines e 85% para branches; os arquivos críticos já existentes também têm esses limites individualmente. `npm.cmd run format` aplica Prettier ao código e Markdown; lockfile e artefatos gerados estão em `.prettierignore`. `git diff --check` verifica whitespace e `git status --short` confirma o escopo. `npm.cmd run dev` inicia Vite na porta 5173; os comandos do Vite usam `--configLoader runner` para compatibilidade com o Windows deste ambiente.
+`npm run check` executa lint, verificação de formatação, checagem estática dos contratos, testes com cobertura e build em sequência. `npm run check:full` acrescenta o E2E; `npm run test:e2e` executa somente o E2E. Para desenvolvimento, `npm run test:watch` mantém Vitest em observação. `npm run typecheck` usa `checkJs` no cliente e nos contratos da API, sem exigir tipagem de todas as telas JSX. `npm run test:coverage` gera cobertura V8 em texto e HTML e exige mínimos globais de 85% para statements, functions e lines, e 80% para branches. Os diretórios `shared/api`, `shared/lib`, `features/dashboard/hooks` e `features/reports/hooks` exigem, cada um, 90% para statements, functions e lines e 85% para branches; os arquivos críticos já existentes também têm esses limites individualmente. `npm run format` aplica Prettier ao código e Markdown; lockfile e artefatos gerados estão em `.prettierignore`. `git diff --check` verifica whitespace e `git status --short` confirma o escopo. `npm run dev` inicia Vite na porta 5173; os comandos do Vite usam `--configLoader runner` para compatibilidade com o Windows deste ambiente. No PowerShell com política de execução que bloqueia `npm.ps1`, use `npm.cmd` no lugar de `npm`.
 
 `vitest.config.js` usa `jsdom`, plugin React e `src/testing/setup.js` com `@testing-library/jest-dom`; só inclui `src/**/*.test.{js,jsx}`. A cobertura configura `src/**/*.{js,jsx}` e exclui `src/testing/**`. Playwright gera o build, sobe o preview, executa os testes no Chrome/Chromium e encerra o servidor. O executor fixa `VITE_API_URL=http://localhost:8000` nos E2E simulados; com `RUN_REAL_API=1`, respeita a origem configurada. Para instalar o Chromium gerenciado pelo Playwright, execute `npx playwright install chromium`; em máquina com Chrome instalado, defina `PLAYWRIGHT_CHANNEL=chrome`. `PLAYWRIGHT_CHANNEL` pode ser removida quando o Chromium gerenciado estiver disponível.
 
-Para executar os testes com FastAPI real, inicie a API e o banco de dados separadamente, configure `VITE_API_URL` para a origem correta, defina `RUN_REAL_API=1` e rode `npm.cmd run test:e2e:real`. Os testes não enviam POST/PUT; GET /config/ pode inicializar configurações no servidor se ainda não existirem. Eles verificam painel, CORS observado no navegador, GET de configurações, erros de página e downloads CSV/PDF reais com status, MIME e assinatura/conteúdo básico. A comparação dos valores exportados com registros conhecidos continua manual.
+Para executar os testes com FastAPI real, inicie a API e o banco de dados separadamente, configure `VITE_API_URL` para a origem correta, defina `RUN_REAL_API=1` e rode `npm run test:e2e:real`. Os testes não enviam POST/PUT; GET /config/ pode inicializar configurações no servidor se ainda não existirem. Eles verificam painel, CORS observado no navegador, GET de configurações, erros de página e downloads CSV/PDF reais com status, MIME e assinatura/conteúdo básico. A comparação dos valores exportados com registros conhecidos continua manual.
 
 ## Problemas comuns
 
@@ -36,6 +36,12 @@ Os E2E regulares interceptam as respostas HTTP; para conferir API e CORS reais, 
 
 | Verificação                      | Resultado                                                                                                  | O que comprova                                                         |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `npm.cmd run lint`               | **Concluído** em 05/10/2026                                                                                | ESLint no frontend                                                     |
+| `npm.cmd run format:check`       | **Concluído** em 05/10/2026                                                                                | Código e documentação sob Prettier consistentes                        |
+| `npm.cmd run typecheck`          | **Concluído** em 05/10/2026                                                                                | JSDoc e `checkJs` na camada de contratos da API                        |
+| `npm.cmd run test:coverage`      | **150 testes em 41 arquivos passaram**; 95,68% statements, 94% branches, 96,13% functions e 97,59% lines   | Cobertura V8 acima dos mínimos globais e dos limites críticos          |
+| `npm.cmd run build`              | **Concluído** em 05/10/2026 pelo Vite 6.4.3                                                                | Build de produção                                                      |
+| `npm.cmd run test:e2e`           | **26 não iniciaram; 2 testes reais ignorados**                                                             | Chromium headless do Playwright não está instalado neste ambiente      |
 | `npm.cmd run check`              | **Concluído** em 30/09/2026                                                                                | Executa lint, formatação, typecheck, cobertura e build em sequência    |
 | `npm.cmd run test:coverage`      | **141 testes em 38 arquivos passaram**; 95,69% statements, 93,98% branches, 95,97% functions e 97,5% lines | Cobertura V8 acima dos mínimos globais e dos limites críticos          |
 | `npm.cmd run typecheck`          | **Concluído** em 30/09/2026                                                                                | JSDoc e `checkJs` na camada de contratos da API                        |

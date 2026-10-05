@@ -2,6 +2,15 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
+## 05/10/2026
+
+### Padronização de final de linha e validação
+
+- `.editorconfig` define LF e `.gitattributes` aplica `text=auto eol=lf` somente dentro de `FrontEnd/`. A política mantém arquivos binários fora da conversão automática e alinha checkout local, Git e CI.
+- `README.md`, `docs/TESTES.md` e a instrução de teste real em `docs/PENDENCIAS.md` usam `npm run`. A documentação informa que PowerShell com política restritiva pode exigir `npm.cmd`; os registros históricos mantêm o comando que foi executado em cada época.
+- `src/shared/lib/duration.test.js` cobre valores padrão, limites de hora/minuto, strings numéricas, valores negativos e valores não finitos. Os testes existentes de `ReportsPage` já cobrem falha/retry, cancelamento e resultado fora de ordem; não foi necessário adicionar testes artificiais para linhas sem branch funcional.
+- Validação: lint, format check, typecheck, cobertura (150 testes em 41 arquivos) e build passaram. O E2E não iniciou porque o executável Chromium do Playwright não está instalado no ambiente; os dois testes reais foram ignorados por opt-in.
+
 ## 02/10/2026
 
 ### Issue #114 — apresentação do código de associação no Dashboard
