@@ -1,6 +1,6 @@
 ﻿# Testes e validação do frontend
 
-Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Em 05/10/2026, lint, typecheck, cobertura, build, E2E mockado e `git diff --check` passaram. `npm run format:check` e `npm run check` não passaram porque o Prettier reporta 100 arquivos não alterados fora do formato; os 13 arquivos desta revisão passaram na verificação direcionada do Prettier. A API real não foi validada: não havia ambiente autorizado configurado. Resultados anteriores permanecem identificados pela data de execução. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
+Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. A última execução completa foi em **07/10/2026**: lint, typecheck, cobertura, build e E2E mockado passaram. `format:check`, `check` e `check:full` pararam no Prettier, que reportou 100 arquivos fora do formato; não foi aplicada formatação em massa. A API real não foi validada e os dois cenários opt-in foram ignorados. Resultados anteriores permanecem identificados pela data de execução. O inventário completo das alterações esta em [Alteracoes](ALTERACOES.md).
 
 ## Preparação e comandos
 
@@ -19,6 +19,18 @@ npm.cmd run check:full
 `vitest.config.js` usa `jsdom`, plugin React e `src/testing/setup.js` com `@testing-library/jest-dom`; só inclui `src/**/*.test.{js,jsx}`. A cobertura configura `src/**/*.{js,jsx}` e exclui `src/testing/**`. Playwright gera o build, sobe o preview, executa os testes no Chrome/Chromium e encerra o servidor. O executor fixa `VITE_API_URL=http://localhost:8000` nos E2E simulados; com `RUN_REAL_API=1`, respeita a origem configurada. Para instalar o Chromium gerenciado pelo Playwright, execute `npx playwright install chromium`; em máquina com Chrome instalado, defina `PLAYWRIGHT_CHANNEL=chrome`. `PLAYWRIGHT_CHANNEL` pode ser removida quando o Chromium gerenciado estiver disponível.
 
 Para executar os testes com FastAPI real, inicie a API e o banco de dados separadamente, configure `VITE_API_URL` para a origem correta, defina `RUN_REAL_API=1` e rode `npm.cmd run test:e2e:real`. Os testes não enviam POST/PUT; GET /config/ pode inicializar configurações no servidor se ainda não existirem. Eles verificam painel, CORS observado no navegador, GET de configurações, erros de página e downloads CSV/PDF reais com status, MIME e assinatura/conteúdo básico. A comparação dos valores exportados com registros conhecidos continua manual.
+
+## Resultado da revisão de 07/10/2026
+
+- `npm.cmd run lint`: passou.
+- `npm.cmd run format:check`: falhou; Prettier reportou 100 arquivos fora do formato. Não alterei esses arquivos sem relação com esta revisão.
+- `npm.cmd run typecheck`: passou.
+- `npm.cmd run test:coverage`: 148 testes em 40 arquivos passaram; statements 95,52%, branches 93,82%, functions 96,13% e lines 97,59%.
+- `npm.cmd run build`: passou com Vite 6.4.3.
+- `npm.cmd run test:e2e`: 27 passaram e 2 cenários de API real foram ignorados pelo opt-in. Os fluxos mockados cobrem acesso sem login, navegação, responsividade e acessibilidade; não comprovam integração real.
+- `npm.cmd run check`: falhou no estágio `format:check`, antes de typecheck, cobertura e build; estes estágios foram executados separadamente e passaram.
+- `npm.cmd run check:full`: falhou no mesmo estágio de formatação, antes do E2E; `test:e2e` foi executado separadamente e passou.
+- Integração real: não executada; não havia ambiente real configurado/autorizado e `RUN_REAL_API` não foi habilitado.
 
 ## Resultado da revisão de 05/10/2026
 

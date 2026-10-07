@@ -2,6 +2,13 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
+## 07/10/2026 - Revisão dos contratos e validação do MVP
+
+- Reinspecionados backend, Agent e requisitos atuais em modo somente leitura. Não foram encontrados contratos de jornada diária nem consulta/criação persistente de Tasks; o Agent continua sem `task_id` e sem controle de Task.
+- Confirmado que as adequações do PR #121 ja estão na branch: acesso sem login, link de cadastro oculto, cartão de associação fora do Dashboard e tela de Tasks sem persistência simulada.
+- Atualizados `PENDENCIAS.md`, `CONTRATOS_API.md` e `TESTES.md` com o estado do MVP, dependências externas e resultados desta execução. Nenhum arquivo fora de `FrontEnd/` foi alterado.
+- Validação: lint, typecheck, 148 testes unitários (95,52% statements; 93,82% branches; 96,13% functions; 97,59% lines), build e E2E mockado (27 passaram; 2 cenários reais ignorados) passaram. `format:check`, `check` e `check:full` falharam no Prettier, que aponta 100 arquivos fora do formato. Integração real não executada por falta de ambiente configurado/autorizado.
+
 ## 05/10/2026 — Preparação para o MVP de 13/10
 
 - Revisados os contratos atuais de backend, Agent e requisitos disponíveis no checkout. `origin/main` local coincide com `main` em `bbc8628`; `git fetch origin main` não pôde atualizar `.git/FETCH_HEAD` por permissão do ambiente.

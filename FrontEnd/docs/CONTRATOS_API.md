@@ -18,9 +18,9 @@ Este documento registra as rotas que o frontend consome e o comportamento implem
 
 ## Tasks e jornada diária — contratos ausentes
 
-A revisão de `backend/app/models.py`, `schemas.py` e dos routers não encontrou modelo/schema de Task, consulta/criação de Task, nem endpoint ou campos de primeiro/último registro diário. `categories` representa classificação de atividade e não é substituto para Tasks. O Agent também não inclui `task_id` no payload de atividade.
+Reinspeção em **07/10/2026** de `backend/app/models.py`, `schemas.py`, `crud.py` e dos routers não encontrou modelo/schema de Task, consulta/criação de Tasks, nem endpoint ou campos de primeiro/último registro diario. A API expõe `GET /activities/realtime` e `GET /dashboard/summary`; nenhum deles fornece os extremos da jornada. `categories` representa classificação de atividade e não e substituto para Tasks. O Agent também não inclui `task_id` no payload de atividade nem recebe comandos de Task.
 
-O frontend não envia chamadas para contratos presumidos. A jornada diária só poderá ser integrada após o backend confirmar endpoint, schema e agrupamento em `America/Sao_Paulo`; o formato ilustrativo e seus impactos estão em [Pendências](PENDENCIAS.md). `captured_at` enviado pelo Agent como UTC não prova que `date(captured_at)` seja agrupado por Brasília.
+O frontend não envia chamadas para contratos presumidos. A jornada diária so poderá ser integrada após o backend confirmar endpoint, schema e agrupamento em `America/Sao_Paulo`; o formato ilustrativo e seus impactos estão em [Pendencias](PENDENCIAS.md). `captured_at` enviado pelo Agent como UTC não prova que `date(captured_at)` seja agrupado por Brasília. O `realtime` não deve ser apresentado como entrada/saída.
 
 ## Código de associação — ainda sem integração
 
