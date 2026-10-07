@@ -1,6 +1,6 @@
 ﻿# Testes e validação do frontend
 
-Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. A validação mais recente foi executada em 05/10/2026; resultados anteriores permanecem identificados pela data de execução. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
+Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026** e **07/10/2026**; a execução anterior de 07/10 ocorreu antes da incorporação das alterações mais recentes da `main`. Após o merge já presente no checkout, a suíte foi tentada novamente em 07/10, mas não pôde ser executada porque as dependências locais estavam incompletas e a instalação foi bloqueada pelo ambiente. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
 ## Preparação e comandos
 
@@ -19,6 +19,38 @@ npm run check:full
 `vitest.config.js` usa `jsdom`, plugin React e `src/testing/setup.js` com `@testing-library/jest-dom`; só inclui `src/**/*.test.{js,jsx}`. A cobertura configura `src/**/*.{js,jsx}` e exclui `src/testing/**`. Playwright gera o build, sobe o preview, executa os testes no Chrome/Chromium e encerra o servidor. O executor fixa `VITE_API_URL=http://localhost:8000` nos E2E simulados; com `RUN_REAL_API=1`, respeita a origem configurada. Para instalar o Chromium gerenciado pelo Playwright, execute `npx playwright install chromium`; em máquina com Chrome instalado, defina `PLAYWRIGHT_CHANNEL=chrome`. `PLAYWRIGHT_CHANNEL` pode ser removida quando o Chromium gerenciado estiver disponível.
 
 Para executar os testes com FastAPI real, inicie a API e o banco de dados separadamente, configure `VITE_API_URL` para a origem correta, defina `RUN_REAL_API=1` e rode `npm run test:e2e:real`. Os testes não enviam POST/PUT; GET /config/ pode inicializar configurações no servidor se ainda não existirem. Eles verificam painel, CORS observado no navegador, GET de configurações, erros de página e downloads CSV/PDF reais com status, MIME e assinatura/conteúdo básico. A comparação dos valores exportados com registros conhecidos continua manual.
+
+## Resultado da tentativa após o merge — 07/10/2026
+
+- `npm.cmd ci`: falhou com `EPERM` ao tentar remover `node_modules/nwsapi/dist/lint.log`; o arquivo foi preservado.
+- `npm.cmd install --ignore-scripts --offline --no-audit --no-fund`: não concluiu; o cache local não contém o pacote `typescript@5.9.3` (`ENOTCACHED`).
+- `npm.cmd run lint`, `format:check`, `typecheck`, `test:coverage` e `build`: não iniciaram porque os executáveis ESLint, Prettier, TypeScript, Vitest e Vite não estavam disponíveis em `node_modules`.
+- `npm.cmd run test:e2e`: não iniciou; o executor não encontrou `node_modules/vite/bin/vite.js`. Nenhum cenário E2E foi executado ou ignorado.
+- `npm.cmd run check` e `npm.cmd run check:full`: interrompidos no primeiro estágio, `lint`, pelo mesmo executável ausente.
+- Testes, arquivos e percentuais de cobertura após o merge: não disponíveis. E2E aprovados/ignorados/falhos: 0/0/0 executados; a suíte não iniciou. Integração real: não executada.
+
+## Resultado registrado antes da incorporação da `main` — 07/10/2026
+
+- `npm.cmd run lint`: passou.
+- `npm.cmd run format:check`: falhou; Prettier reportou 100 arquivos fora do formato. Não alterei esses arquivos sem relação com esta revisão.
+- `npm.cmd run typecheck`: passou.
+- `npm.cmd run test:coverage`: 148 testes em 40 arquivos passaram; statements 95,52%, branches 93,82%, functions 96,13% e lines 97,59%.
+- `npm.cmd run build`: passou com Vite 6.4.3.
+- `npm.cmd run test:e2e`: 27 passaram e 2 cenários de API real foram ignorados pelo opt-in. Os fluxos mockados cobrem acesso sem login, navegação, responsividade e acessibilidade; não comprovam integração real.
+- `npm.cmd run check`: falhou no estágio `format:check`, antes de typecheck, cobertura e build; estes estágios foram executados separadamente e passaram.
+- `npm.cmd run check:full`: falhou no mesmo estágio de formatação, antes do E2E; `test:e2e` foi executado separadamente e passou.
+- Integração real: não executada; não havia ambiente real configurado/autorizado e `RUN_REAL_API` não foi habilitado.
+
+## Resultado da revisão de 05/10/2026
+
+- `npm run lint`: passou.
+- `npm run format:check`: falhou no repositório, apontando 100 arquivos sem alteração nesta revisão; Prettier direcionado aos 13 arquivos alterados passou.
+- `npm run typecheck`: passou.
+- `npm run test:coverage`: 148 testes em 40 arquivos passaram; statements 95,52%, branches 93,82%, functions 96,13% e lines 97,59%.
+- `npm run build`: passou.
+- `npm run check`: falhou no estágio de formatação pelos mesmos arquivos preexistentes; os estágios posteriores foram executados individualmente e passaram.
+- `npm run test:e2e`: 27 passaram e 2 testes reais ficaram sem execução pelo opt-in já existente. O E2E comprova acesso sem login, filtros e navegação até a página informativa de Tasks; criação real de Tasks e jornada não podem ser comprovadas sem os contratos do backend.
+- `git diff --check`: passou. `git status --short` mostrou somente arquivos dentro de `FrontEnd/`.
 
 ## Problemas comuns
 

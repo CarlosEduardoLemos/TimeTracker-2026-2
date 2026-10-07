@@ -5,7 +5,6 @@ import { DashboardMetrics } from '../components/DashboardMetrics';
 import { LastActivityTable } from '../components/LastActivityTable';
 import { CategorySummary } from '../components/CategorySummary';
 import { DashboardStatusNotice } from '../components/DashboardStatusNotice';
-import { AssociationCodeCard } from '../components/AssociationCodeCard';
 import { ErrorNotice } from '../../../shared/components/AsyncFeedback';
 import { PageHeader } from '../../../shared/components/PageHeader';
 import { todayIso } from '../../../shared/lib/date';
@@ -39,7 +38,6 @@ export function DashboardPage({ dark, toggleTheme }) {
         }
       />
       <DashboardStatusNotice />
-      <AssociationCodeCard />
       <DashboardFilters
         date={date}
         onDateChange={setDate}

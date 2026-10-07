@@ -14,7 +14,7 @@ Este é o inventário das telas que a aplicação **executa hoje**. A [visão do
 | `#/login`, `#/cadastro`  | Aviso de autenticação indisponível e retorno ao painel               | Nenhuma consulta                  |
 | Qualquer outro hash      | Página não encontrada e link para o painel                           | Nenhuma consulta                  |
 
-O menu principal mostra Painel, Colaboradores, Tasks, Relatórios e Configurações. Há um link “Criar conta”, mas a rota de cadastro explica que a função ainda não existe. A navegação por hash permite acesso direto às páginas; ao trocar de rota, o foco de teclado vai ao conteúdo principal e o título da aba muda. O tema claro/escuro é mantido entre visitas por `localStorage`; sem escolha anterior, segue a preferência do sistema.
+O menu principal mostra Painel, Colaboradores, Tasks, Relatórios e Configurações. Para a apresentação do MVP, o link “Criar conta” foi ocultado; as rotas informativas de login/cadastro e a implementação de autenticação permanecem no código. A navegação por hash permite acesso direto às páginas sem login ou proteção de rota; ao trocar de rota, o foco de teclado vai ao conteúdo principal e o título da aba muda. O tema claro/escuro é mantido entre visitas por `localStorage`; sem escolha anterior, segue a preferência do sistema.
 
 A lista de áreas solicitadas vem do [sitemap do Dashboard PWA](../../requisitos/sitemap.md#1-dashboard-pwa--gestor). Os hashes, estados e fontes da tabela acima descrevem a implementação atual, não uma exigência de URL do sitemap.
 
@@ -24,9 +24,9 @@ O escopo solicitado para filtros, indicadores e timeline está na [tela de refer
 
 ### Código de associação
 
-O Dashboard inclui `AssociationCodeCard`, com o título **Código de associação**, apresentação destacada de uma string com exatamente seis dígitos e botão **Copiar Código**. O card preserva zeros à esquerda, anuncia o resultado da cópia com `aria-live="polite"` e informa falhas do Clipboard API sem interromper a página. Também oferece estados de carregamento, erro e indisponibilidade.
+O componente `AssociationCodeCard` continua implementado e testado, mas fica temporariamente fora da página principal do MVP para não destacar uma integração indisponível.
 
-No estado atual, a API não fornece o código e a autenticação do gestor não está disponível. Por isso, o Dashboard apresenta a indisponibilidade e mantém a cópia desabilitada; nenhum código real é carregado ou gerado no navegador. O componente recebe `code`, `loading` e `error` por props e não consulta a rede. Sua apresentação permanece independente dos filtros de data e usuário. A integração real depende do contrato da issue #113 e da sessão do gestor registrada em I-01 na [lista de pendências](PENDENCIAS.md).
+No estado atual, a API não fornece o código e a autenticação do gestor não está disponível. Nenhum código real é carregado ou gerado no navegador. A integração permanece registrada em I-02 na [lista de pendências](PENDENCIAS.md).
 
 ### Filtros e atualização
 
@@ -51,7 +51,7 @@ O indicador **Usuários cadastrados** usa somente `/users/`, inclusive quando h�
 
 ### Tabelas
 
-**Última atividade** mostra usuário, status de leitura em badge, `process_name` e segundos desde a última captura. Os dados são atuais, mesmo quando a data do resumo é antiga. **Tempo por categoria** agrega `by_category` de todos os usuários presentes no resumo filtrado e ordena pela duração. As barras são decorativas; duração e percentual aparecem em texto. Categorias não representam aplicações produtivas dentro de uma task. Ambas as áreas têm mensagens próprias de carregamento, vazio e indisponibilidade.
+**Última atividade** mostra usuário, status de leitura em badge, `process_name` e segundos desde a última captura. Os dados são atuais, mesmo quando a data do resumo é antiga. **Tempo por categoria** agrega `by_category` de todos os usuários presentes no resumo filtrado e ordena pela duração. As barras são decorativas; duração e percentual aparecem em texto. Categorias não representam aplicações produtivas dentro de uma task. A entrada e o último registro diário não são exibidos porque o backend ainda não oferece esse contrato; não são inferidos do realtime. As áreas existentes mantêm mensagens próprias de carregamento, vazio e indisponibilidade.
 
 Um aviso informa que `/users/` é global e que Online, Ausente e Offline são estados calculados pela API a partir das capturas. Como `offline` também pode decorrer de uma captura inativa, esse estado não confirma que o Agent perdeu conexão com o servidor. Tasks ativas, tempo produtivo, horas extras e timeline não são calculados.
 
@@ -61,7 +61,7 @@ A tabela exibe `username`, `full_name` e `department` da lista global. Quando re
 
 ## Tasks (`#/tasks`)
 
-A página informa que o backend não oferece consulta, criação, edição ou persistência de tasks, seleção de colaboradores associados e aplicações do escopo. Não há formulário local, botão de salvar, mock ou dados predefinidos. O requisito [RF-06](../../requisitos/requisitos/rn_rf.md#rf-06--criar-e-editar-tasks) permanece dependente dos contratos indicados em [Pendências](PENDENCIAS.md).
+A página informa que o backend não oferece consulta, criação, edição ou persistência de tasks, seleção de colaboradores associados e aplicações do escopo. Não há formulário local, botão de salvar, mock ou dados predefinidos. A interface explicita que uma task criada e persistida pelo Dashboard não inicia nem controla o monitoramento pelo Agent; isso depende de contratos separados de seleção, início/fim e `task_id` nos registros. O requisito [RF-06](../../requisitos/requisitos/rn_rf.md#rf-06--criar-e-editar-tasks) permanece dependente dos contratos indicados em [Pendências](PENDENCIAS.md).
 
 ## Configurações (`#/configuracoes`)
 
@@ -79,7 +79,7 @@ O **CSV atual** contém as colunas `username`, `category`, `total_seconds` e uma
 
 ## Login e cadastro (`#/login`, `#/cadastro`)
 
-As rotas mostram o bloqueio de autenticação e um retorno ao painel. Não há formulário de credenciais, sessão, token, usuário fictício nem proteção de rota. Enquanto o backend não oferecer autenticação e autorização, todas as consultas disponíveis usam os endpoints globais atuais. A possibilidade de navegar até essas telas não significa que cadastro ou login funcionem.
+As rotas informativas mostram que login/cadastro ainda não estão implementados. Não há formulário de credenciais, sessão, token, usuário fictício nem proteção de rota. A liderança adiou autenticação para depois do MVP; o acesso às páginas permanece direto e os endpoints atuais são globais. A possibilidade de navegar até essas telas não significa que cadastro ou login funcionem.
 
 ## Acessibilidade e apresentação
 

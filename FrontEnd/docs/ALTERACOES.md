@@ -2,18 +2,33 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
+## 07/10/2026 — Revisão dos contratos e validação do MVP
+
+- Reinspecionados backend, Agent e requisitos atuais em modo somente leitura. Não foram encontrados contratos de jornada diária nem consulta/criação persistente de Tasks; o Agent continua sem `task_id` e sem controle de Task.
+- Confirmado que as adequações do PR #121 já estão na branch: acesso sem login, link de cadastro oculto, cartão de associação fora do Dashboard e tela de Tasks sem persistência simulada.
+- Atualizados `PENDENCIAS.md`, `CONTRATOS_API.md` e `TESTES.md` com o estado do MVP, dependências externas e resultados desta execução. Nenhum arquivo fora de `FrontEnd/` foi alterado.
+- O merge da `main` já estava presente no checkout (`bf124d2`), sem conflitos pendentes. Na tentativa de validação consolidada em 07/10, `npm ci` falhou com `EPERM` ao tentar remover um `lint.log` em `node_modules`; a instalação offline subsequente não encontrou `typescript@5.9.3` no cache. Os executáveis do frontend não ficaram disponíveis, então lint, formatação, typecheck, cobertura, build e E2E não puderam ser executados. Consulte os detalhes em `TESTES.md`; os números anteriores a esta incorporação permanecem apenas como histórico.
+
 ## 05/10/2026
+
+### Preparação para o MVP de 13/10
+
+- Revisados os contratos atuais de backend, Agent e requisitos disponíveis no checkout.
+- Não foram encontrados modelo/schema de Task, consulta/criação persistente de Tasks, endpoint/campos de primeiro e último registro diário, configuração coordenada do fuso de Brasília na agregação nem `task_id` no payload do Agent. Nenhuma chamada HTTP sem contrato foi adicionada.
+- Ocultados do Dashboard o `AssociationCodeCard` indisponível e, da navegação, o link “Criar conta”. Rotas e módulos existentes foram preservados; o acesso sem login continua direto.
+- Atualizados testes unitários e E2E para verificar acesso sem login, ocultação dos elementos indisponíveis e navegação à tela informativa de Tasks. Criação de Tasks e jornada permanecem bloqueadas por contratos externos.
+- A integração real não foi executada por falta de ambiente autorizado/configurado.
 
 ### Padronização de final de linha e validação
 
 - `.editorconfig` define LF e `.gitattributes` aplica `text=auto eol=lf` somente dentro de `FrontEnd/`. A política mantém arquivos binários fora da conversão automática e alinha checkout local, Git e CI.
 - `README.md`, `docs/TESTES.md` e a instrução de teste real em `docs/PENDENCIAS.md` usam `npm run`. A documentação informa que PowerShell com política restritiva pode exigir `npm.cmd`; os registros históricos mantêm o comando que foi executado em cada época.
-- `src/shared/lib/duration.test.js` cobre valores padrão, limites de hora/minuto, strings numéricas, valores negativos e valores não finitos. Os testes existentes de `ReportsPage` já cobrem falha/retry, cancelamento e resultado fora de ordem; não foi necessário adicionar testes artificiais para linhas sem branch funcional.
-- Validação: lint, format check, typecheck, cobertura (150 testes em 41 arquivos) e build passaram. O E2E não iniciou porque o executável Chromium do Playwright não está instalado no ambiente; os dois testes reais foram ignorados por opt-in.
-- Na nova execução E2E, após instalar Chromium 153.0.8010.12, 24 dos 28 cenários passaram, 2 falharam e 2 testes reais foram ignorados. As falhas foram o contraste insuficiente de `.eyebrow` no menu mobile escuro (2,99:1) e uma expectativa de texto desatualizada (`Sem leitura recente` versus `15min atrás`); detalhes estão em `docs/TESTES.md`.
-- `.dark .eyebrow` agora usa `text-indigo-300`; o tema claro continua usando a cor existente. O cenário Axe para menu mobile escuro passou sem violações após a correção.
-- `e2e/app.spec.js` agora espera `15min atrás` para a leitura de 901 segundos. O estado `offline` permanece independente da disponibilidade do tempo desde a última atividade, conforme `docs/FUNCIONALIDADES.md`.
-- Validação após as correções: 26 E2E passaram, 2 testes reais foram ignorados e não houve falhas, usando Chromium gerenciado pelo Playwright 153.0.8010.12 no Windows. `lint`, `format:check`, `typecheck`, `test:coverage`, `build` e `check` passaram; Vitest executou 150 testes em 41 arquivos, com 95,68% statements, 94% branches, 96,13% functions e 97,59% lines. `git diff --check` passou e `git status --short` mostrou somente arquivos de `FrontEnd/`.
+- `src/shared/lib/duration.test.js` cobre valores padrão, limites de hora/minuto, strings numéricas, valores negativos e valores não finitos. Os testes existentes de `ReportsPage` já cobrem falha/retry, cancelamento e resultado fora de ordem.
+- Na primeira execução, lint, `format:check`, typecheck, cobertura com 150 testes em 41 arquivos e build passaram. O E2E inicialmente não iniciou porque o Chromium do Playwright não estava instalado.
+- Após instalar Chromium 153.0.8010.12, foram identificadas duas falhas: contraste insuficiente de `.eyebrow` no menu mobile escuro e expectativa desatualizada de `Sem leitura recente` em vez de `15min atrás`.
+- `.dark .eyebrow` passou a usar `text-indigo-300`, corrigindo o contraste no tema escuro.
+- `e2e/app.spec.js` passou a esperar `15min atrás` para a leitura simulada de 901 segundos.
+- Após as correções, 26 testes E2E passaram, 2 cenários reais foram ignorados por opt-in e não houve falhas. `lint`, `format:check`, `typecheck`, `test:coverage`, `build` e `check` passaram; Vitest executou 150 testes em 41 arquivos, com 95,68% statements, 94% branches, 96,13% functions e 97,59% lines.
 
 ## 02/10/2026
 

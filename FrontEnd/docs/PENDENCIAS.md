@@ -2,6 +2,19 @@
 
 Revisão: **02/10/2026**. `backend/`, `agent/` e a pasta [requisitos](../../requisitos/visao.md) foram consultados somente para leitura. Nenhum contrato externo foi alterado. Os IDs clicáveis em **Problema/requisito** levam às seções de origem em [RN/RF](../../requisitos/requisitos/rn_rf.md), [RNF](../../requisitos/requisitos/rnf.md) ou [critérios de aceite](../../requisitos/requisitos/ca.md). Situação, prioridade, impacto e contrato necessário são conclusões da revisão do código e da API, não texto dos requisitos. Prioridade alta indica risco de acesso, integridade ou bloqueio funcional; média indica lacuna relevante; baixa indica manutenção.
 
+Revisão do recorte MVP 13/10: **07/10/2026**. `backend/`, `agent/` e `requisitos/` foram reinspecionados em modo somente leitura; os bloqueios de Tasks, jornada diária e fuso continuam presentes nos contratos locais atuais.
+
+## Estado do MVP 13/10 nesta revisão
+
+| Funcionalidade                           | Prioridade              | Estado                          | Área/frontend afetado                         | Contrato/dependência e impacto                                                                                                                                                                                                                                                                                                                                |
+| ---------------------------------------- | ----------------------- | ------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Entrada e saída/últimos registros do dia | Alta                    | **BLOQUEADO POR BACKEND**       | `DashboardPage`; filtros por data e usuário   | Não ha endpoint de jornada, agregação diária nem campos confiáveis de primeiro/último registro. `GET /activities/realtime` representa a última leitura atual e não serve como entrada/saída. O backend precisa fornecer registros extremos por dia e agrupar segundo `America/Sao_Paulo`; até lá o painel não exibe horários inventados. Detalhes: I-06/I-07. |
+| Criar e consultar Tasks persistidas      | Alta                    | **BLOQUEADO POR BACKEND**       | `TasksPage`; futuramente Dashboard/relatórios | Não ha modelo/schema ou `GET`/`POST /tasks` equivalente. A tela permanece informativa e não oferece gravação local. Sem persistência real, o MVP não pode afirmar que criou Tasks. Detalhes: I-03.                                                                                                                                                            |
+| Relacionar Task ao Agent/atividade       | Alta para monitoramento | **BLOQUEADO POR BACKEND/AGENT** | `TasksPage`; integração futura                | Payload do Agent e atividade não tem `task_id`; não ha comando/seleção/início/fim de Task. Criar uma Task no futuro não poderá ser anunciado como início de monitoramento sem esse contrato separado. Detalhes: I-03.                                                                                                                                         |
+| Acesso direto sem login                  | Alta                    | **OK**                          | `App`, rotas e menu                           | Rotas do MVP abrem diretamente; o link "Criar conta" não aparece no menu e o `AssociationCodeCard` está oculto no Dashboard. Autenticação permanece **ADIADA PARA DEPOIS DO MVP**; implementação futura foi preservada.                                                                                                                                       |
+
+Os bloqueios funcionais impedem concluir o recorte anunciado como utilizável somente com o frontend atual. A apresentação de status realtime e o resumo por categoria continuam sendo fontes distintas; nenhuma delas é convertida em jornada ou Task.
+
 ## Resumo das pendências
 
 **Atualização de alinhamentos da liderança: 02/10/2026.** As decisões abaixo foram incorporadas às entradas I-01, I-03, I-05/B-10, I-06, I-07, B-03 e B-06. Elas registram a direção acordada; não significam que backend, Agent ou contratos já tenham sido alterados.
@@ -18,7 +31,7 @@ Revisão: **02/10/2026**. `backend/`, `agent/` e a pasta [requisitos](../../requ
 | B-08 | Segurança e fidelidade dos arquivos exportados                    | Backend              | Média      | AGUARDANDO BACKEND         |
 | B-09 | Configuração global sem unicidade garantida                       | Backend              | Média      | AGUARDANDO BACKEND         |
 | B-10 | Flag de inatividade pode gerar status `offline`                   | Backend              | Média      | AGUARDANDO BACKEND         |
-| I-01 | Conta, login e sessão do gestor                                   | Integração           | Alta       | BLOQUEADO                  |
+| I-01 | Conta, login e sessão do gestor                                   | Integração           | Pós-MVP    | ADIADO PARA DEPOIS DO MVP  |
 | I-02 | Associação gestor–colaborador e código                            | Integração           | Alta       | BLOQUEADO                  |
 | I-03 | Tasks, atribuição, escopo e monitoramento consentido              | Integração           | Alta       | BLOQUEADO                  |
 | I-04 | Jornada individual e possível hora extra                          | Integração           | Alta       | BLOQUEADO                  |
@@ -38,6 +51,7 @@ Os status descrevem a dependência atual; a prioridade indica impacto. Eles não
 | Status                         | Significado                                                                                                                                                                                                 |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **BLOQUEADO**                  | A funcionalidade não pode ser concluída com os contratos, dados ou ambiente disponíveis no momento. Depende de uma definição ou implementação externa, como autenticação no backend para o login do gestor. |
+| **ADIADO PARA DEPOIS DO MVP**  | A funcionalidade foi explicitamente retirada do recorte de 13/10; não bloqueia a demonstração solicitada.                                                                                                   |
 | **AGUARDANDO BACKEND**         | A correção precisa ser feita ou garantida no servidor, como a autorização dos endpoints.                                                                                                                    |
 | **PARCIAL; BACKEND PENDENTE**  | O Agent já consome a configuração, mas a classificação realtime ainda depende de limites próprios do backend.                                                                                               |
 | **PENDENTE DE AMBIENTE**       | O cenário de integração está preparado; falta serviço real, banco, origem configurada e dados autorizados para executá-lo.                                                                                  |
@@ -173,7 +187,7 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Frontend afetado:** `AuthPage`, `App`, cliente HTTP e navegação.
 - **Backend relacionado:** routers/schemas atuais não oferecem conta do gestor, login ou sessão.
 - **Atual/impacto:** login/cadastro são páginas informativas, sem coleta de credenciais; não há gestor autenticado.
-- **Decisão da liderança:** a utilização de JWT será avaliada; a estratégia ainda não foi aprovada.
+- **Decisão para o MVP de 13/10:** login/cadastro não são necessários; o acesso direto às rotas fica aberto e o link “Criar conta” foi ocultado da navegação. Autenticação permanece adiada para depois do MVP; o código existente foi preservado.
 - **Contrato necessário:** definir cadastro, login/logout, sessão, expiração, erros e proteção contra CSRF conforme a estratégia escolhida; se JWT for aprovado, especificar emissão, renovação/expiração, armazenamento e transmissão. O servidor aplica B-01.
 - **Workaround frontend:** não existe; formulário visual ou senha local não autentica.
 - **Motivo do bloqueio:** implementar o fluxo exige identidade verificável e acordo sobre transporte da sessão.
@@ -186,18 +200,20 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Backend relacionado:** `User` e `/users/`; não há modelo gestor/equipe/código.
 - **Atual/impacto:** usuários globais; nenhum código ou vínculo real é fornecido. A issue #113 é a dependência de backend indicada para geração/consulta do código; não foi possível confirmar seu estado remoto nesta revisão. No código local consultado, não existe `association_code`, endpoint `/auth/me` ou `/manager/association-code`, modelo gestor/equipe, autenticação ou sessão JWT.
 - **Contrato necessário:** código de seis dígitos como string validado no servidor, associado ao gestor autenticado; confirmar endpoint/resposta, autorização e ciclo de vida/erros do código e do vínculo. A consulta precisa usar a sessão definida em I-01 e ser independente dos filtros analíticos.
-- **Workaround frontend:** issue #114 implementa o card visual desacoplado, com carregamento, erro, indisponibilidade, cópia acessível e validação visual do formato. No Dashboard atual, o card informa indisponibilidade e não exibe valor de produção. Não foi adicionada chamada de rede nem dado fictício. O código só será apresentado quando fornecido como string válida por uma futura integração.
+- **Workaround frontend:** issue #114 mantém o componente visual desacoplado, com carregamento, erro, indisponibilidade, cópia acessível e validação visual do formato. Ele foi ocultado temporariamente do Dashboard do MVP, sem remover sua implementação. Não foi adicionada chamada de rede nem dado fictício.
 - **Motivo do bloqueio:** os dados e regras do vínculo ainda não existem na API local, e o gestor não pode autenticar. A integração real da issue #114 depende da conclusão/definição de #113 e de I-01, incluindo estratégia de JWT/sessão; o card e seus testes de interface estão concluídos no frontend.
 
 ### I-03 — Tasks, atribuição, escopo e monitoramento consentido — Alta
 
 - **Status:** BLOQUEADO.
+- **Prioridade para o MVP de 13/10:** alta. Sem consulta e criação persistentes, a tela Tasks não pode ser apresentada como funcional.
 - **Problema/requisito:** [RF-06](../../requisitos/requisitos/rn_rf.md#rf-06--criar-e-editar-tasks) a [RF-13](../../requisitos/requisitos/rn_rf.md#rf-13--registrar-períodos-de-utilização), [RF-17](../../requisitos/requisitos/rn_rf.md#rf-17--encerrar-ou-trocar-task), [RN-18](../../requisitos/requisitos/rn_rf.md#rn-18--finalidade-e-minimização) e [CA-02](../../requisitos/requisitos/ca.md#ca-02--tasks-e-início-do-monitoramento)/[CA-03](../../requisitos/requisitos/ca.md#ca-03--monitoramento-da-atividade)/[CA-04](../../requisitos/requisitos/ca.md#ca-04--estado-e-execução-da-task).
 - **Frontend afetado:** `TasksPage`, painel e relatórios.
 - **Backend relacionado:** modelos/schemas/routers não contêm task; atividades não contêm vínculo, início/fim ou classificação de escopo.
-- **Atual/impacto:** tela de tasks informa indisponibilidade; API recebe atividade sem exigir task ativa ou ciência. Categorias não equivalem às aplicações produtivas de uma task.
+- **Agent relacionado:** `agent/Dtos/ApiDtos.cs`, `agent/Services/QueueSenderService.cs` e payload de atividade não têm `task_id` nem comandos de seleção/início/encerramento.
+- **Atual/impacto:** não há Task model/schema nem `GET /tasks`, `POST /tasks` ou contrato equivalente; a tela permanece informativa e não simula gravação. Categorias não equivalem às aplicações de uma task. A criação persistida pelo Dashboard, quando houver contrato, será distinta do controle de monitoramento pelo Agent.
 - **Alinhamento da liderança para Sprint 2:** será solicitado a Danyyel que crie uma task padrão. A solicitação ainda não equivale a task disponível na API nem define se ela será criada como seed, configuração ou registro operacional.
-- **Contrato necessário:** persistência/CRUD de tasks, descrição, colaboradores atribuídos, aplicações do escopo, estados, uma task ativa por colaborador e aviso de alterações ao agente antes da aplicação; confirmação de ciência, regras de autorização e forma de disponibilizar a task padrão.
+- **Contrato necessário:** para o recorte mínimo de Tasks, consulta e criação persistentes com schema e validações reais; para RF-06 completo, também edição, descrição, colaboradores atribuídos, aplicações do escopo e autorização. A integração Agent exige ainda listagem/seleção/início/encerramento, `task_id` nos registros e confirmação de ciência.
 - **Workaround frontend:** não existe; armazenamento local, CRUD fictício ou reaproveitar categorias violaria a regra de negócio.
 - **Motivo do bloqueio:** depende do modelo central de monitoramento e de implementação backend/agente.
 
@@ -227,6 +243,9 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 ### I-06 — Dashboard, timeline e relatórios completos — Alta
 
 - **Status:** BLOQUEADO.
+- **Prioridade para o MVP 13/10:** alta para entrada/último registro diário. O backend não oferece campos de primeiro/último registro nem endpoint diário; é necessária consulta que devolva os registros extremos por usuário para a data e usuário filtrados. O endpoint ilustrativo `/dashboard/attendance?date=AAAA-MM-DD&username=<opcional>` e o schema `{date, timezone, users:[{username, first_activity_at, last_activity_at}]}` são requisitos de integração, não contratos existentes; não foram adicionados ao cliente HTTP.
+- **Área/arquivos responsáveis:** Backend, `backend/app/models.py`, `schemas.py`, `crud.py` e `routers/dashboard.py`; a consulta e o schema precisam ser confirmados pelo responsável da API antes da integração frontend.
+- **Semântica:** `last_activity_at` deve ser exibido como “Último registro” (ou “Saída / último registro”), nunca como encerramento definitivo sem evento explícito. Ausência de registro, dia em andamento e indisponibilidade da fonte devem ser distinguíveis. Falha dessa fonte não pode derrubar resumo, usuários ou realtime.
 - **Problema/requisito:** [RF-24](../../requisitos/requisitos/rn_rf.md#rf-24--gerar-relatórios)/[RF-25](../../requisitos/requisitos/rn_rf.md#rf-25--exportar-relatórios)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico) e [CA-07](../../requisitos/requisitos/ca.md#ca-07--consulta-relatórios-e-exportação)/[CA-10](../../requisitos/requisitos/ca.md#ca-10--dashboard-analítico).
 - **Frontend afetado:** `DashboardPage`, `ReportsPage` e visualizações preservadas.
 - **Backend relacionado:** `DailySummaryResponse`, `/dashboard/summary`, `/dashboard/export/csv|pdf`.
@@ -239,12 +258,13 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 ### I-07 — Referência de fuso e virada do dia — Média
 
 - **Status:** BLOQUEADO.
+- **Prioridade para o MVP 13/10:** alta para a jornada diária. Brasília (`America/Sao_Paulo`) é a referência definida; o agrupamento existente por `date(captured_at)` não declara esse fuso e o Agent envia `captured_at` em UTC. O backend precisa agrupar a data no fuso acordado e informar o timezone do contrato. Não compensar agrupamento incorreto no navegador.
 - **Problema/requisito:** significado do filtro diário e períodos da jornada; [RF-20](../../requisitos/requisitos/rn_rf.md#rf-20--configurar-jornada)/[RF-24](../../requisitos/requisitos/rn_rf.md#rf-24--gerar-relatórios)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico).
 - **Frontend afetado:** `todayIso`, filtros de data, resumo e exportação.
 - **Backend relacionado:** `captured_at` com timezone e `func.date` em `get_daily_summary`.
 - **Decisão da liderança:** usar o fuso de Brasília. Será alinhada com Danyyel a configuração equivalente no backend; a intenção é usar variável de ambiente para permitir configuração futura por região. O nome e o mecanismo exatos da variável ainda não foram definidos.
-- **Atual/impacto:** o frontend usa o dia local do navegador e a agregação usa a data da captura no banco. A decisão de produto está definida, mas não está aplicada de forma coordenada no frontend/backend; registros próximos à virada do dia seguem dependentes de configuração consistente.
-- **Contrato necessário:** configurar o fuso de referência no servidor por variável de ambiente e acordar como o frontend conhece/usa essa mesma região para datas padrão, filtro `date`, armazenamento e agregação. Não fixar outro fuso nem inventar nome de variável antes do alinhamento.
+- **Atual/impacto:** o frontend usa o dia local do navegador e a agregação existente aplica `date(captured_at)` sem informar o fuso; o Agent serializa `captured_at` em UTC. Logo, a data padrão do filtro e a data agrupada podem divergir de Brasília.
+- **Contrato necessário:** backend deve agrupar por `America/Sao_Paulo` e declarar o timezone da resposta diária. O frontend poderá formatar timestamps com `Intl.DateTimeFormat` usando o timezone confirmado; não deve reagrupar registros nem compensar erro do backend.
 - **Workaround frontend:** não há correção segura unilateral; a data enviada pelo navegador e a agregação do banco precisam compartilhar a configuração regional acordada.
 - **Motivo do bloqueio:** a decisão de Brasília está registrada, mas depende de alinhamento e configuração coordenada no backend e no frontend, incluindo o contrato para a variável de ambiente planejada.
 

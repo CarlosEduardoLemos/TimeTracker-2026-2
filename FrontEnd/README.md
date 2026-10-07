@@ -2,7 +2,7 @@
 
 Frontend do **TimeTrack**, responsável pela interface web do dashboard. A aplicação consulta os dados disponíveis na API FastAPI e utiliza navegação por hash, sem React Router. Atualmente, não possui manifest nem service worker e não é instalável como PWA.
 
-> **Escopo atual:** autenticação, associação de equipe, tasks e alguns filtros/indicadores previstos nos requisitos dependem de contratos de backend que ainda não estão disponíveis. O frontend sinaliza essas limitações na interface em vez de simular dados.
+> **Escopo do MVP 13/10:** a aplicação abre sem login. O link de cadastro e o card de associação ficam ocultos na apresentação. A consulta de entrada/último registro e a criação persistente de Tasks aguardam contratos reais de backend; nenhuma dessas operações é simulada no navegador. Consulte [Pendências](docs/PENDENCIAS.md).
 
 O realtime apresenta os estados `online`, `ausente` e `offline` recebidos da API; usuários sem entrada realtime são identificados como “Sem dados”. Consulte [Arquitetura](docs/ARQUITETURA.md) e [Funcionalidades](docs/FUNCIONALIDADES.md) para a semântica e os limites desses estados.
 

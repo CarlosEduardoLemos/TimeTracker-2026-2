@@ -57,9 +57,10 @@ test.beforeEach(async ({ page }) => {
   await mockApi(page);
 });
 
-test('abre o painel, filtra data e usuário e navega até a rota 404', async ({ page }) => {
+test('abre o painel sem login, filtra data e usuário e navega até a rota 404', async ({ page }) => {
   await page.goto('/#/painel');
   await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Criar conta' })).toHaveCount(0);
   await expect(page.getByRole('table').first()).toContainText('Ana Silva');
   await expect(page.getByRole('table').first()).toContainText('15min atrás');
   await expect(page.getByRole('table').first()).toContainText('Sem dados');
@@ -180,17 +181,32 @@ for (const width of [375, 768, 1366]) {
   });
 }
 
-test('menu móvel mantém o último link acessível em orientação horizontal', async ({ page }) => {
+test('menu móvel oculta cadastro e mantém o último link acessível em orientação horizontal', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 667, height: 320 });
   await page.goto('/#/painel');
   await page.getByRole('button', { name: 'Abrir menu' }).click();
   const dialog = page.getByRole('dialog');
-  const account = dialog.getByRole('link', { name: 'Criar conta' });
-  await account.scrollIntoViewIfNeeded();
-  await expect(account).toBeInViewport();
-  await account.click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Criar conta');
+  await expect(dialog.getByRole('link', { name: 'Criar conta' })).toHaveCount(0);
+  const lastLink = dialog.getByRole('link', { name: 'Configurações' });
+  await lastLink.scrollIntoViewIfNeeded();
+  await expect(lastLink).toBeInViewport();
+  await lastLink.click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Configurações');
   await expect(page.getByRole('main')).toBeFocused();
+});
+
+test('navega para Tasks e informa que persistência depende do backend', async ({ page }) => {
+  await page.goto('/#/painel');
+  await page
+    .getByRole('navigation', { name: 'Menu principal' })
+    .getByRole('link', { name: 'Tasks' })
+    .click();
+  await expect(page.getByRole('heading', { name: 'Tasks', exact: true })).toBeVisible();
+  await expect(page.getByText(/backend ainda não oferece consulta ou persistência/i)).toBeVisible();
+  await expect(page.getByText(/não inicia nem controla o monitoramento pelo Agent/i)).toBeVisible();
+  await expect(page.getByRole('button', { name: /criar task/i })).toHaveCount(0);
 });
 
 test('menu móvel aceita teclado e tema escuro', async ({ page }) => {
