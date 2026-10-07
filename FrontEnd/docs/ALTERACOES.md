@@ -7,7 +7,7 @@ Histórico de alterações por data, em ordem da mais recente para a mais antiga
 - Reinspecionados backend, Agent e requisitos atuais em modo somente leitura. Não foram encontrados contratos de jornada diária nem consulta/criação persistente de Tasks; o Agent continua sem `task_id` e sem controle de Task.
 - Confirmado que as adequações do PR #121 já estão na branch: acesso sem login, link de cadastro oculto, cartão de associação fora do Dashboard e tela de Tasks sem persistência simulada.
 - Atualizados `PENDENCIAS.md`, `CONTRATOS_API.md` e `TESTES.md` com o estado do MVP, dependências externas e resultados desta execução. Nenhum arquivo fora de `FrontEnd/` foi alterado.
-- Na validação realizada antes da incorporação das alterações mais recentes da `main`, lint, typecheck, 148 testes unitários, build e E2E mockado passaram. Os resultados devem ser validados novamente após a resolução deste merge.
+- O merge da `main` já estava presente no checkout (`bf124d2`), sem conflitos pendentes. Na tentativa de validação consolidada em 07/10, `npm ci` falhou com `EPERM` ao tentar remover um `lint.log` em `node_modules`; a instalação offline subsequente não encontrou `typescript@5.9.3` no cache. Os executáveis do frontend não ficaram disponíveis, então lint, formatação, typecheck, cobertura, build e E2E não puderam ser executados. Consulte os detalhes em `TESTES.md`; os números anteriores a esta incorporação permanecem apenas como histórico.
 
 ## 05/10/2026
 

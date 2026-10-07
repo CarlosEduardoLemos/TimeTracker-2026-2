@@ -1,6 +1,6 @@
 ﻿# Testes e validação do frontend
 
-Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. A última execução completa foi em **07/10/2026**: lint, typecheck, cobertura, build e E2E mockado passaram. `format:check`, `check` e `check:full` pararam no Prettier, que reportou 100 arquivos fora do formato; não foi aplicada formatação em massa. A API real não foi validada e os dois cenários opt-in foram ignorados. Resultados anteriores permanecem identificados pela data de execução. O inventário completo das alterações esta em [Alteracoes](ALTERACOES.md).
+Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026** e **07/10/2026**; a execução anterior de 07/10 ocorreu antes da incorporação das alterações mais recentes da `main`. Após o merge já presente no checkout, a suíte foi tentada novamente em 07/10, mas não pôde ser executada porque as dependências locais estavam incompletas e a instalação foi bloqueada pelo ambiente. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
 ## Preparação e comandos
 
@@ -20,7 +20,16 @@ npm run check:full
 
 Para executar os testes com FastAPI real, inicie a API e o banco de dados separadamente, configure `VITE_API_URL` para a origem correta, defina `RUN_REAL_API=1` e rode `npm run test:e2e:real`. Os testes não enviam POST/PUT; GET /config/ pode inicializar configurações no servidor se ainda não existirem. Eles verificam painel, CORS observado no navegador, GET de configurações, erros de página e downloads CSV/PDF reais com status, MIME e assinatura/conteúdo básico. A comparação dos valores exportados com registros conhecidos continua manual.
 
-## Resultado da revisão de 07/10/2026
+## Resultado da tentativa após o merge — 07/10/2026
+
+- `npm.cmd ci`: falhou com `EPERM` ao tentar remover `node_modules/nwsapi/dist/lint.log`; o arquivo foi preservado.
+- `npm.cmd install --ignore-scripts --offline --no-audit --no-fund`: não concluiu; o cache local não contém o pacote `typescript@5.9.3` (`ENOTCACHED`).
+- `npm.cmd run lint`, `format:check`, `typecheck`, `test:coverage` e `build`: não iniciaram porque os executáveis ESLint, Prettier, TypeScript, Vitest e Vite não estavam disponíveis em `node_modules`.
+- `npm.cmd run test:e2e`: não iniciou; o executor não encontrou `node_modules/vite/bin/vite.js`. Nenhum cenário E2E foi executado ou ignorado.
+- `npm.cmd run check` e `npm.cmd run check:full`: interrompidos no primeiro estágio, `lint`, pelo mesmo executável ausente.
+- Testes, arquivos e percentuais de cobertura após o merge: não disponíveis. E2E aprovados/ignorados/falhos: 0/0/0 executados; a suíte não iniciou. Integração real: não executada.
+
+## Resultado registrado antes da incorporação da `main` — 07/10/2026
 
 - `npm.cmd run lint`: passou.
 - `npm.cmd run format:check`: falhou; Prettier reportou 100 arquivos fora do formato. Não alterei esses arquivos sem relação com esta revisão.
