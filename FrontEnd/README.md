@@ -100,7 +100,7 @@ Uma nova tela entra em `features/<funcionalidade>/pages/`; hooks e componentes e
 cd FrontEnd
 npm ci
 Copy-Item .env.example .env
-npm.cmd run dev
+npm run dev
 ```
 
 `VITE_API_URL` define a origem da API; o padrão é `http://localhost:8000`. O backend precisa estar em execução e permitir a origem do frontend em CORS.
@@ -108,12 +108,12 @@ npm.cmd run dev
 ## Validar
 
 ```powershell
-npm.cmd run check
+npm run check
 $env:PLAYWRIGHT_CHANNEL = 'chrome'
-npm.cmd run check:full
+npm run check:full
 ```
 
-`check` executa lint, verificação de formatação, checagem estática dos contratos JavaScript, testes com os mínimos de cobertura e build. `check:full` também executa o E2E no navegador; ele pode ser usado antes de PR ou release. Para rodar só o E2E, use `npm.cmd run test:e2e`.
+`check` executa lint, verificação de formatação, checagem estática dos contratos JavaScript, testes com os mínimos de cobertura e build. `check:full` também executa o E2E no navegador; ele pode ser usado antes de PR ou release. Para rodar só o E2E, use `npm run test:e2e`. No PowerShell com política de execução que bloqueia `npm.ps1`, use `npm.cmd` no lugar de `npm`.
 
 Para usar o Chromium gerenciado pelo Playwright:
 
@@ -121,7 +121,7 @@ Para usar o Chromium gerenciado pelo Playwright:
 npx playwright install chromium
 ```
 
-Um teste separado consulta a API real. Inicie a API e o banco, defina `RUN_REAL_API=1` e execute `npm.cmd run test:e2e:real`. Consulte [Testes](docs/TESTES.md) para os detalhes.
+Um teste separado consulta a API real. Inicie a API e o banco, defina `RUN_REAL_API=1` e execute `npm run test:e2e:real`. Consulte [Testes](docs/TESTES.md) para os detalhes.
 
 ## Documentação
 

@@ -118,6 +118,10 @@ button:disabled {
   @apply mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-brand;
 }
 
+.dark .eyebrow {
+  @apply text-indigo-300;
+}
+
 .font-display {
   letter-spacing: -0.025em;
 }
