@@ -255,7 +255,7 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Frontend afetado:** `e2e/real-api.spec.js` e telas com API.
 - **Backend relacionado:** FastAPI/banco em execução com dados de teste; origem configurada.
 - **Atual/impacto:** há frontend, backend e Agent para um fluxo ponta a ponta; E2E principal intercepta HTTP somente nos testes. O teste real é opt-in e não escreve dados. Ainda falta serviço real, banco, origem configurada e dados autorizados para comprovar integração/arquivos reais.
-- **Contrato/alteração necessária:** disponibilizar ambiente de teste autorizado, dados e origem; executar `RUN_REAL_API=1 npm.cmd run test:e2e:real` e conferir CSV/PDF, falhas e reinício. Sem alteração de endpoints.
+- **Contrato/alteração necessária:** disponibilizar ambiente de teste autorizado, dados e origem; executar `RUN_REAL_API=1 npm run test:e2e:real` e conferir CSV/PDF, falhas e reinício. Sem alteração de endpoints.
 - **Workaround frontend:** fixtures de teste protegem comportamento do cliente, mas não comprovam a API real.
 - **Motivo da pendência:** o ambiente depende de serviço e banco disponíveis e de dados de teste autorizados; executar o cenário requer o ambiente real configurado.
 

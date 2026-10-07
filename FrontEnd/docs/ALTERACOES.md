@@ -2,6 +2,19 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
+## 05/10/2026
+
+### Padronização de final de linha e validação
+
+- `.editorconfig` define LF e `.gitattributes` aplica `text=auto eol=lf` somente dentro de `FrontEnd/`. A política mantém arquivos binários fora da conversão automática e alinha checkout local, Git e CI.
+- `README.md`, `docs/TESTES.md` e a instrução de teste real em `docs/PENDENCIAS.md` usam `npm run`. A documentação informa que PowerShell com política restritiva pode exigir `npm.cmd`; os registros históricos mantêm o comando que foi executado em cada época.
+- `src/shared/lib/duration.test.js` cobre valores padrão, limites de hora/minuto, strings numéricas, valores negativos e valores não finitos. Os testes existentes de `ReportsPage` já cobrem falha/retry, cancelamento e resultado fora de ordem; não foi necessário adicionar testes artificiais para linhas sem branch funcional.
+- Validação: lint, format check, typecheck, cobertura (150 testes em 41 arquivos) e build passaram. O E2E não iniciou porque o executável Chromium do Playwright não está instalado no ambiente; os dois testes reais foram ignorados por opt-in.
+- Na nova execução E2E, após instalar Chromium 153.0.8010.12, 24 dos 28 cenários passaram, 2 falharam e 2 testes reais foram ignorados. As falhas foram o contraste insuficiente de `.eyebrow` no menu mobile escuro (2,99:1) e uma expectativa de texto desatualizada (`Sem leitura recente` versus `15min atrás`); detalhes estão em `docs/TESTES.md`.
+- `.dark .eyebrow` agora usa `text-indigo-300`; o tema claro continua usando a cor existente. O cenário Axe para menu mobile escuro passou sem violações após a correção.
+- `e2e/app.spec.js` agora espera `15min atrás` para a leitura de 901 segundos. O estado `offline` permanece independente da disponibilidade do tempo desde a última atividade, conforme `docs/FUNCIONALIDADES.md`.
+- Validação após as correções: 26 E2E passaram, 2 testes reais foram ignorados e não houve falhas, usando Chromium gerenciado pelo Playwright 153.0.8010.12 no Windows. `lint`, `format:check`, `typecheck`, `test:coverage`, `build` e `check` passaram; Vitest executou 150 testes em 41 arquivos, com 95,68% statements, 94% branches, 96,13% functions e 97,59% lines. `git diff --check` passou e `git status --short` mostrou somente arquivos de `FrontEnd/`.
+
 ## 02/10/2026
 
 ### Issue #114 — apresentação do código de associação no Dashboard
