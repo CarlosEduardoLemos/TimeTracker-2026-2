@@ -1,8 +1,8 @@
 # Contratos da API do Frontend
 
-Este documento registra as rotas que o frontend consome e o comportamento implementado pelo cliente HTTP. Os contratos foram conferidos em `src/shared/api/api.js`, `src/shared/api/contracts.js`, `src/shared/api/validators.js` e na API backend atual. Requisitos funcionais descrevem necessidades do produto, mas não comprovam que exista um endpoint correspondente.
+Este documento separa rotas consumidas pelo frontend, possibilidades descritas em requisitos, o endpoint consumido pelo Agent na PR externa #122 e as rotas localizadas no backend deste checkout. A análise da PR usa as informações técnicas fornecidas em 09/10/2026; a PR não está integrada aqui. Requisitos e chamadas de cliente não comprovam implementação do servidor.
 
-## Cliente HTTP
+## 1. Endpoints consumidos atualmente pelo frontend
 
 `VITE_API_URL` em `.env` determina a origem da API; na ausência dela, o cliente usa `http://localhost:8000`. `.env.example` documenta esse valor. O serviço remove uma barra final da origem e monta os caminhos abaixo. O valor de `username` é codificado por `URLSearchParams`.
 
@@ -16,6 +16,8 @@ Este documento registra as rotas que o frontend consome e o comportamento implem
 | `GET /config/`              | Nenhum                                                  | `{ capture_interval_seconds, idle_timeout_seconds, updated_at? }`                                                                                  | Configurações                     |
 | `PUT /config/`              | JSON com os dois inteiros positivos                     | Mesmo objeto de configuração                                                                                                                       | Configurações                     |
 
+O frontend não configura autenticação nem envia `Authorization: Bearer`; também não envia cookie de sessão administrado pela aplicação. Não há chamada para associação neste cliente.
+
 ## Tasks e jornada diária — contratos ausentes
 
 Reinspeção em **07/10/2026** de `backend/app/models.py`, `schemas.py`, `crud.py` e dos routers não encontrou modelo/schema de Task, consulta/criação de Tasks, nem endpoint ou campos de primeiro/último registro diario. A API expõe `GET /activities/realtime` e `GET /dashboard/summary`; nenhum deles fornece os extremos da jornada. `categories` representa classificação de atividade e não e substituto para Tasks. O Agent também não inclui `task_id` no payload de atividade nem recebe comandos de Task.
@@ -24,9 +26,39 @@ O frontend não envia chamadas para contratos presumidos. A jornada diária so p
 
 ## Código de associação — ainda sem integração
 
-O backend consultado não fornece `association_code`, `GET /auth/me` ou `GET /manager/association-code`, e o frontend não possui sessão autenticada do gestor. A issue #113 é a dependência para definir e fornecer o contrato; I-01 registra a dependência de autenticação. O estado remoto atual da issue #113 não pôde ser confirmado nesta revisão.
+### 2. Endpoints previstos nos requisitos/issues
 
-`AssociationCodeCard` é somente uma interface visual e recebe `code`, `loading` e `error` por props. Quando integrado, o valor deverá chegar como string numérica de seis dígitos, validada no limite da API; nenhum contrato, endpoint ou validator de associação foi adicionado sem uma resposta real do backend. O card não faz `fetch` e não usa os filtros analíticos.
+As issues #113 (backend/US-06.1) e #114 (frontend/US-06.2) descrevem geração e consulta autenticada do código e sua exibição. `GET /auth/me` e `GET /manager/association-code` são alternativas citadas para investigação, não caminhos confirmados. A issue #113 permanecia aberta na análise de 09/10/2026. O frontend não implementa essas chamadas.
+
+### 3. Endpoint consumido pelo Agent na PR externa #122
+
+A PR `fabrica-bayarea/TimeTracker-2026-2` #122, commit `ed48ad7cfff9e724406ef9ffffeb6c0f132caf32` (branch `agent/association`), informa o consumo pelo Agent de `POST /associate/`. A rota é configurável no Agent (`Associate = "associate/"`); isso não comprova a existência do endpoint no backend.
+
+Payload enviado pelo Agent, com código como **string** para preservar zeros à esquerda:
+
+```json
+{
+  "code": "012345",
+  "username": "colaborador",
+  "hostname": "ESTACAO-01"
+}
+```
+
+| Campo | Tipo conhecido | Observação |
+| --- | --- | --- |
+| `code` | string | Código numérico com exatamente seis dígitos; não converter para número. |
+| `username` | string | Nome de usuário Windows do colaborador. |
+| `hostname` | string | Nome da estação Windows. |
+
+A resposta que o cliente do Agent tenta interpretar contém `token` ou `access_token`; ele escolhe `token ?? access_token` e considera falha uma resposta de sucesso sem token. Isso descreve tolerância do cliente Agent, não um contrato oficial do backend nem suporte confirmado a ambos os nomes. O Agent protege o token local usando DPAPI do usuário Windows e o envia como Bearer em requisições subsequentes. Esse token é credencial do Agent e não deve ser tratado como sessão/JWT do gestor no navegador.
+
+A PR classifica 400, 401, 403, 404, 409, 410 e 422 como possível código inválido/expirado. Essa interpretação é ampla: 401/403 podem representar autenticação/autorização. O backend precisa definir semântica e mensagens por status; o frontend não deve repetir essa classificação nem inferir código inválido a partir de 401/403. Sucesso, falhas, autorização, persistência do vínculo, expiração e isolamento ainda requerem confirmação de servidor.
+
+### 4. Endpoints identificados no backend deste checkout
+
+Na inspeção dos routers atuais, foram identificadas as rotas listadas na primeira tabela (`/users/`, `/activities/realtime`, `/dashboard/*` e `/config/`) e `GET /` para healthcheck. Não foram localizados `POST /associate/`, `association_code`, `GET /auth/me` ou `GET /manager/association-code`. Portanto, não está confirmada no backend a geração/consulta do código, associação, autorização nem persistência do vínculo. Essa inspeção local não afirma nada sobre commits externos que não estejam no checkout.
+
+`AssociationCodeCard` continua sendo apresentação isolada: recebe `code`, `loading` e `error` por props, valida visualmente uma string de seis dígitos e não faz `fetch`. Nenhum endpoint presumido foi adicionado ao cliente de produção.
 
 ## Erros, validação e cancelamento
 

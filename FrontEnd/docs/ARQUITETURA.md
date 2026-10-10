@@ -37,7 +37,24 @@ Este documento descreve o código executado atualmente em `FrontEnd/`: estrutura
 
 ## Fluxo de dados do painel
 
-`AssociationCodeCard` é composto diretamente por `DashboardPage` e não faz parte de `useDashboardData`: sua identidade é independente da data e do usuário selecionados. Como não existe contrato de associação nem sessão do gestor, o Dashboard não fornece código e o card exibe indisponibilidade. Uma futura integração deverá buscar o valor por uma camada de dados própria quando o endpoint e a autenticação forem definidos.
+`AssociationCodeCard` não faz parte de `useDashboardData`: sua identidade é independente da data e do usuário selecionados. O card permanece fora do Dashboard do MVP. Quando usado isoladamente sem código, mostra indisponibilidade; hoje não há consulta do gestor porque faltam contrato de associação e sessão autenticada. Uma futura integração deverá buscar o valor por uma camada de dados própria quando o endpoint e a autenticação forem definidos.
+
+Fluxo esperado, ainda não comprovado ponta a ponta:
+
+```text
+GESTOR — FRONTEND WEB
+        |
+        | Consulta autenticada do código
+        v
+BACKEND — API
+        ^
+        | POST /associate/
+        | code + username + hostname
+        |
+AGENT — COLABORADOR
+```
+
+`POST /associate/` é a rota consumida pelo Agent segundo a PR externa #122; a implementação no backend não foi localizada neste checkout. O fluxo do gestor depende de endpoint de consulta e sessão próprios, ainda não confirmados. Conforme a PR, depois de uma associação bem-sucedida o Agent protege o token local com DPAPI e usa Bearer em chamadas posteriores; o monitoramento só começa se o Agent estiver associado. O backend precisa validar vínculo, identidade e escopo de autorização em cada operação. O token do Agent não é a sessão do gestor. Até existirem contratos e testes integrados, este diagrama descreve a arquitetura esperada, não uma funcionalidade disponível.
 
 1. `DashboardPage` inicia com a data local do navegador e usuário vazio. A mudança de data ou usuário altera os argumentos de `useDashboardData`.
 2. O hook cancela a consulta anterior, incrementa um identificador de sequência e solicita resumo, usuários e realtime em paralelo com `Promise.allSettled`.

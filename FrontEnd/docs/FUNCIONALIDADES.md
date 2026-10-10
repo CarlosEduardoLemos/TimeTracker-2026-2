@@ -24,9 +24,9 @@ O escopo solicitado para filtros, indicadores e timeline está na [tela de refer
 
 ### Código de associação
 
-O componente `AssociationCodeCard` continua implementado e testado, mas fica temporariamente fora da página principal do MVP para não destacar uma integração indisponível.
+O componente visual `AssociationCodeCard` já existe e tem testes para validação do formato, cópia e estados da interface, mas fica temporariamente oculto no Dashboard do MVP. A PR externa #122 representa avanço no Agent: ele consome um código de seis dígitos para associar a estação, armazena token protegido e só inicia o monitoramento após associação. Essa implementação não está integrada neste checkout e não conclui o fluxo.
 
-No estado atual, a API não fornece o código e a autenticação do gestor não está disponível. Nenhum código real é carregado ou gerado no navegador. A integração permanece registrada em I-02 na [lista de pendências](PENDENCIAS.md).
+No estado atual, o backend deste checkout não fornece geração/consulta do código nem a rota de associação; a sessão autenticada do gestor também não está disponível. A consulta real do código depende de backend e autenticação. O navegador não fabrica códigos e o frontend não reutiliza a credencial do Agent como sessão do gestor. A integração permanece registrada em I-02 na [lista de pendências](PENDENCIAS.md).
 
 ### Filtros e atualização
 

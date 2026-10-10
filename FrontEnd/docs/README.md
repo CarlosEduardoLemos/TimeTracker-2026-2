@@ -7,6 +7,8 @@ Use este índice para localizar informações sobre o estado atual, a arquitetur
 - [Funcionalidades](FUNCIONALIDADES.md): telas, comportamentos disponíveis e relação com os requisitos.
 - [Pendências](PENDENCIAS.md): bloqueios organizados por área, impacto, prioridade e workaround.
 
+O card visual de associação está implementado e permanece oculto no MVP. A PR externa #122 descreve associação no Agent, mas o contrato do backend e a consulta autenticada do gestor continuam pendentes; isso não representa integração ponta a ponta.
+
 ## Arquitetura e contratos
 
 - [Arquitetura](ARQUITETURA.md): estrutura do código, camadas, fluxo da aplicação, estado e decisões arquiteturais.

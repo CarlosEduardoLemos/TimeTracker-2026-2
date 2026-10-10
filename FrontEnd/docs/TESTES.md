@@ -1,6 +1,6 @@
 ﻿# Testes e validação do frontend
 
-Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026** e **07/10/2026**; a execução anterior de 07/10 ocorreu antes da incorporação das alterações mais recentes da `main`. Após o merge já presente no checkout, a suíte foi tentada novamente em 07/10, mas não pôde ser executada porque as dependências locais estavam incompletas e a instalação foi bloqueada pelo ambiente. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
+Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026** e a tentativa atual de **09/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
 ## Preparação e comandos
 
@@ -19,6 +19,14 @@ npm run check:full
 `vitest.config.js` usa `jsdom`, plugin React e `src/testing/setup.js` com `@testing-library/jest-dom`; só inclui `src/**/*.test.{js,jsx}`. A cobertura configura `src/**/*.{js,jsx}` e exclui `src/testing/**`. Playwright gera o build, sobe o preview, executa os testes no Chrome/Chromium e encerra o servidor. O executor fixa `VITE_API_URL=http://localhost:8000` nos E2E simulados; com `RUN_REAL_API=1`, respeita a origem configurada. Para instalar o Chromium gerenciado pelo Playwright, execute `npx playwright install chromium`; em máquina com Chrome instalado, defina `PLAYWRIGHT_CHANNEL=chrome`. `PLAYWRIGHT_CHANNEL` pode ser removida quando o Chromium gerenciado estiver disponível.
 
 Para executar os testes com FastAPI real, inicie a API e o banco de dados separadamente, configure `VITE_API_URL` para a origem correta, defina `RUN_REAL_API=1` e rode `npm run test:e2e:real`. Os testes não enviam POST/PUT; GET /config/ pode inicializar configurações no servidor se ainda não existirem. Eles verificam painel, CORS observado no navegador, GET de configurações, erros de página e downloads CSV/PDF reais com status, MIME e assinatura/conteúdo básico. A comparação dos valores exportados com registros conhecidos continua manual.
+
+## Tentativa de validação desta revisão — 09/10/2026
+
+- `npm.cmd run check`: não iniciou os estágios; o primeiro comando, ESLint, falhou porque `eslint` não está disponível/reconhecido em `FrontEnd/node_modules`.
+- `npm.cmd run check:full`: parou pelo mesmo motivo no estágio ESLint de `check`; nenhum E2E iniciou.
+- `npm.cmd test -- src/features/dashboard/components/AssociationCodeCard.test.jsx`: não iniciou; `vitest` não está disponível/reconhecido.
+- Por consequência, lint, formatação, typecheck, testes/cobertura, build e E2E não foram executados nesta revisão. A documentação não trata resultados históricos como validação das alterações atuais.
+- Integração real com API e fluxo de associação: não executados; o contrato de backend de associação não foi localizado e `RUN_REAL_API` não foi habilitado.
 
 ## Resultado da tentativa após o merge — 07/10/2026
 
@@ -114,7 +122,7 @@ Os caminhos abaixo refletem a estrutura atual. Os testes específicos continuam 
 | `src/app/hooks/useTheme.test.js`                                                                                | Preferência do sistema, preferência salva, alternância, classe/documento e `localStorage`                                                           |
 | `src/features/dashboard/hooks/useAutoRefresh.test.js`                                                           | Intervalo, desativação, pausa na aba oculta e atualização ao retornar; usado pelo painel                                                            |
 | `src/features/dashboard/pages/DashboardPage.test.jsx`                                                           | Loading, indicadores com `offline`/sem dados, falha de realtime, filtro e contagem de cadastrados                                                   |
-| `src/features/dashboard/components/AssociationCodeCard.test.jsx`                                                | Código de seis dígitos, zeros iniciais, Clipboard API, sucesso/falha, loading, erro e formato inválido                                              |
+| `src/features/dashboard/components/AssociationCodeCard.test.jsx`                                                | Código válido e zeros iniciais; ausência, valor não string e formatos inválidos; cópia com Clipboard API disponível/indisponível e sucesso/falha; loading, erro e anúncios acessíveis |
 | `src/features/collaborators/pages/CollaboratorsPage.test.jsx`                                                   | Duas fontes de dados, `offline`, sem dados, falhas parciais, lista vazia, retry e cancelamento                                                      |
 | `src/features/dashboard/components/DashboardFilters.test.jsx`, `LastActivityTable.test.jsx`                     | Filtros, status, tempo relativo em segundos/minutos/horas, carregamento, vazio e indisponibilidade                                                  |
 | `src/features/dashboard/components/DashboardMetrics.test.jsx`, `DashboardStatusNotice.test.jsx`                 | Indicadores com dados disponíveis/indisponíveis e aviso sobre limites dos dados do agente                                                           |

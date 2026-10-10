@@ -4,6 +4,8 @@ Revisão: **02/10/2026**. `backend/`, `agent/` e a pasta [requisitos](../../requ
 
 Revisão do recorte MVP 13/10: **07/10/2026**. `backend/`, `agent/` e `requisitos/` foram reinspecionados em modo somente leitura; os bloqueios de Tasks, jornada diária e fuso continuam presentes nos contratos locais atuais.
 
+Atualização de associação: **09/10/2026**. A PR externa #122 (`ed48ad7cfff9e724406ef9ffffeb6c0f132caf32`, branch `agent/association`) foi considerada conforme as informações técnicas fornecidas para esta revisão; ela não está integrada neste checkout e não altera os arquivos do frontend.
+
 ## Estado do MVP 13/10 nesta revisão
 
 | Funcionalidade                           | Prioridade              | Estado                          | Área/frontend afetado                         | Contrato/dependência e impacto                                                                                                                                                                                                                                                                                                                                |
@@ -32,7 +34,7 @@ Os bloqueios funcionais impedem concluir o recorte anunciado como utilizável so
 | B-09 | Configuração global sem unicidade garantida                       | Backend              | Média      | AGUARDANDO BACKEND         |
 | B-10 | Flag de inatividade pode gerar status `offline`                   | Backend              | Média      | AGUARDANDO BACKEND         |
 | I-01 | Conta, login e sessão do gestor                                   | Integração           | Pós-MVP    | ADIADO PARA DEPOIS DO MVP  |
-| I-02 | Associação gestor–colaborador e código                            | Integração           | Alta       | BLOQUEADO                  |
+| I-02 | Associação gestor–colaborador e código                            | Integração           | Alta       | PARCIAL NO AGENT; BLOQUEADO |
 | I-03 | Tasks, atribuição, escopo e monitoramento consentido              | Integração           | Alta       | BLOQUEADO                  |
 | I-04 | Jornada individual e possível hora extra                          | Integração           | Alta       | BLOQUEADO                  |
 | I-05 | Conexão real do agente                                            | Integração           | Média      | BLOQUEADO                  |
@@ -54,6 +56,7 @@ Os status descrevem a dependência atual; a prioridade indica impacto. Eles não
 | **ADIADO PARA DEPOIS DO MVP**  | A funcionalidade foi explicitamente retirada do recorte de 13/10; não bloqueia a demonstração solicitada.                                                                                                   |
 | **AGUARDANDO BACKEND**         | A correção precisa ser feita ou garantida no servidor, como a autorização dos endpoints.                                                                                                                    |
 | **PARCIAL; BACKEND PENDENTE**  | O Agent já consome a configuração, mas a classificação realtime ainda depende de limites próprios do backend.                                                                                               |
+| **PARCIAL NO AGENT; BLOQUEADO** | O Agent tem parte do fluxo descrita na PR #122, mas a jornada completa depende de contratos/backend e sessão do gestor; consulte I-02.                                                                      |
 | **PENDENTE DE AMBIENTE**       | O cenário de integração está preparado; falta serviço real, banco, origem configurada e dados autorizados para executá-lo.                                                                                  |
 | **FRONTEND FUTURO**            | Trabalho previsto para uma etapa posterior do frontend, como instalação PWA ou validação em dispositivos reais.                                                                                             |
 | **AGUARDANDO REVISÃO EXTERNA** | Depende da revisão de um documento fora de `FrontEnd/`; neste caso, `requisitos/responsividade.md`.                                                                                                         |
@@ -194,14 +197,15 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 
 ### I-02 — Associação gestor–colaborador e código — Alta
 
-- **Status:** BLOQUEADO.
+- **Status:** PARCIAL NO AGENT; BLOQUEADO PARA A JORNADA COMPLETA.
 - **Problema/requisito:** [RF-03](../../requisitos/requisitos/rn_rf.md#rf-03--disponibilizar-código-de-associação)/[RF-04](../../requisitos/requisitos/rn_rf.md#rf-04--associar-colaborador)/[RF-05](../../requisitos/requisitos/rn_rf.md#rf-05--gerenciar-colaboradores-associados), [CA-01](../../requisitos/requisitos/ca.md#ca-01--identificação-acesso-e-associação)/[CA-07](../../requisitos/requisitos/ca.md#ca-07--consulta-relatórios-e-exportação) e [associação no RBAC](../../requisitos/rbac.md#6-associação).
 - **Frontend afetado:** painel, colaboradores, relatórios e futura exibição do código do gestor.
-- **Backend relacionado:** `User` e `/users/`; não há modelo gestor/equipe/código.
-- **Atual/impacto:** usuários globais; nenhum código ou vínculo real é fornecido. A issue #113 é a dependência de backend indicada para geração/consulta do código; não foi possível confirmar seu estado remoto nesta revisão. No código local consultado, não existe `association_code`, endpoint `/auth/me` ou `/manager/association-code`, modelo gestor/equipe, autenticação ou sessão JWT.
-- **Contrato necessário:** código de seis dígitos como string validado no servidor, associado ao gestor autenticado; confirmar endpoint/resposta, autorização e ciclo de vida/erros do código e do vínculo. A consulta precisa usar a sessão definida em I-01 e ser independente dos filtros analíticos.
-- **Workaround frontend:** issue #114 mantém o componente visual desacoplado, com carregamento, erro, indisponibilidade, cópia acessível e validação visual do formato. Ele foi ocultado temporariamente do Dashboard do MVP, sem remover sua implementação. Não foi adicionada chamada de rede nem dado fictício.
-- **Motivo do bloqueio:** os dados e regras do vínculo ainda não existem na API local, e o gestor não pode autenticar. A integração real da issue #114 depende da conclusão/definição de #113 e de I-01, incluindo estratégia de JWT/sessão; o card e seus testes de interface estão concluídos no frontend.
+- **A. Implementado no frontend:** `AssociationCodeCard` apresenta um código string de seis dígitos, preserva zeros à esquerda, oferece cópia com feedback e estados de carregamento, erro e indisponibilidade. Os testes verificam os estados visuais e acessíveis. O card permanece oculto no Dashboard do MVP.
+- **B. Implementado na PR externa #122 (ainda não integrada):** o Agent recebe código numérico de seis dígitos, envia a associação, persiste token protegido por DPAPI, reutiliza Bearer nas chamadas posteriores e não inicia monitoramento antes de estar associado. Referência: `fabrica-bayarea/TimeTracker-2026-2`, PR #122, commit `ed48ad7cfff9e724406ef9ffffeb6c0f132caf32`, branch `agent/association`. Isso não comprova o endpoint no backend nem conclusão ponta a ponta.
+- **C. Pendente de confirmação/implementação no backend:** geração e consulta autenticada do código (issue #113, aberta na análise de 09/10/2026), implementação de `POST /associate/`, autorização, persistência e isolamento do vínculo por gestor/equipe e regras de validade/erro. O código da PR consome `/associate/`, mas a rota foi informada pelo Agent e não foi localizada nos routers do backend deste checkout. Possíveis rotas `GET /auth/me` e `GET /manager/association-code` continuam alternativas de requisito, não contratos confirmados.
+- **D. Pendente no frontend:** integrar consulta autenticada e exibir o código quando o backend confirmar endpoint, resposta, autorização e mecanismo de sessão do gestor (issue #114/I-01). Não há chamada de rede, sessão de gestor ou token fictício no código atual.
+- **Segurança e impacto:** o token protegido localmente do Agent representa a autorização do Agent e não deve ser reutilizado como JWT/sessão do gestor. `/users/`, painel, colaboradores e relatórios ainda consomem dados globais; filtragem visual não protege dados. O isolamento deve ser imposto pela API e sua autorização. Os estados `online`, `ausente`, `offline` e “Sem dados” continuam sujeitos ao contrato realtime e não são prova de associação ou conexão ativa.
+- **Motivo do bloqueio:** faltam no backend local o código, a rota de consulta, a rota de associação e o vínculo autorizado; também não há sessão autenticada do gestor no frontend. A PR #122 cobre somente o lado Agent descrito acima, sem comprovar persistência ou isolamento no servidor.
 
 ### I-03 — Tasks, atribuição, escopo e monitoramento consentido — Alta
 

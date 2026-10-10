@@ -2,6 +2,14 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
+## 09/10/2026 — Adequação documental à PR externa #122
+
+- **Alterações locais:** esclarecido em `PENDENCIAS.md`, `CONTRATOS_API.md`, `ARQUITETURA.md`, `FUNCIONALIDADES.md`, `README.md` e `docs/README.md` que o card de associação é apenas visual, está oculto no MVP e depende de contratos de backend e sessão do gestor. Registrada a separação entre rotas consumidas pelo frontend, caminhos previstos, rota consumida pelo Agent e rotas localizadas no backend deste checkout.
+- **Referência externa:** documentada a PR #122 (`ed48ad7cfff9e724406ef9ffffeb6c0f132caf32`, `agent/association`) como implementação do lado Agent fornecida para análise, ainda não integrada neste checkout. A documentação registra `POST /associate/`, payload string com código de seis dígitos, tolerância do Agent a `token`/`access_token`, DPAPI, Bearer e bloqueio de monitoramento sem associação, sem afirmar suporte correspondente do servidor.
+- **Segurança e limites:** explicitada a diferença entre token do Agent e futura sessão do gestor, a necessidade de autorização/isolamento no backend e a interpretação ambígua de 401/403 na PR. Não foi adicionada chamada HTTP nem alterada lógica de status ou filtragem de dados.
+- **Testes do card:** adicionada cobertura para códigos ausentes/malformados/não string e ausência da Clipboard API. A execução ficou impedida pela ausência dos binários de ESLint/Vitest; detalhes constam em `TESTES.md`.
+- **Fora do FrontEnd:** nenhum arquivo foi alterado. Não houve commit, push, abertura/aprovação de PR ou merge.
+
 ## 07/10/2026 — Revisão dos contratos e validação do MVP
 
 - Reinspecionados backend, Agent e requisitos atuais em modo somente leitura. Não foram encontrados contratos de jornada diária nem consulta/criação persistente de Tasks; o Agent continua sem `task_id` e sem controle de Task.
