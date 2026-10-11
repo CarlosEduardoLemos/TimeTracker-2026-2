@@ -2,7 +2,15 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+)
+
+from .security import MAX_PASSWORD_BYTES
 
 # pass = alias
 
@@ -27,6 +35,58 @@ class UserOut(UserBase):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
     created_at: datetime
+
+
+# Auth (gestor)
+def _normalize_email(value: str) -> str:
+    return value.strip().lower()
+
+
+class ManagerCreate(BaseModel):
+    email: EmailStr
+    password: str = Field(
+        min_length=8,
+        max_length=MAX_PASSWORD_BYTES,
+        description=f"Mínimo de 8 caracteres e máximo de {MAX_PASSWORD_BYTES} "
+                    "bytes (UTF-8).",
+    )
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return _normalize_email(value)
+
+    @field_validator("password")
+    @classmethod
+    def password_fits_bcrypt(cls, value: str) -> str:
+        if len(value.encode("utf-8")) > MAX_PASSWORD_BYTES:
+            raise ValueError(
+                f"A senha deve ter no máximo {MAX_PASSWORD_BYTES} bytes."
+            )
+        return value
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=1, max_length=256)
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return _normalize_email(value)
+
+
+class ManagerOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: uuid.UUID
+    email: EmailStr
+    created_at: datetime
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int = Field(description="Validade do token, em segundos.")
 
 
 # Categories
@@ -68,7 +128,9 @@ class CategorizationRuleOut(CategorizationRuleBase):
 
 # Activity Logs
 class ActivityLogCreate(BaseModel):
-    """Payload enviado pelo agente desktop a cada leitura da janela ativa (RF01/RF02)."""
+    """
+    Payload enviado pelo agente desktop a cada leitura da janela ativa
+    """
 
     username: str = Field(..., description="Usuário do Windows capturado automaticamente (RF05)")
     hostname: str = Field(..., description="Nome da máquina (RF05)")

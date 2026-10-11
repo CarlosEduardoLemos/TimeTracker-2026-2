@@ -41,6 +41,24 @@ class User(Base):
     activity_logs = relationship("ActivityLog", back_populates="user")
 
 
+class Manager(Base):
+    """
+    Gestor com acesso ao Dashboard. Autentica por e-mail e senha;
+    A senha é guardada apenas como hash bcrypt
+    """
+
+    __tablename__ = "managers"
+
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid7)
+    # Sempre salvo em minúsculas (normalizado no schema).
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(),
+                        nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(),
+                        onupdate=func.now(), nullable=False)
+
+
 class Category(Base):
     """
     Categorias de atividade (Desenvolvimento, Design,
