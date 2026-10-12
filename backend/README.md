@@ -39,22 +39,28 @@ uvicorn app.main:app --reload
 app/
   main.py          # cria o app FastAPI, CORS, inclui routers, configura Swagger
   database.py      # engine/session SQLAlchemy
-  models.py        # entidades: User, Category, CategorizationRule, ActivityLog, SystemSettings
+  models.py        # entidades: User, Manager, Category, CategorizationRule, ActivityLog, SystemSettings
   schemas.py       # schemas Pydantic (request/response)
   crud.py          # lógica de acesso a dados + motor de categorização (RF07)
+  security.py      # hash de senha (bcrypt), JWT e dependência get_current_manager
   routers/
+    auth.py        # POST /auth/register, POST /auth/login, GET /auth/me (RF-02)
     activities.py  # POST /activities (RF01/RF02) e GET /activities/realtime (RF09)
     dashboard.py   # GET /dashboard/summary (RF10) e exportações CSV/PDF (RF11)
     categories.py  # categorias e regras de categorização (RF07/RF08)
     config.py      # GET/PUT /config (RF06 - config remota do agente)
     users.py       # listagem de colaboradores
 seed.py            # popula categorias/regras/config padrão
+tests/             # testes automatizados (pytest)
 ```
 
 ## Endpoints principais
 
 | Método | Rota | Descrição | RF |
 |---|---|---|---|
+| POST | `/auth/register` | Cria a conta do gestor (e-mail e senha) | RF-02 |
+| POST | `/auth/login` | Login do gestor; retorna token JWT | RF-02 |
+| GET | `/auth/me` | Gestor autenticado (rota protegida) | RF-02 |
 | POST | `/activities/` | Agente envia leitura da janela ativa | RF01, RF02, RF05 |
 | GET | `/activities/realtime` | Painel em tempo real | RF09 |
 | GET | `/dashboard/summary?date=` | Sumário diário por categoria | RF10 |
@@ -65,8 +71,70 @@ seed.py            # popula categorias/regras/config padrão
 | GET/PUT | `/config/` | Intervalo de captura e tempo de inatividade | RF06 |
 | GET | `/users/` | Lista colaboradores | RF05 |
 
+## Autenticação do gestor (JWT)
+
+Variáveis de ambiente (veja `.env.example`):
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `JWT_SECRET_KEY` | *(vazia)* | Chave de assinatura dos tokens, mínimo de 32 caracteres. Gere com `python -c "import secrets; print(secrets.token_urlsafe(64))"`. Se vazia, o servidor gera uma chave temporária e avisa no log: os tokens deixam de valer a cada reinício. **Defina em produção.** |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `60` | Validade do token de acesso, em minutos. |
+
+### Contrato (para o Frontend)
+
+```http
+POST /auth/register   {"email": "gestor@empresa.com", "password": "mínimo 8 caracteres"}
+→ 201 {"id": "<uuid>", "email": "gestor@empresa.com", "created_at": "..."}
+→ 409 e-mail já cadastrado · 422 dados inválidos
+
+POST /auth/login      {"email": "gestor@empresa.com", "password": "..."}
+→ 200 {"access_token": "<jwt>", "token_type": "bearer", "expires_in": 3600}
+→ 401 {"detail": "E-mail ou senha inválidos."}   (mensagem igual para e-mail inexistente e senha errada)
+
+GET /auth/me          Authorization: Bearer <jwt>
+→ 200 {"id": "...", "email": "...", "created_at": "..."}
+→ 401 token ausente, inválido ou expirado
+```
+
+- O corpo do login é **JSON** (não `x-www-form-urlencoded`).
+- E-mails são normalizados para minúsculas e domínios reservados (`.test`, `.local`, `localhost`) são recusados com `422`; a senha tem no máximo 72 bytes (limite do bcrypt).
+- O token **não é renovado**: ao expirar (`401`), o gestor precisa fazer login novamente.
+- Erros `422` em campos de senha não devolvem o valor enviado.
+- No Swagger (`/docs`), use **Authorize** e cole o `access_token` para testar rotas protegidas.
+
+### Protegendo rotas
+
+`get_current_manager` (em `app/security.py`) valida o JWT e devolve o gestor autenticado, ou responde `401`:
+
+```python
+from fastapi import APIRouter, Depends
+from .. import models, security
+
+# uma rota
+@router.get("/exemplo")
+def exemplo(manager: models.Manager = Depends(security.get_current_manager)):
+    ...
+
+# um router inteiro
+router = APIRouter(
+    prefix="/config",
+    dependencies=[Depends(security.get_current_manager)],
+)
+```
+
+> **Status atual:** por decisão do MVP de 13/10, as rotas existentes (`/dashboard`, `/config`, `/users`, `/categories`...) **continuam abertas**; apenas `/auth/me` é protegida. Proteger as demais e filtrar os dados por equipe (B-01) depende do vínculo gestor–colaborador (I-02), ainda não implementado.
+
+## Testes
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+Os testes usam um SQLite temporário (não tocam no Postgres) e exigem Python 3.14, o mesmo do `Dockerfile` (`uuid.uuid7`).
+
 ## Próximos passos sugeridos
 
-- Adicionar autenticação (JWT) nas rotas de escrita (`config`, `categories/rules`) para uso pelo gestor.
+- Proteger as rotas de escrita (`config`, `categories/rules`) e as de leitura com `get_current_manager` e isolar os dados por equipe (B-01).
 - Trocar `Base.metadata.create_all` por migrações com Alembic antes de produção.
 - Adicionar índice único em `(user_id, captured_at)` se o agente puder reenviar duplicados.

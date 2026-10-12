@@ -2,10 +2,11 @@ import uuid
 from datetime import datetime, date, timedelta, timezone
 
 from sqlalchemy import func, and_
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
-from . import models, schemas
+from . import models, schemas, security
 from .utils import MAX_IDLE_SECONDS
 
 REALTIME_DISPLAY_WINDOW_HOURS = 24  # até quando um colaborador some da lista por falta de dados
@@ -37,6 +38,66 @@ def list_users(db: Session) -> list[models.User]:
           .order_by(models.User.username)
           .all()
     )
+
+
+# Managers (autenticação do gestor)
+class EmailAlreadyRegisteredError(Exception):
+    """Já existe um gestor com este e-mail."""
+
+
+def get_manager_by_email(db: Session, email: str) -> models.Manager | None:
+    return (
+        db.query(models.Manager)
+          .filter(models.Manager.email == email.strip().lower())
+          .first()
+    )
+
+
+def create_manager(
+        db: Session,
+        manager: schemas.ManagerCreate
+) -> models.Manager:
+    if get_manager_by_email(db, manager.email):
+        raise EmailAlreadyRegisteredError(manager.email)
+
+    db_manager = models.Manager(
+        email=manager.email,
+        password_hash=security.hash_password(manager.password),
+    )
+
+    db.add(db_manager)
+
+    try:
+        db.commit()
+    except IntegrityError:
+        # Cadastro simultâneo do mesmo e-mail (índice único do banco).
+        db.rollback()
+        raise EmailAlreadyRegisteredError(manager.email) from None
+
+    db.refresh(db_manager)
+
+    return db_manager
+
+
+def authenticate_manager(
+        db: Session,
+        email: str,
+        password: str
+) -> models.Manager | None:
+    """
+    Retorna o gestor se e-mail e senha conferem, senão None. Não diferencia
+    "e-mail inexistente" de "senha incorreta" (nem no tempo de resposta).
+    """
+    manager = get_manager_by_email(db, email)
+
+    if manager is None:
+        security.verify_password(password, security.DUMMY_PASSWORD_HASH)
+        return None
+
+    if not security.verify_password(password, manager.password_hash):
+        return None
+
+    return manager
 
 
 # Categories
@@ -234,7 +295,6 @@ def get_realtime_view(db: Session) -> list[schemas.RealtimeEntry]:
     return result
 
 
-# ---------- Daily summary (RF10) ----------
 def get_daily_summary(
         db: Session,
         target_date: date,
@@ -297,7 +357,6 @@ def get_daily_summary(
     )
 
 
-# ---------- Settings (RF06) ----------
 def get_settings(db: Session) -> models.SystemSettings:
     settings = db.query(models.SystemSettings).first()
 
