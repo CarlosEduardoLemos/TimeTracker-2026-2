@@ -1,9 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
 
 from .database import Base, engine
 from . import models # registra modelos antes do create_all.
-from .routers import activities, dashboard, categories, config, users
+from .routers import activities, auth, dashboard, categories, config, users
 
 _ = models
 
@@ -35,6 +39,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    _request: Request,
+    exc: RequestValidationError
+):
+    """
+    Mantém o formato padrão do 422 do FastAPI, mas sem devolver o valor
+    enviado em campos de senha (credenciais não devem ser expostas).
+    """
+    errors = []
+
+    for error in exc.errors():
+        if "password" in error.get("loc", ()):
+            error = {k: v for k, v in error.items() if k != "input"}
+
+        errors.append(error)
+
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        content={"detail": jsonable_encoder(errors)},
+    )
+
+
+app.include_router(auth.router)
 app.include_router(activities.router)
 app.include_router(dashboard.router)
 app.include_router(categories.router)
