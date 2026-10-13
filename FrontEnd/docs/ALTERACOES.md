@@ -2,6 +2,15 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
+## 13/10/2026 — Alinhamento às PRs #122 e #123
+
+- **Estado das integrações:** registrada a incorporação da PR #122 do Agent (`ed48ad7cfff9e724406ef9ffffeb6c0f132caf32`, merge `e43673b4dca212eaa991308d14c9dc25b6c64061`) e da PR #123 de autenticação (`c5a053916747751a3894b93e45c1f4e2dafc34b6`, merge `0fc4e7b7333ceb4fdd120f7f1f753f9836163e30`).
+- **Contratos:** `CONTRATOS_API.md` agora documenta `POST /auth/register`, `POST /auth/login` e `GET /auth/me`, separa operações de tela de contratos disponíveis e esclarece que `ManagerOut` não contém `association_code`.
+- **Código:** adicionados à camada isolada da API os métodos `registerManager`, `loginManager` e `getCurrentManager`, validadores para `ManagerOut`/`Token` e testes de contrato, 409/401, resposta inválida, Bearer, cancelamento e não exposição de detalhes de autenticação.
+- **Documentação e MVP:** atualizados README, arquitetura, funcionalidades e pendências. O Agent tem o cliente de associação integrado, mas os routers/modelos/schemas/CRUD locais ainda não implementam geração/consulta de código, `POST /associate/` ou persistência/isolamento do vínculo. Login continua adiado no MVP; nenhuma sessão ou proteção de rota foi ativada. Mantidos os registros históricos de 09/10 e anteriores.
+- **Validação em 13/10:** `npm.cmd ci` concluiu após a primeira tentativa no sandbox receber `EPERM` para remover `node_modules/nwsapi/dist/lint.log`; o arquivo vazio foi restaurado. Lint, typecheck, Vitest/cobertura (168 testes em 41 arquivos), build e E2E (27 passaram, 2 cenários reais ignorados) passaram quando executados. `format:check` global aponta sete arquivos preexistentes e intocados; os 15 arquivos desta revisão passam na checagem explícita do Prettier. O npm informou 8 vulnerabilidades e script do `esbuild` pendente; nenhuma correção automática foi aplicada. `git diff --check` passou. Detalhes em [Testes](TESTES.md).
+- **Permissões:** nenhuma alteração foi feita fora de `FrontEnd/`; não houve commit, push, PR ou merge.
+
 ## 09/10/2026 — Adequação documental à PR externa #122
 
 - **Alterações locais:** esclarecido em `PENDENCIAS.md`, `CONTRATOS_API.md`, `ARQUITETURA.md`, `FUNCIONALIDADES.md`, `README.md` e `docs/README.md` que o card de associação é apenas visual, está oculto no MVP e depende de contratos de backend e sessão do gestor. Registrada a separação entre rotas consumidas pelo frontend, caminhos previstos, rota consumida pelo Agent e rotas localizadas no backend deste checkout.

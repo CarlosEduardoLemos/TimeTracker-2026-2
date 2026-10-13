@@ -1,5 +1,12 @@
 import { isIsoDate } from '../lib/date';
-import { validRealtime, validSettings, validSummary, validUsers } from './validators';
+import {
+  validManager,
+  validManagerToken,
+  validRealtime,
+  validSettings,
+  validSummary,
+  validUsers,
+} from './validators';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 const TIMEOUT = 15000;
@@ -35,13 +42,15 @@ function detailMessage(detail) {
 }
 
 /** @param {Response} response */
-async function httpError(response) {
+async function httpError(response, includeDetail = true) {
   let detail = null;
-  try {
-    const body = await response.json();
-    detail = body?.detail ?? null;
-  } catch {
-    // An empty or non-JSON error body still preserves the HTTP status.
+  if (includeDetail) {
+    try {
+      const body = await response.json();
+      detail = body?.detail ?? null;
+    } catch {
+      // An empty or non-JSON error body still preserves the HTTP status.
+    }
   }
   return new ApiError(detailMessage(detail) || `API respondeu ${response.status}`, {
     type: response.status >= 500 ? 'server' : 'client',
@@ -54,11 +63,15 @@ async function httpError(response) {
 /**
  * @template T
  * @param {string} path
- * @param {RequestInit} [options]
+ * @param {RequestInit & { omitErrorDetails?: boolean }} [options]
  * @param {(response: Response) => Promise<T>} [read]
  * @returns {Promise<T>}
  */
-async function request(path, { signal, ...options } = {}, read = (response) => response.json()) {
+async function request(
+  path,
+  { signal, omitErrorDetails = false, ...options } = {},
+  read = (response) => response.json(),
+) {
   // O controller próprio permite timeout; timedOut o distingue do cancelamento externo.
   const controller = new AbortController();
   const abort = () => controller.abort(signal?.reason);
@@ -80,7 +93,7 @@ async function request(path, { signal, ...options } = {}, read = (response) => r
         : options.headers,
     });
     controller.signal.throwIfAborted();
-    if (!response.ok) throw await httpError(response);
+    if (!response.ok) throw await httpError(response, !omitErrorDetails);
     try {
       const value = await read(response);
       controller.signal.throwIfAborted();
@@ -158,6 +171,35 @@ export const api = {
     validateResponse(
       request('/config/', { method: 'PUT', body: JSON.stringify(payload), signal }),
       validSettings,
+    ),
+  registerManager: (credentials, signal) =>
+    validateResponse(
+      request('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+        signal,
+        omitErrorDetails: true,
+      }),
+      validManager,
+    ),
+  loginManager: (credentials, signal) =>
+    validateResponse(
+      request('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+        signal,
+        omitErrorDetails: true,
+      }),
+      validManagerToken,
+    ),
+  getCurrentManager: (accessToken, signal) =>
+    validateResponse(
+      request('/auth/me', {
+        signal,
+        headers: { Authorization: `Bearer ${accessToken}` },
+        omitErrorDetails: true,
+      }),
+      validManager,
     ),
   async exportFile(format, date, username = '', signal) {
     return request(exportPath(format, date, username), { signal }, (response) => {

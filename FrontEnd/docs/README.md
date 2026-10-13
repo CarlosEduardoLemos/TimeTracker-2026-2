@@ -7,7 +7,7 @@ Use este índice para localizar informações sobre o estado atual, a arquitetur
 - [Funcionalidades](FUNCIONALIDADES.md): telas, comportamentos disponíveis e relação com os requisitos.
 - [Pendências](PENDENCIAS.md): bloqueios organizados por área, impacto, prioridade e workaround.
 
-O card visual de associação está implementado e permanece oculto no MVP. A PR externa #122 descreve associação no Agent, mas o contrato do backend e a consulta autenticada do gestor continuam pendentes; isso não representa integração ponta a ponta.
+O backend implementa cadastro/login JWT e `GET /auth/me`; métodos HTTP correspondentes estão preparados, mas o frontend não iniciou integração de sessão e o login continua adiado no MVP. A PR #122 do Agent foi integrada. O backend deste checkout ainda não apresenta geração/consulta de código, `POST /associate/` ou persistência do vínculo. O card visual permanece oculto e não representa integração ponta a ponta.
 
 ## Arquitetura e contratos
 

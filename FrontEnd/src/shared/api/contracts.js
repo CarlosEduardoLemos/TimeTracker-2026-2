@@ -38,6 +38,16 @@
  * @typedef {{ capture_interval_seconds: number, idle_timeout_seconds: number, updated_at?: string | null }} SystemSettings
  */
 
+/** @typedef {{ email: string, password: string }} ManagerCredentials */
+
+/**
+ * Public manager fields returned by `ManagerOut`. The backend does not include
+ * `association_code` in this schema.
+ * @typedef {{ id: string, email: string, created_at: string }} Manager
+ */
+
+/** @typedef {{ access_token: string, token_type: 'bearer', expires_in: number }} ManagerToken */
+
 /** @typedef {'client' | 'server' | 'network' | 'timeout' | 'canceled' | 'invalid-response'} ApiErrorType */
 
 /**
@@ -48,6 +58,9 @@
  * @property {(signal?: AbortSignal) => Promise<SystemSettings>} settings
  * @property {(payload: SystemSettings, signal?: AbortSignal) => Promise<SystemSettings>} saveSettings
  * @property {(format: 'csv' | 'pdf', date: string, username?: string, signal?: AbortSignal) => Promise<Blob>} exportFile
+ * @property {(credentials: ManagerCredentials, signal?: AbortSignal) => Promise<Manager>} registerManager
+ * @property {(credentials: ManagerCredentials, signal?: AbortSignal) => Promise<ManagerToken>} loginManager
+ * @property {(accessToken: string, signal?: AbortSignal) => Promise<Manager>} getCurrentManager
  */
 
 export {};

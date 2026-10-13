@@ -8,7 +8,7 @@ it.each([
 ])('explains unavailable %s without collecting credentials', (mode, heading) => {
   render(<AuthPage mode={mode} />);
   expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
-  expect(screen.getByText(/Cadastro e login dependem de endpoints/)).toBeInTheDocument();
+  expect(screen.getByText(/backend oferece cadastro, login JWT/)).toBeInTheDocument();
   expect(screen.queryByLabelText('Senha')).not.toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Ir para o painel' })).toHaveAttribute(
     'href',

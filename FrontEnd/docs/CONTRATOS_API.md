@@ -1,40 +1,79 @@
 # Contratos da API do Frontend
 
-Este documento separa rotas consumidas pelo frontend, possibilidades descritas em requisitos, o endpoint consumido pelo Agent na PR externa #122 e as rotas localizadas no backend deste checkout. A análise da PR usa as informações técnicas fornecidas em 09/10/2026; a PR não está integrada aqui. Requisitos e chamadas de cliente não comprovam implementação do servidor.
+Revisado em **13/10/2026** com base nos arquivos locais de `backend/app/` e no código de `FrontEnd/src/shared/api/`. A PR #122 do Agent e a PR #123 de autenticação foram incorporadas à `main` da organização conforme os commits informados. A existência de um contrato no backend não significa que a interface web o consuma.
 
-## 1. Endpoints consumidos atualmente pelo frontend
+## Rotas usadas pelas telas do frontend
 
-`VITE_API_URL` em `.env` determina a origem da API; na ausência dela, o cliente usa `http://localhost:8000`. `.env.example` documenta esse valor. O serviço remove uma barra final da origem e monta os caminhos abaixo. O valor de `username` é codificado por `URLSearchParams`.
+`VITE_API_URL` define a origem da API; sem configuração, o cliente usa `http://localhost:8000`. As telas chamam as rotas abaixo sem token e sem cookie de sessão.
 
-| Método e rota consumida     | Parâmetros/corpo                                        | Resposta contratada pelo backend                                                                                                                   | Consumidor                        |
-| --------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| `GET /users/`               | Nenhum                                                  | Array de `UserOut`: `id`, `username`, `full_name?`, `department?`, `created_at`                                                                    | Painel, Colaboradores, Relatórios |
-| `GET /activities/realtime`  | Nenhum                                                  | Array de `RealtimeEntry`: `username`, `hostname`, `process_name`, `window_title?`, `category?`, `is_idle`, `seconds_since_last_activity`, `status` | Painel, Colaboradores             |
-| `GET /dashboard/summary`    | `date` obrigatório em `AAAA-MM-DD`; `username` opcional | `{ date, users: [{ username, total_seconds, by_category: [{ category, color, total_seconds }] }] }`                                                | Painel                            |
-| `GET /dashboard/export/csv` | Mesmos filtros do resumo                                | `text/csv`, colunas `username,category,total_seconds`                                                                                              | Relatórios                        |
-| `GET /dashboard/export/pdf` | Mesmos filtros do resumo                                | `application/pdf`, total e categorias de cada usuário                                                                                              | Relatórios                        |
-| `GET /config/`              | Nenhum                                                  | `{ capture_interval_seconds, idle_timeout_seconds, updated_at? }`                                                                                  | Configurações                     |
-| `PUT /config/`              | JSON com os dois inteiros positivos                     | Mesmo objeto de configuração                                                                                                                       | Configurações                     |
+| Método e rota               | Parâmetros/corpo                                                                | Resposta                                                                                            | Consumidor                         |
+| --------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `GET /users/`               | Nenhum                                                                          | Array de `UserOut`                                                                                  | Painel, Colaboradores e Relatórios |
+| `GET /activities/realtime`  | Nenhum                                                                          | Array de `RealtimeEntry`                                                                            | Painel e Colaboradores             |
+| `GET /dashboard/summary`    | `date` obrigatório (`AAAA-MM-DD`); `username` opcional                          | `{ date, users: [{ username, total_seconds, by_category: [{ category, color, total_seconds }] }] }` | Painel                             |
+| `GET /dashboard/export/csv` | Mesmos filtros do resumo                                                        | `text/csv`                                                                                          | Relatórios                         |
+| `GET /dashboard/export/pdf` | Mesmos filtros do resumo                                                        | `application/pdf`                                                                                   | Relatórios                         |
+| `GET /config/`              | Nenhum                                                                          | `{ capture_interval_seconds, idle_timeout_seconds, updated_at? }`                                   | Configurações                      |
+| `PUT /config/`              | JSON com `capture_interval_seconds` e `idle_timeout_seconds` inteiros positivos | Objeto de configuração                                                                              | Configurações                      |
 
-O frontend não configura autenticação nem envia `Authorization: Bearer`; também não envia cookie de sessão administrado pela aplicação. Não há chamada para associação neste cliente.
+Essas chamadas continuam sem cabeçalho `Authorization`. O parâmetro `username` filtra uma consulta; não impõe autorização ou isolamento no servidor.
 
-## Tasks e jornada diária — contratos ausentes
+## Autenticação de gestor implementada no backend
 
-Reinspeção em **07/10/2026** de `backend/app/models.py`, `schemas.py`, `crud.py` e dos routers não encontrou modelo/schema de Task, consulta/criação de Tasks, nem endpoint ou campos de primeiro/último registro diario. A API expõe `GET /activities/realtime` e `GET /dashboard/summary`; nenhum deles fornece os extremos da jornada. `categories` representa classificação de atividade e não e substituto para Tasks. O Agent também não inclui `task_id` no payload de atividade nem recebe comandos de Task.
+O backend implementa cadastro, login JWT e consulta do gestor. O cliente HTTP agora oferece métodos isolados para esses contratos, mas as telas `#/login` e `#/cadastro` continuam informativas: nenhuma chamada de autenticação é feita durante a navegação e as rotas do MVP não são protegidas.
 
-O frontend não envia chamadas para contratos presumidos. A jornada diária so poderá ser integrada após o backend confirmar endpoint, schema e agrupamento em `America/Sao_Paulo`; o formato ilustrativo e seus impactos estão em [Pendencias](PENDENCIAS.md). `captured_at` enviado pelo Agent como UTC não prova que `date(captured_at)` seja agrupado por Brasília. O `realtime` não deve ser apresentado como entrada/saída.
+### `POST /auth/register`
 
-## Código de associação — ainda sem integração
+Recebe `ManagerCreate`:
 
-### 2. Endpoints previstos nos requisitos/issues
+```json
+{
+  "email": "gestor@empresa.com",
+  "password": "SenhaSegura123!"
+}
+```
 
-As issues #113 (backend/US-06.1) e #114 (frontend/US-06.2) descrevem geração e consulta autenticada do código e sua exibição. `GET /auth/me` e `GET /manager/association-code` são alternativas citadas para investigação, não caminhos confirmados. A issue #113 permanecia aberta na análise de 09/10/2026. O frontend não implementa essas chamadas.
+O backend valida e normaliza o e-mail, exige e-mail único e senha com pelo menos 8 caracteres e no máximo 72 bytes em UTF-8. A senha é armazenada como hash bcrypt.
 
-### 3. Endpoint consumido pelo Agent na PR externa #122
+- `201`: cadastro concluído, resposta `ManagerOut`.
+- `409`: e-mail já cadastrado.
+- `422`: e-mail ou senha inválidos.
 
-A PR `fabrica-bayarea/TimeTracker-2026-2` #122, commit `ed48ad7cfff9e724406ef9ffffeb6c0f132caf32` (branch `agent/association`), informa o consumo pelo Agent de `POST /associate/`. A rota é configurável no Agent (`Associate = "associate/"`); isso não comprova a existência do endpoint no backend.
+`ManagerOut` tem `id` (UUID), `email` e `created_at`. Não contém `association_code` nem hash da senha.
 
-Payload enviado pelo Agent, com código como **string** para preservar zeros à esquerda:
+### `POST /auth/login`
+
+Recebe o mesmo par `email` e `password`; e-mail inválido ou credenciais incorretas resultam em `422` ou `401`, respectivamente. O sucesso retorna o schema `Token`:
+
+```json
+{
+  "access_token": "<JWT_EMITIDO_PELO_SERVIDOR>",
+  "token_type": "bearer",
+  "expires_in": 3600
+}
+```
+
+`expires_in` é um inteiro positivo em segundos, calculado a partir da configuração do backend. A implementação usa JWT HS256 com audiência de gestor; o servidor controla assinatura e expiração.
+
+### `GET /auth/me`
+
+Exige `Authorization: Bearer <JWT_DO_GESTOR>` e retorna `ManagerOut`. Token ausente, inválido, expirado ou associado a gestor inexistente resulta em `401`. A rota está implementada e retorna a identidade do gestor; o schema não inclui código de associação.
+
+### Métodos preparados na camada HTTP do frontend
+
+`api.registerManager(credentials, signal)`, `api.loginManager(credentials, signal)` e `api.getCurrentManager(accessToken, signal)` chamam os contratos acima e validam as respostas. Reutilizam `ApiError`, timeout de 15 segundos e `AbortSignal`. Os erros dessas chamadas preservam status, mas omitem detalhes fornecidos pelo servidor para evitar refletir credenciais ou tokens em mensagens. Resposta incompatível é `invalid-response`.
+
+Os métodos não armazenam JWT, não renovam sessão, não adicionam Bearer automaticamente às rotas de dados e não implementam logout, estado de autenticação ou proteção de navegação. O token de login só fica sob controle do chamador.
+
+## Outras rotas presentes no backend, sem uso pelas telas
+
+O backend também declara `GET /` (healthcheck), `POST /activities/`, `GET/POST /categories/`, `GET/POST /categories/rules`, `PUT/DELETE /categories/rules/{rule_id}`. A interface web atual não chama essas rotas.
+
+## Associação Agent–gestor: endpoints ainda não confirmados no backend
+
+A PR #122 (`ed48ad7cfff9e724406ef9ffffeb6c0f132caf32`) foi integrada à `main` da organização em 12/10/2026 (merge `e43673b4dca212eaa991308d14c9dc25b6c64061`). O Agent implementa formulário de código numérico de seis dígitos, `POST /associate/`, armazenamento protegido por DPAPI do token obtido (`token` ou `access_token`), Bearer em chamadas posteriores e bloqueio do monitoramento até associação.
+
+Payload enviado pelo Agent:
 
 ```json
 {
@@ -44,34 +83,29 @@ Payload enviado pelo Agent, com código como **string** para preservar zeros à 
 }
 ```
 
-| Campo | Tipo conhecido | Observação |
-| --- | --- | --- |
-| `code` | string | Código numérico com exatamente seis dígitos; não converter para número. |
-| `username` | string | Nome de usuário Windows do colaborador. |
-| `hostname` | string | Nome da estação Windows. |
+`code` é string para preservar zeros à esquerda. A implementação do cliente Agent e o merge da PR não demonstram que o backend tenha a rota correspondente. Na inspeção dos routers, modelos, schemas e CRUD deste checkout, não foram encontrados:
 
-A resposta que o cliente do Agent tenta interpretar contém `token` ou `access_token`; ele escolhe `token ?? access_token` e considera falha uma resposta de sucesso sem token. Isso descreve tolerância do cliente Agent, não um contrato oficial do backend nem suporte confirmado a ambos os nomes. O Agent protege o token local usando DPAPI do usuário Windows e o envia como Bearer em requisições subsequentes. Esse token é credencial do Agent e não deve ser tratado como sessão/JWT do gestor no navegador.
+- `POST /associate/` ou outra rota de associação;
+- campo/modelo `association_code`, geração ou consulta autenticada do código;
+- persistência do vínculo colaborador–gestor ou consulta de colaboradores por gestor;
+- política de validade, consumo único ou erros do código.
 
-A PR classifica 400, 401, 403, 404, 409, 410 e 422 como possível código inválido/expirado. Essa interpretação é ampla: 401/403 podem representar autenticação/autorização. O backend precisa definir semântica e mensagens por status; o frontend não deve repetir essa classificação nem inferir código inválido a partir de 401/403. Sucesso, falhas, autorização, persistência do vínculo, expiração e isolamento ainda requerem confirmação de servidor.
+Logo, o endpoint e payload acima são o comportamento do cliente Agent, não contrato confirmado do servidor. As issues #113 e #114 descrevem gerar/consultar e exibir o código, mas não confirmam rota nem resposta. `GET /auth/me` é uma rota real para identidade do gestor, não uma consulta de código.
 
-### 4. Endpoints identificados no backend deste checkout
+O JWT do gestor e o token do Agent são credenciais distintas. O frontend não deve reutilizar o token do Agent. `AssociationCodeCard` permanece um componente de apresentação com prop de código; continua fora do Dashboard do MVP e não faz requisições. Não conectar a resposta de `/auth/me` ao card.
 
-Na inspeção dos routers atuais, foram identificadas as rotas listadas na primeira tabela (`/users/`, `/activities/realtime`, `/dashboard/*` e `/config/`) e `GET /` para healthcheck. Não foram localizados `POST /associate/`, `association_code`, `GET /auth/me` ou `GET /manager/association-code`. Portanto, não está confirmada no backend a geração/consulta do código, associação, autorização nem persistência do vínculo. Essa inspeção local não afirma nada sobre commits externos que não estejam no checkout.
+## Autorização e isolamento de dados
 
-`AssociationCodeCard` continua sendo apresentação isolada: recebe `code`, `loading` e `error` por props, valida visualmente uma string de seis dígitos e não faz `fetch`. Nenhum endpoint presumido foi adicionado ao cliente de produção.
+`get_current_manager` é aplicado em `GET /auth/me`, mas não está aplicado aos routers de `/users/`, `/activities/realtime`, `/dashboard/summary`, exportações nem `/config/`. Essas rotas dependem apenas de `get_db`; `PUT /config/` também não verifica gestor. As consultas de usuários, atividades, resumos e arquivos são globais no código atual, sem vínculo com `Manager`.
+
+Assim, qualquer cliente que alcance a API pode consultar os dados expostos e alterar a configuração global, sujeito apenas à disponibilidade da API. Filtrar colaboradores na interface não é controle de acesso. A autenticação implementada não comprova isolamento por gestor nem protege automaticamente os endpoints existentes; essa limitação e o risco permanecem em B-01/I-02 de [Pendências](PENDENCIAS.md). O frontend não corrige isso localmente.
+
+## Tasks e jornada diária
+
+Não foi localizado modelo/schema/endpoint de consulta ou gravação persistente de Tasks nem dados confiáveis de primeiro/último registro diário. O `realtime` descreve a última atividade e não substitui a jornada. O Agent não envia `task_id`. O frontend não chama rotas presumidas nem inventa esses dados; veja I-03 e I-04–I-07 em [Pendências](PENDENCIAS.md).
 
 ## Erros, validação e cancelamento
 
-`api.js` produz `ApiError` com `type`, `status`, `statusText`, `detail` e `cause`. O corpo JSON de falhas HTTP é lido para exibir `detail` do FastAPI; sem `detail`, a mensagem usa o status. `type` distingue `client` (4xx), `server` (5xx), `network`, `timeout`, `canceled` e `invalid-response`. Detalhes de validação em lista são resumidos pelas mensagens `msg`; o texto exibido é limitado a 500 caracteres.
+`api.js` produz `ApiError` com tipo, status, texto de status, detalhe quando seguro e causa. O timeout de 15 segundos inclui leitura do corpo; cada método aceita `AbortSignal`. O cancelamento interrompe a espera do cliente, sem reverter uma gravação já processada pelo servidor. Os validadores recusam respostas `2xx` incompatíveis. Exportações aceitam somente CSV/PDF e validam MIME.
 
-O timeout de 15 segundos cobre inclusive a leitura do corpo, e cada chamada aceita `AbortSignal` externo. O cancelamento interrompe a espera do cliente; não garante reversão de uma gravação que o servidor já tenha processado. O cliente também recusa sinais já cancelados antes de chamar `fetch` e resultados recebidos depois do cancelamento; timeout é identificado pela origem interna do cancelamento, não pelo texto do motivo externo.
-
-`shared/api/validators.js` valida as respostas antes de exibi-las. Um `2xx` com formato incompatível é tratado como `invalid-response`. A data de resumo/exportação precisa ser real em `AAAA-MM-DD`; `isIsoDate` também é usado para validar parâmetros HTTP. Campos de texto opcionais aceitam ausência ou nulo, enquanto nomes duplicados e durações negativas ou fora da precisão segura são recusados.
-
-O download aceita apenas `csv`/`pdf`, exige o tipo de conteúdo correspondente mesmo quando o cabeçalho estiver ausente, e `ReportsPage` rejeita blob vazio. Não há cabeçalho de autenticação, cookie de sessão administrado pela aplicação, cache persistente de dados da API nem endpoint criado localmente. O backend também expõe categorias e regras, mas a interface atual não as consome; essas categorias não equivalem a aplicações produtivas de uma task.
-
-## Ao alterar um contrato
-
-Conferir a rota e o schema no backend antes de modificar `shared/api/api.js`; ajustar a validação correspondente em `shared/api/validators.js`; preservar estados de carregamento, vazio e falha; acrescentar regressão apenas para o comportamento novo ou corrigido. Atualizar [Funcionalidades](FUNCIONALIDADES.md) quando a tela mudar, [Pendências](PENDENCIAS.md) quando um bloqueio for resolvido ou surgir, e [Testes](TESTES.md) com a evidência realmente executada. Não tratar descrições de requisitos como prova de um endpoint existente.
-
-Consulte [Arquitetura](ARQUITETURA.md) para as camadas e o fluxo de dados da aplicação.
+Consulte [Arquitetura](ARQUITETURA.md) para o fluxo do cliente e a análise de armazenamento de sessão. Requisitos/issues descrevem necessidades; não bastam para criar endpoints.

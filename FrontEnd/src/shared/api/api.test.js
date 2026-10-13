@@ -7,6 +7,145 @@ afterEach(() => {
 });
 
 describe('cliente da API', () => {
+  it('registers a manager using the ManagerOut contract', async () => {
+    const manager = {
+      id: 'b06e3df5-c23b-49ec-9a40-081a451620b3',
+      email: 'gestor@empresa.com',
+      created_at: '2026-10-13T12:00:00Z',
+    };
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => manager }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      api.registerManager({ email: manager.email, password: 'SenhaSegura123!' }),
+    ).resolves.toEqual(manager);
+    expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/auth/register');
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      email: manager.email,
+      password: 'SenhaSegura123!',
+    });
+  });
+
+  it('logs in with the server-issued bearer token and expiry in seconds', async () => {
+    const response = { access_token: 'jwt-do-servidor', token_type: 'bearer', expires_in: 3600 };
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => response }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      api.loginManager({ email: 'gestor@empresa.com', password: 'SenhaSegura123!' }),
+    ).resolves.toEqual(response);
+    expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/auth/login');
+    expect(fetchMock.mock.calls[0][1].method).toBe('POST');
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      email: 'gestor@empresa.com',
+      password: 'SenhaSegura123!',
+    });
+  });
+
+  it('gets the current manager using the caller-provided in-memory bearer token', async () => {
+    const manager = {
+      id: 'b06e3df5-c23b-49ec-9a40-081a451620b3',
+      email: 'gestor@empresa.com',
+      created_at: '2026-10-13T12:00:00Z',
+    };
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => manager }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(api.getCurrentManager('jwt-em-memoria')).resolves.toEqual(manager);
+    expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/auth/me');
+    expect(fetchMock.mock.calls[0][1].headers).toEqual({
+      Authorization: 'Bearer jwt-em-memoria',
+    });
+  });
+
+  it('preserves duplicate-email status without exposing server-provided auth details', async () => {
+    const json = vi.fn(async () => ({ detail: 'E-mail gestor@empresa.com já cadastrado' }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 409, json })),
+    );
+
+    const failure = await api
+      .registerManager({ email: 'gestor@empresa.com', password: 'SenhaSegura123!' })
+      .catch((error) => error);
+    expect(failure).toMatchObject({ type: 'client', status: 409, detail: null });
+    expect(failure.message).toBe('API respondeu 409');
+    expect(json).not.toHaveBeenCalled();
+  });
+
+  it('preserves invalid registration payload status without echoing request values', async () => {
+    const json = vi.fn(async () => ({ detail: 'Senha inválida: SenhaFraca!' }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 422, json })),
+    );
+
+    const failure = await api
+      .registerManager({ email: 'inválido', password: 'SenhaFraca!' })
+      .catch((error) => error);
+    expect(failure).toMatchObject({ type: 'client', status: 422, detail: null });
+    expect(failure.message).toBe('API respondeu 422');
+    expect(json).not.toHaveBeenCalled();
+  });
+
+  it('handles invalid login credentials as HTTP 401', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 401, json: vi.fn() })),
+    );
+
+    await expect(
+      api.loginManager({ email: 'gestor@empresa.com', password: 'senha-incorreta' }),
+    ).rejects.toMatchObject({ type: 'client', status: 401, detail: null });
+  });
+
+  it('supports AbortSignal for authenticated API calls', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(api.getCurrentManager('jwt-em-memoria', controller.signal)).rejects.toMatchObject({
+      type: 'canceled',
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('does not expose a bearer token or reflected server details on auth errors', async () => {
+    const token = 'jwt-privado-nao-exibir';
+    const json = vi.fn(async () => ({ detail: `Token invalido: ${token}` }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 401, json })),
+    );
+
+    const failure = await api.getCurrentManager(token).catch((error) => error);
+    expect(failure).toMatchObject({ type: 'client', status: 401, detail: null });
+    expect(failure.message).not.toContain(token);
+    expect(failure.cause).toBeUndefined();
+    expect(json).not.toHaveBeenCalled();
+  });
+
+  it('rejects invalid token responses without reproducing the token', async () => {
+    const token = 'jwt-em-resposta-invalida';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({ access_token: token, token_type: 'invalid', expires_in: 3600 }),
+      })),
+    );
+
+    const failure = await api
+      .loginManager({ email: 'gestor@empresa.com', password: 'senha' })
+      .catch((error) => error);
+    expect(failure).toMatchObject({ type: 'invalid-response' });
+    expect(failure.message).not.toContain(token);
+  });
   it('não envia uma consulta cujo sinal já foi cancelado, mesmo com motivo timeout', async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);

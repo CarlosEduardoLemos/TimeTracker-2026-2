@@ -19,25 +19,25 @@ Este documento descreve o código executado atualmente em `FrontEnd/`: estrutura
 
 `app` pode importar `features` e `shared`; cada funcionalidade pode importar `shared` e seus próprios arquivos. `shared` não deve depender de `app` ou `features`. A regra local em `lint/architecture.js` verifica imports relativos, reexports e imports dinâmicos literais em `npm run lint`. Imports de pacotes externos ficam fora dessa regra. Use imports diretos, inclusive nos imports dinâmicos das páginas, sem arquivos de reexportação.
 
-| Caminho                                                                          | Responsabilidade                                                            |
-| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `src/shared/api/api.js`                                                          | Cliente HTTP único, timeout, cancelamento, parâmetros e downloads.          |
-| `src/shared/api/validators.js`                                                   | Validação das respostas de usuários, realtime, resumo e configurações.      |
-| `src/shared/lib/date.js`, `duration.js`, `team.js`, `activityStatus.js`          | Funções reutilizadas para datas, duração, equipe e rótulos de status.       |
-| `src/features/dashboard/hooks/useDashboardData.js`                               | Estado e atualização das fontes do painel: resumo, usuários e realtime.     |
-| `src/features/dashboard/hooks/useAutoRefresh.js`                                 | Atualização periódica apenas com a aba visível e atualização ao retornar.   |
-| `src/features/dashboard/lib/summary.js`                                          | Soma de duração e consolidação de categorias do painel.                     |
-| `src/features/dashboard/pages/DashboardPage.jsx`                                 | Composição de filtros, indicadores, atividade e categorias.                 |
-| `src/features/dashboard/components/AssociationCodeCard.jsx`                      | Apresentação isolada do código de associação, cópia e estados da interface. |
-| `src/features/collaborators/hooks/useCollaboratorsData.js` e `components/`       | Consultas, combinação de usuários/realtime e visualização responsiva.       |
-| `src/features/settings/hooks/useSettings.js` e `components/SettingsForm.jsx`     | Leitura, edição, validação, gravação e guarda de alterações não salvas.     |
-| `src/features/reports/`                                                          | Página, consulta de usuários e exportação organizadas por responsabilidade. |
-| `src/features/auth/pages/AuthPage.jsx`, `src/features/tasks/pages/TasksPage.jsx` | Mensagens de indisponibilidade; não coletam credenciais nem dados de task.  |
-| `src/app/layout/Sidebar.jsx`                                                     | Navegação desktop e diálogo móvel.                                          |
+| Caminho                                                                          | Responsabilidade                                                                                       |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `src/shared/api/api.js`                                                          | Cliente HTTP único, timeout, cancelamento, parâmetros, downloads e contratos isolados de autenticação. |
+| `src/shared/api/validators.js`                                                   | Validação das respostas de usuários, realtime, resumo, configurações e schemas públicos do gestor/JWT. |
+| `src/shared/lib/date.js`, `duration.js`, `team.js`, `activityStatus.js`          | Funções reutilizadas para datas, duração, equipe e rótulos de status.                                  |
+| `src/features/dashboard/hooks/useDashboardData.js`                               | Estado e atualização das fontes do painel: resumo, usuários e realtime.                                |
+| `src/features/dashboard/hooks/useAutoRefresh.js`                                 | Atualização periódica apenas com a aba visível e atualização ao retornar.                              |
+| `src/features/dashboard/lib/summary.js`                                          | Soma de duração e consolidação de categorias do painel.                                                |
+| `src/features/dashboard/pages/DashboardPage.jsx`                                 | Composição de filtros, indicadores, atividade e categorias.                                            |
+| `src/features/dashboard/components/AssociationCodeCard.jsx`                      | Apresentação isolada do código de associação, cópia e estados da interface.                            |
+| `src/features/collaborators/hooks/useCollaboratorsData.js` e `components/`       | Consultas, combinação de usuários/realtime e visualização responsiva.                                  |
+| `src/features/settings/hooks/useSettings.js` e `components/SettingsForm.jsx`     | Leitura, edição, validação, gravação e guarda de alterações não salvas.                                |
+| `src/features/reports/`                                                          | Página, consulta de usuários e exportação organizadas por responsabilidade.                            |
+| `src/features/auth/pages/AuthPage.jsx`, `src/features/tasks/pages/TasksPage.jsx` | Mensagens de indisponibilidade; não coletam credenciais nem dados de task.                             |
+| `src/app/layout/Sidebar.jsx`                                                     | Navegação desktop e diálogo móvel.                                                                     |
 
 ## Fluxo de dados do painel
 
-`AssociationCodeCard` não faz parte de `useDashboardData`: sua identidade é independente da data e do usuário selecionados. O card permanece fora do Dashboard do MVP. Quando usado isoladamente sem código, mostra indisponibilidade; hoje não há consulta do gestor porque faltam contrato de associação e sessão autenticada. Uma futura integração deverá buscar o valor por uma camada de dados própria quando o endpoint e a autenticação forem definidos.
+`AssociationCodeCard` não faz parte de `useDashboardData`: sua identidade é independente da data e do usuário selecionados. O card permanece fora do Dashboard do MVP. O backend agora tem sessão JWT e `GET /auth/me`, e o cliente HTTP tem métodos de autenticação preparados, mas o frontend ainda não inicia sessão. `ManagerOut` não tem `association_code`; a busca do código depende de uma rota e um schema próprios ainda ausentes.
 
 Fluxo esperado, ainda não comprovado ponta a ponta:
 
@@ -54,7 +54,15 @@ BACKEND — API
 AGENT — COLABORADOR
 ```
 
-`POST /associate/` é a rota consumida pelo Agent segundo a PR externa #122; a implementação no backend não foi localizada neste checkout. O fluxo do gestor depende de endpoint de consulta e sessão próprios, ainda não confirmados. Conforme a PR, depois de uma associação bem-sucedida o Agent protege o token local com DPAPI e usa Bearer em chamadas posteriores; o monitoramento só começa se o Agent estiver associado. O backend precisa validar vínculo, identidade e escopo de autorização em cada operação. O token do Agent não é a sessão do gestor. Até existirem contratos e testes integrados, este diagrama descreve a arquitetura esperada, não uma funcionalidade disponível.
+`POST /associate/` é a rota consumida pelo Agent na PR #122, integrada à main da organização. A rota não foi localizada nos routers deste checkout. Também não foram localizados geração/consulta de `association_code`, persistência de vínculo ou isolamento de equipe. Conforme a PR, depois de associação bem-sucedida o Agent protege o token local com DPAPI e usa Bearer em chamadas posteriores; o monitoramento só começa se estiver associado. O JWT do gestor é uma credencial distinta. Este diagrama descreve o protocolo do cliente Agent e as lacunas do backend, não uma integração ponta a ponta.
+
+## Autenticação e sessão do gestor
+
+O backend fornece `POST /auth/register`, `POST /auth/login` e `GET /auth/me`. `api.js` expõe chamadas explícitas para essas três operações, com validação dos schemas `ManagerOut` e `Token`; nenhuma página as chama. Não há token em `localStorage` ou `sessionStorage`, estado global, renovação, logout, tratamento coordenado de `401` nem guarda de rota. As telas informativas e o acesso aberto do MVP permanecem como aprovados.
+
+Antes de ativar a sessão, a decisão precisa abranger expiração, atualização da interface e várias respostas `401` concorrentes. JWT em memória evita persistência entre recargas, mas a recarga encerra a sessão; storage Web é legível por JavaScript e fica exposto a XSS; cookie `HttpOnly; Secure; SameSite` reduz a leitura do JWT pelo script, mas precisa de contrato de cookie e proteção CSRF no servidor. O backend atual entrega JWT em JSON. Nenhuma dessas estratégias foi escolhida/implementada. As chamadas de autenticação omitem detalhes de erro do servidor e não registram credenciais/tokens.
+
+`GET /auth/me` protege somente a identificação do gestor. Os routers de usuários, realtime, dashboard, exportações e configuração não exigem `get_current_manager` e não filtram registros por gestor. A API continua expondo dados globais e configuração global; filtros visuais não são autorização. A implementação do login, sozinha, não torna as páginas atuais seguras. Consulte [Contratos](CONTRATOS_API.md) e B-01 em [Pendências](PENDENCIAS.md).
 
 1. `DashboardPage` inicia com a data local do navegador e usuário vazio. A mudança de data ou usuário altera os argumentos de `useDashboardData`.
 2. O hook cancela a consulta anterior, incrementa um identificador de sequência e solicita resumo, usuários e realtime em paralelo com `Promise.allSettled`.
@@ -73,15 +81,15 @@ AGENT — COLABORADOR
 
 ## Decisões arquiteturais
 
-| Decisão                                                  | Motivo e consequência                                                                                                                                                           |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Rotas por hash, sem React Router                         | As rotas atuais cabem em `app/routes.js` e `useHashRoute`; o hash permite abrir uma tela sem regras de reescrita no servidor estático.                                          |
-| Estado com hooks do React, sem Redux                     | Filtros, carregamento e formulários pertencem às páginas; tema e navegação têm hooks próprios. Ainda não há estado global que justifique outro gerenciador.                     |
-| Login/cadastro sem formulário e Tasks sem `localStorage` | Faltam contratos de autenticação, sessão, autorização, persistência de tasks e associação ao gestor.                                                                            |
-| `Promise.allSettled` nas consultas independentes         | Resumo, usuários e realtime podem falhar separadamente. Painel e Colaboradores preservam as partes que responderam.                                                             |
-| Validadores além do tratamento HTTP                      | Uma resposta `2xx` ainda pode ter formato incompatível. A validação evita exibir dados inválidos e distingue lista vazia de falha.                                              |
-| `AbortController` por consulta/página                    | Mudança de filtro, retry e saída cancelam trabalho obsoleto. Uma gravação já processada pelo servidor não é revertida pelo cancelamento do cliente.                             |
-| Estado realtime não comprova conexão do Agent            | Falha na fonte deixa os estados indisponíveis; não os transforma em zero. `offline` pode decorrer de `is_idle=true`; sem entrada na janela de 24 horas, exibe-se **Sem dados**. |
+| Decisão                                                  | Motivo e consequência                                                                                                                                                                 |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rotas por hash, sem React Router                         | As rotas atuais cabem em `app/routes.js` e `useHashRoute`; o hash permite abrir uma tela sem regras de reescrita no servidor estático.                                                |
+| Estado com hooks do React, sem Redux                     | Filtros, carregamento e formulários pertencem às páginas; tema e navegação têm hooks próprios. Ainda não há estado global que justifique outro gerenciador.                           |
+| Login/cadastro sem formulário e Tasks sem `localStorage` | Contratos de auth existem e métodos HTTP estão preparados, mas a autenticação foi adiada para depois do MVP; sessão, autorização, Tasks persistidas e associação continuam pendentes. |
+| `Promise.allSettled` nas consultas independentes         | Resumo, usuários e realtime podem falhar separadamente. Painel e Colaboradores preservam as partes que responderam.                                                                   |
+| Validadores além do tratamento HTTP                      | Uma resposta `2xx` ainda pode ter formato incompatível. A validação evita exibir dados inválidos e distingue lista vazia de falha.                                                    |
+| `AbortController` por consulta/página                    | Mudança de filtro, retry e saída cancelam trabalho obsoleto. Uma gravação já processada pelo servidor não é revertida pelo cancelamento do cliente.                                   |
+| Estado realtime não comprova conexão do Agent            | Falha na fonte deixa os estados indisponíveis; não os transforma em zero. `offline` pode decorrer de `is_idle=true`; sem entrada na janela de 24 horas, exibe-se **Sem dados**.       |
 
 Revise estas decisões quando os contratos ou o número de rotas mudarem. Consulte [Contratos da API](CONTRATOS_API.md) e [Pendências](PENDENCIAS.md) para detalhes relacionados.
 
