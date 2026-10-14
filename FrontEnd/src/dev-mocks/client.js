@@ -1,0 +1,74 @@
+import { requestValidated } from '../shared/api/api';
+import {
+  validAgentStatuses,
+  validAttendance,
+  validTask,
+  validTaskDescription,
+  validTaskHours,
+  validTasks,
+} from '../shared/api/validators';
+import { isIsoDate } from '../shared/lib/date';
+
+const UUID_PATTERN = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
+
+const request = requestValidated;
+
+function jsonOptions(method, body, signal) {
+  return {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    signal,
+  };
+}
+
+function taskQuery(date, username) {
+  if (!isIsoDate(date)) throw new Error('Selecione uma data válida');
+  const query = new URLSearchParams({ date });
+  if (username) query.set('username', username);
+  return query.toString();
+}
+
+export const devApi = {
+  tasks: (signal) => request('/tasks', validTasks, { signal }),
+  createTask(description, signal) {
+    if (!validTaskDescription(description))
+      throw new Error('Informe uma descrição de até 200 caracteres.');
+    return request(
+      '/tasks',
+      validTask,
+      jsonOptions('POST', { description: description.trim() }, signal),
+    );
+  },
+  patchTask(taskId, description, signal) {
+    if (!UUID_PATTERN.test(taskId)) throw new Error('ID de Task inválido');
+    if (!validTaskDescription(description))
+      throw new Error('Informe uma descrição de até 200 caracteres.');
+    return request(
+      `/tasks/${taskId}`,
+      validTask,
+      jsonOptions('PATCH', { description: description.trim() }, signal),
+    );
+  },
+  attendance(date, username = '', signal) {
+    return request(`/dashboard/attendance?${taskQuery(date, username)}`, validAttendance, {
+      signal,
+    });
+  },
+  taskHours(startDate, endDate, username = '', taskId = '', signal) {
+    if (!isIsoDate(startDate) || !isIsoDate(endDate) || startDate > endDate) {
+      throw new Error('Selecione um período válido');
+    }
+    if (taskId && !UUID_PATTERN.test(taskId)) throw new Error('ID de Task inválido');
+    const query = new URLSearchParams({ start_date: startDate, end_date: endDate });
+    if (username) query.set('username', username);
+    if (taskId) query.set('task_id', taskId);
+    return request(`/dashboard/task-hours?${query}`, validTaskHours, { signal });
+  },
+  agentStatuses(username = '', signal) {
+    const query = new URLSearchParams();
+    if (username) query.set('username', username);
+    const suffix = query.size ? `?${query}` : '';
+    return request(`/agents/status${suffix}`, validAgentStatuses, { signal });
+  },
+};

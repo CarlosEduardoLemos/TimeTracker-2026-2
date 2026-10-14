@@ -10,8 +10,9 @@ import { PageHeader } from '../../../shared/components/PageHeader';
 import { todayIso } from '../../../shared/lib/date';
 import { deriveTeam, filterRealtimePeople } from '../../../shared/lib/team';
 import { categoryTotals, totalSeconds } from '../lib/summary';
+import { AttendanceSummary } from '../components/AttendanceSummary';
 
-export function DashboardPage({ dark, toggleTheme }) {
+export function DashboardPage({ dark, toggleTheme, devApi = null }) {
   const [date, setDate] = useState(todayIso());
   const [username, setUsername] = useState('');
   const { data, loading, refreshing, error, updatedAt, refresh } = useDashboardData(date, username);
@@ -62,6 +63,7 @@ export function DashboardPage({ dark, toggleTheme }) {
         username={username}
       />
       <section className="mt-5 grid gap-5 xl:grid-cols-2">
+        <AttendanceSummary devApi={devApi} date={date} username={username} />
         <LastActivityTable
           people={filteredTeam}
           loading={loading}

@@ -1,6 +1,25 @@
-﻿# Testes e validação do frontend
+# Testes e validação do frontend
 
 Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026** e **13/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
+
+## Revisão de robustez dos mocks — 13/10/2026
+
+- `npm.cmd run check`: passou com lint, `format:check`, typecheck, cobertura, build de produção e teste do verificador de bundle.
+- Vitest/cobertura: **216 testes em 51 arquivos passaram**. Cobertura: **94,68% statements, 91,74% branches, 95,95% functions e 96,82% lines**.
+- Rotas da origem da API sem handler foram verificadas com `501`; não houve bypass para o Backend no modo de mocks.
+- `npm.cmd run check:full`: passou e repetiu `check`; o E2E teve **27 aprovados, 0 falhas e 2 ignorados** por dependerem da API real.
+- O build do Vite transformou 312 módulos; o verificador não encontrou handlers, worker, rotas nem marcador das interfaces simuladas em `dist/`. Os 4 testes unitários do verificador de bundle passaram.
+- API real não foi configurada nem exercitada; os dois casos opt-in foram ignorados. Os testes de integração local usam MSW/fetch simulados e não comprovam persistência, autorização, CORS ou contratos ausentes do Backend.
+- A tentativa de smoke test do Service Worker no navegador não chegou a abrir a aplicação: o servidor Vite/esbuild encerrou na pré-otimização com `Acesso negado` ao resolver `../../..` em `node_modules`, embora os arquivos do React/MSW existissem. Uma configuração temporária sem descoberta de dependências apresentou o mesmo bloqueio e foi removida; a ativação do worker em navegador permanece sem verificação manual.
+
+## Linha de base desta execução — 13/10/2026
+
+- `npm ci`: a primeira execução no sandbox falhou com `EPERM` ao remover `FrontEnd/node_modules/eslint-plugin-react/node_modules/resolve/test/resolver/other_path/root.js`; a repetição restrita à pasta `FrontEnd/` concluiu e instalou 438 pacotes. O npm reportou 7 vulnerabilidades no grafo (5 altas, 2 moderadas) e um script `postinstall` de `esbuild` aguardando aprovação.
+- npm run check: a primeira execução passou pelo lint e parou na verificação de formatação, que apontou apenas o documento de propostas, agora consolidado em [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao). O documento foi formatado com Prettier; a repetição completa passou por lint, formatação, typecheck, cobertura e build.
+- `npm run test:coverage`: **171 testes em 41 arquivos passaram**. Cobertura: 95,98% statements, 94,62% branches, 96,31% functions e 97,69% lines.
+- `npm run build`: passou com Vite 6.4.4.
+- `npm run test:e2e`: **27 passaram, 0 falharam e 2 foram ignorados** por exigirem API real; Playwright/axe rodou em Chromium. `test:e2e:real` não foi executado, pois é opt-in e não havia ambiente configurado.
+- `npm audit --json --cache .npm-cache` e `npm audit --omit=dev --cache .npm-cache`: não conseguiram acessar `https://registry.npmjs.org/-/npm/v1/security/advisories/bulk`; o serviço respondeu erro de rede. O resultado de 7 vulnerabilidades somente de desenvolvimento registrado antes desta execução permanece como referência histórica, sem auditoria online atual.
 
 ## Resultado final pós-correções — 13/10/2026
 
@@ -130,6 +149,8 @@ Na tentativa anterior de 05/10/2026, a auditoria de contraste no menu mobile esc
 
 ## Inventário dos testes existentes
 
+Nesta revisão, `src/main.test.jsx` cobre falhas de importação/inicialização e o bloqueio do modo mock fora de desenvolvimento. Os testes em `src/dev-mocks/` cobrem limpeza seletiva de Service Workers, bloqueio `501` de rotas sem mock, timeout, cancelamento, erros de HTTP/rede/JSON, filtros de data/colaborador e respostas simuladas. `src/features/dashboard/lib/attendance.test.js` cobre a formatação e a virada de dia entre UTC e `America/Sao_Paulo`; `useTasks.test.js` cobre cancelamento de gravação e resposta atrasada.
+
 Os caminhos abaixo refletem a estrutura atual. Os testes específicos continuam próximos do código testado.
 
 | Arquivo(s)                                                                                                      | Comportamento protegido                                                                                                                                                               |
@@ -152,7 +173,7 @@ Os caminhos abaixo refletem a estrutura atual. Os testes específicos continuam 
 | `src/features/settings/pages/SettingsPage.test.jsx`                                                             | Alterações pendentes, restauração, proteção de saída, edição simultânea dos campos e salvamento sem envio duplicado                                                                   |
 | `src/features/reports/components/ReportFilters.test.jsx`, `ReportUsersState.test.jsx`, `ExportActions.test.jsx` | Atalhos de filtro, usuários indisponíveis, loading, retry e feedback das ações de exportação                                                                                          |
 | `src/features/reports/hooks/useReportExport.test.js`                                                            | Exportação, prevenção de envio simultâneo, URL de objeto, sucesso, falha, arquivo vazio e cancelamento ao desmontar                                                                   |
-| `src/features/auth/pages/AuthPage.test.jsx`, `src/features/tasks/pages/TasksPage.test.jsx`                      | Páginas bloqueadas explicam a dependência sem coletar credenciais nem task local                                                                                                      |
+| `src/features/auth/pages/AuthPage.test.jsx`, `src/features/tasks/pages/TasksPage.test.jsx`                      | Auth permanece informativa; Tasks cobre indisponibilidade do Backend e demonstração simulada quando os mocks de desenvolvimento são fornecidos.                                       |
 | `src/app/layout/Sidebar.test.jsx`                                                                               | Navegação, rota ativa, diálogo móvel, Tab, Escape, foco, histórico, rolagem e mudança para desktop                                                                                    |
 | `src/app/ErrorBoundary.test.jsx`                                                                                | Mensagem segura após exceção e ausência de log de payload em produção                                                                                                                 |
 | `src/app/PageErrorBoundary.test.jsx`                                                                            | Isolamento da falha e nova tentativa na página                                                                                                                                        |

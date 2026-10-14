@@ -4,8 +4,9 @@ import { useTheme } from './hooks/useTheme';
 import { useHashRoute } from './hooks/useHashRoute';
 import { PageErrorBoundary } from './PageErrorBoundary';
 import { routes } from './routes';
+import { MocksNotice } from './layout/MocksNotice';
 
-export default function App() {
+export default function App({ mocksEnabled = false, devApi = null }) {
   const route = useHashRoute();
   const [dark, toggleTheme] = useTheme();
   const main = useRef(null);
@@ -22,7 +23,7 @@ export default function App() {
   const content = Page ? (
     <PageErrorBoundary key={route}>
       <Suspense fallback={<p role="status">Carregando interface…</p>}>
-        <Page dark={dark} toggleTheme={toggleTheme} mode={route} />
+        <Page dark={dark} toggleTheme={toggleTheme} mode={route} devApi={devApi} />
       </Suspense>
     </PageErrorBoundary>
   ) : (
@@ -44,6 +45,7 @@ export default function App() {
         tabIndex="-1"
         className="grid min-h-screen place-items-center bg-page p-4 dark:bg-slate-950 dark:text-white"
       >
+        <MocksNotice enabled={mocksEnabled} />
         {content}
       </main>
     );
@@ -60,6 +62,7 @@ export default function App() {
       >
         Pular para o conteúdo principal
       </a>
+      <MocksNotice enabled={mocksEnabled} />
       <Sidebar route={route} />
       <main
         ref={main}

@@ -2,6 +2,14 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
+## 13/10/2026 — Robustez dos mocks e jornada diária
+
+- **Inicialização e isolamento:** MSW e cliente simulado só são importados em desenvolvimento quando `VITE_USE_MOCKS=true`. A aplicação aguarda o worker; falha apresenta alerta e não usa a API real. Rotas da API sem handler retornam `501`, e requests não tratados na origem da API são bloqueados pelo MSW. Ao desativar mocks em desenvolvimento, registros antigos do worker são removidos sem atingir outros Service Workers.
+- **Produção:** ramificações de Tasks e jornada simuladas são removidas do build. O verificador do bundle também rejeita o marcador da interface mock, além dos handlers, worker e rotas simuladas.
+- **Cliente e dados:** o cliente de desenvolvimento passou a reutilizar timeout de 15 segundos, `AbortSignal` e erros tipados do cliente compartilhado. Timestamps são construídos com o offset de São Paulo; schemas validam a data de negócio e a ordem dos registros. O filtro por colaborador também é aplicado ao status simulado do Agent.
+- **Tasks e documentos:** a criação simulada é cancelada quando a página sai; os avisos continuam identificando os dados como temporários e sem integração no Backend. `FUNCIONALIDADES.md`, `PENDENCIAS.md` e `CONTRATOS_API.md` distinguem essa demonstração local dos contratos reais.
+- **Validação:** resultados desta revisão estão em [Testes](TESTES.md).
+
 ## 13/10/2026 — Correções pós-atualização do frontend
 
 - **Formatação:** os sete arquivos apontados pelo `format:check` foram formatados com Prettier. Nenhum comportamento ou lógica foi alterado nesses sete arquivos.

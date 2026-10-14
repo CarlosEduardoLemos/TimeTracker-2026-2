@@ -13,6 +13,7 @@ export default [
       'node_modules/**',
       'playwright-report/**',
       'test-results/**',
+      'public/mockServiceWorker.js',
     ],
   },
   {

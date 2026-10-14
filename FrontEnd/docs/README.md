@@ -13,7 +13,7 @@ O backend implementa cadastro/login JWT e `GET /auth/me`; métodos HTTP correspo
 
 - [Arquitetura](ARQUITETURA.md): estrutura do código, camadas, fluxo da aplicação, estado e decisões arquiteturais.
 - [Contratos da API](CONTRATOS_API.md): endpoints consumidos, parâmetros, respostas, validação e comportamento do cliente HTTP.
-- [Propostas de contratos da API](PROPOSTAS_CONTRATOS_API.md): contratos candidatos ainda não implementados para Tasks, associação, jornada diária, agregações, autorização e fusos.
+- [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao): inclui o status por ID e as propostas de contratos ainda não implementadas para Tasks, associação, jornada diária, agregações, autorização e fusos.
 
 ## Testes e histórico
 

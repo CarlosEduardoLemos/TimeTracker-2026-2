@@ -61,7 +61,7 @@ A tabela exibe `username`, `full_name` e `department` da lista global. Quando re
 
 ## Tasks (`#/tasks`)
 
-A página informa que o backend não oferece consulta, criação, edição ou persistência de tasks, seleção de colaboradores associados e aplicações do escopo. Não há formulário local, botão de salvar, mock ou dados predefinidos. A interface explicita que uma task criada e persistida pelo Dashboard não inicia nem controla o monitoramento pelo Agent; isso depende de contratos separados de seleção, início/fim e `task_id` nos registros. O requisito [RF-06](../../requisitos/requisitos/rn_rf.md#rf-06--criar-e-editar-tasks) permanece dependente dos contratos indicados em [Pendências](PENDENCIAS.md).
+O Backend deste checkout não oferece consulta, criação, edição ou persistência de tasks, seleção de colaboradores associados nem aplicações do escopo. Sem mocks, esta página é informativa e não oferece formulário. Apenas em desenvolvimento com `VITE_USE_MOCKS=true`, há uma demonstração que cria tasks em memória; a tela identifica esses dados como simulados, que não persistem nem representam o Backend. Criar uma task não inicia nem controla o monitoramento pelo Agent, que depende de contratos separados de seleção, início/fim e `task_id` nos registros. O requisito [RF-06](../../requisitos/requisitos/rn_rf.md#rf-06--criar-e-editar-tasks) permanece dependente dos contratos indicados em [Pendências](PENDENCIAS.md).
 
 ## Configurações (`#/configuracoes`)
 
