@@ -6,15 +6,15 @@ Revisão: **13/10/2026**. Este documento complementa [Pendências](PENDENCIAS.md
 
 ## O que já existe e o que falta
 
-| Área | Contrato observado neste checkout | Lacuna ou incompatibilidade |
-| --- | --- | --- |
-| Autenticação do gestor | POST /auth/register, POST /auth/login e GET /auth/me. A última rota exige JWT de gestor e retorna id, email e created_at. | A autenticação não está integrada à experiência do frontend aprovada para o MVP. O ManagerOut não inclui código de associação. |
-| Colaboradores | GET /users/ retorna todos os usuários como UserOut. | Não exige identidade e não filtra colaboradores por gestor; não existe associação persistida gestor–colaborador nos modelos inspecionados. |
-| Atividades e realtime | POST /activities/, GET /activities/realtime, resumo diário e exportações existem. ActivityLogCreate não contém task_id; captured_at aceita datetime opcional. | As rotas de dados não exigem JWT. O realtime não representa entrada/saída diária. O resumo atual agrega duration_seconds por categoria usando date(captured_at). |
-| Tasks e atribuição | Não foi encontrado modelo, schema ou router de Tasks. | Não existem criação/consulta/edição persistentes, escopo de aplicações por Task nem atribuição de colaboradores. Categorias atuais não substituem o escopo de uma Task. |
-| Associação pelo Agent | O cliente Agent da PR #122 envia POST /associate/ com code, username e hostname; aceita token ou access_token na resposta. | A rota, a validação do código, a persistência do vínculo e a emissão de credencial de Agent não foram encontrados no backend. |
-| Fuso horário | O Agent serializa captured_at em UTC. O resumo do backend filtra date(captured_at) sem declarar um fuso. | A data do resumo pode divergir do dia de Brasília; o backend não declara timezone no contrato. |
-| Configuração | GET/PUT /config/ usa capture_interval_seconds e idle_timeout_seconds. | A configuração é global e as rotas não exigem identidade. Não é uma configuração de jornada por colaborador. |
+| Área                   | Contrato observado neste checkout                                                                                                                             | Lacuna ou incompatibilidade                                                                                                                                             |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Autenticação do gestor | POST /auth/register, POST /auth/login e GET /auth/me. A última rota exige JWT de gestor e retorna id, email e created_at.                                     | A autenticação não está integrada à experiência do frontend aprovada para o MVP. O ManagerOut não inclui código de associação.                                          |
+| Colaboradores          | GET /users/ retorna todos os usuários como UserOut.                                                                                                           | Não exige identidade e não filtra colaboradores por gestor; não existe associação persistida gestor–colaborador nos modelos inspecionados.                              |
+| Atividades e realtime  | POST /activities/, GET /activities/realtime, resumo diário e exportações existem. ActivityLogCreate não contém task_id; captured_at aceita datetime opcional. | As rotas de dados não exigem JWT. O realtime não representa entrada/saída diária. O resumo atual agrega duration_seconds por categoria usando date(captured_at).        |
+| Tasks e atribuição     | Não foi encontrado modelo, schema ou router de Tasks.                                                                                                         | Não existem criação/consulta/edição persistentes, escopo de aplicações por Task nem atribuição de colaboradores. Categorias atuais não substituem o escopo de uma Task. |
+| Associação pelo Agent  | O cliente Agent da PR #122 envia POST /associate/ com code, username e hostname; aceita token ou access_token na resposta.                                    | A rota, a validação do código, a persistência do vínculo e a emissão de credencial de Agent não foram encontrados no backend.                                           |
+| Fuso horário           | O Agent serializa captured_at em UTC. O resumo do backend filtra date(captured_at) sem declarar um fuso.                                                      | A data do resumo pode divergir do dia de Brasília; o backend não declara timezone no contrato.                                                                          |
+| Configuração           | GET/PUT /config/ usa capture_interval_seconds e idle_timeout_seconds.                                                                                         | A configuração é global e as rotas não exigem identidade. Não é uma configuração de jornada por colaborador.                                                            |
 
 ## Requisitos e decisões usados
 
@@ -43,13 +43,13 @@ O RF-06 requer criação e edição pelo Dashboard, descrição, colaboradores e
 
 ### Endpoints — PROPOSTA — NÃO IMPLEMENTADO
 
-| Método | Endpoint candidato | Uso |
-| --- | --- | --- |
-| GET | /tasks | Listar Tasks pertencentes ao gestor autenticado. |
-| POST | /tasks | Criar uma Task persistente. |
-| GET | /tasks/{task_id} | Consultar uma Task pertencente ao gestor autenticado. |
-| PATCH | /tasks/{task_id} | Editar campos da Task; não inicia monitoramento. |
-| PUT | /tasks/{task_id}/scope | Substituir a lista de aplicações do escopo. |
+| Método | Endpoint candidato     | Uso                                                   |
+| ------ | ---------------------- | ----------------------------------------------------- |
+| GET    | /tasks                 | Listar Tasks pertencentes ao gestor autenticado.      |
+| POST   | /tasks                 | Criar uma Task persistente.                           |
+| GET    | /tasks/{task_id}       | Consultar uma Task pertencente ao gestor autenticado. |
+| PATCH  | /tasks/{task_id}       | Editar campos da Task; não inicia monitoramento.      |
+| PUT    | /tasks/{task_id}/scope | Substituir a lista de aplicações do escopo.           |
 
 Não se propõe exclusão física. A retenção de registros e o comportamento de arquivamento precisam ser decididos antes de expor exclusão ou estados de ciclo de vida.
 
@@ -118,10 +118,10 @@ O RF-06 exige atribuição pelo gestor; RF-07 restringe a lista de Tasks do Agen
 
 ### Endpoints e schemas — PROPOSTA — NÃO IMPLEMENTADO
 
-| Método | Endpoint candidato | Uso |
-| --- | --- | --- |
-| GET | /tasks/{task_id}/collaborators | Consultar colaboradores atribuídos a uma Task do gestor. |
-| PUT | /tasks/{task_id}/collaborators | Substituir o conjunto completo de colaboradores atribuídos. |
+| Método | Endpoint candidato             | Uso                                                         |
+| ------ | ------------------------------ | ----------------------------------------------------------- |
+| GET    | /tasks/{task_id}/collaborators | Consultar colaboradores atribuídos a uma Task do gestor.    |
+| PUT    | /tasks/{task_id}/collaborators | Substituir o conjunto completo de colaboradores atribuídos. |
 
 Requisição candidata de substituição:
 
@@ -377,12 +377,12 @@ O frontend deve formatar timestamps usando o timezone declarado pela API, e não
 
 ## Dependências externas consolidadas
 
-| Responsável | Dependências para viabilizar os contratos |
-| --- | --- |
-| Backend | Persistir Tasks, escopo, atribuições, vínculo gestor–colaborador e vínculo de atividades com Task; implementar rotas/schemas; proteger e filtrar por identidade; agregar diário e por Task; aplicar timezone; definir idempotência de atividades e erros. |
-| Agent | Consumir associação real e credencial apropriada; listar Tasks autorizadas; exigir ciência antes do monitoramento; enviar task_id e timestamps consistentes; encerrar/trocar execução sem sobreposição. O payload atual de atividade ainda não envia task_id. |
-| Liderança/produto | Decidir os itens abertos de semântica, ciclo de vida, associação, duração agregada, sessão, timezone e configuração global abaixo. |
-| Frontend, após contratos disponíveis | Integrar somente endpoints e schemas confirmados, com estados de erro/vazio/carregamento. A proposta atual não adiciona chamadas nem muda a apresentação aprovada do MVP. |
+| Responsável                          | Dependências para viabilizar os contratos                                                                                                                                                                                                                     |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend                              | Persistir Tasks, escopo, atribuições, vínculo gestor–colaborador e vínculo de atividades com Task; implementar rotas/schemas; proteger e filtrar por identidade; agregar diário e por Task; aplicar timezone; definir idempotência de atividades e erros.     |
+| Agent                                | Consumir associação real e credencial apropriada; listar Tasks autorizadas; exigir ciência antes do monitoramento; enviar task_id e timestamps consistentes; encerrar/trocar execução sem sobreposição. O payload atual de atividade ainda não envia task_id. |
+| Liderança/produto                    | Decidir os itens abertos de semântica, ciclo de vida, associação, duração agregada, sessão, timezone e configuração global abaixo.                                                                                                                            |
+| Frontend, após contratos disponíveis | Integrar somente endpoints e schemas confirmados, com estados de erro/vazio/carregamento. A proposta atual não adiciona chamadas nem muda a apresentação aprovada do MVP.                                                                                     |
 
 ## Questões para decisão da liderança
 

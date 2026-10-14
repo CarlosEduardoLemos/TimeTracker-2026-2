@@ -3,9 +3,15 @@ import {
   validManager,
   validManagerToken,
   validJwtAccessToken,
+  validAgentStatuses,
+  validAttendance,
   validRealtime,
   validSettings,
   validSummary,
+  validTask,
+  validTaskDescription,
+  validTaskHours,
+  validTasks,
   validUsers,
 } from './validators';
 
@@ -110,5 +116,96 @@ describe('contratos da API', () => {
     expect(validJwtAccessToken('header.payload')).toBe(false);
     expect(validJwtAccessToken('header..signature')).toBe(false);
     expect(validJwtAccessToken('a.b.c')).toBe(false);
+  });
+
+  it('valida Task, descrição obrigatória, UUID e instantes com fuso', () => {
+    const task = {
+      id: '6e7b94da-5651-46a0-bf28-fcb8f4f14c04',
+      description: 'Revisar relatório',
+      created_at: '2026-10-13T14:20:00Z',
+      updated_at: '2026-10-13T14:20:00Z',
+    };
+    expect(validTaskDescription('  Revisar relatório  ')).toBe(true);
+    expect(validTaskDescription(' ')).toBe(false);
+    expect(validTaskDescription('x'.repeat(201))).toBe(false);
+    expect(validTaskDescription(null)).toBe(false);
+    expect(validTask(task)).toBe(true);
+    expect(validTasks([task])).toBe(true);
+    expect(validTasks([task, task])).toBe(false);
+    expect(validTask({ ...task, id: 'inválido' })).toBe(false);
+    expect(validTask({ ...task, updated_at: '2026-10-13T14:20:00' })).toBe(false);
+    expect(validTask({ ...task, unexpected: true })).toBe(false);
+    expect(validTasks(null)).toBe(false);
+  });
+
+  it('valida jornada com America/Sao_Paulo, horários nulos ou instantes explícitos', () => {
+    const attendance = {
+      date: '2026-10-13',
+      timezone: 'America/Sao_Paulo',
+      as_of: '2026-10-13T19:50:00Z',
+      users: [
+        {
+          username: 'ana',
+          first_activity_at: '2026-10-13T11:15:00Z',
+          last_activity_at: '2026-10-13T20:42:00Z',
+        },
+        { username: 'bruno', first_activity_at: null, last_activity_at: null },
+      ],
+    };
+    expect(validAttendance(attendance)).toBe(true);
+    expect(validAttendance({ ...attendance, date: '2026-02-31' })).toBe(false);
+    expect(validAttendance({ ...attendance, timezone: 'UTC' })).toBe(false);
+    expect(
+      validAttendance({ ...attendance, users: [...attendance.users, attendance.users[0]] }),
+    ).toBe(false);
+    expect(
+      validAttendance({
+        ...attendance,
+        users: [{ ...attendance.users[0], first_activity_at: '2026-10-13T11:15:00' }],
+      }),
+    ).toBe(false);
+    expect(validAttendance(null)).toBe(false);
+  });
+
+  it('valida horas por Task e conexão do Agent sem confundir is_idle', () => {
+    const taskId = '6e7b94da-5651-46a0-bf28-fcb8f4f14c04';
+    const hours = {
+      start_date: '2026-10-01',
+      end_date: '2026-10-13',
+      timezone: 'America/Sao_Paulo',
+      tasks: [{ task_id: taskId, description: 'Revisar relatório', total_seconds: 3600 }],
+    };
+    const statuses = {
+      agents: [
+        {
+          username: 'ana',
+          hostname: 'ESTACAO-01',
+          last_record_at: '2026-10-13T20:42:00Z',
+          connection_status: 'online',
+        },
+        {
+          username: 'bruno',
+          hostname: 'ESTACAO-02',
+          last_record_at: null,
+          connection_status: 'unknown',
+        },
+      ],
+    };
+    expect(validTaskHours(hours)).toBe(true);
+    expect(validTaskHours({ ...hours, start_date: '2026-10-14' })).toBe(false);
+    expect(validTaskHours({ ...hours, tasks: [{ ...hours.tasks[0], total_seconds: -1 }] })).toBe(
+      false,
+    );
+    expect(validAgentStatuses(statuses)).toBe(true);
+    expect(validAgentStatuses({ agents: [...statuses.agents, statuses.agents[0]] })).toBe(false);
+    expect(
+      validAgentStatuses({
+        agents: [{ ...statuses.agents[0], connection_status: 'offline', is_idle: true }],
+      }),
+    ).toBe(true);
+    expect(
+      validAgentStatuses({ agents: [{ ...statuses.agents[0], connection_status: 'ausente' }] }),
+    ).toBe(false);
+    expect(validAgentStatuses(null)).toBe(false);
   });
 });

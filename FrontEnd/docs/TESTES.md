@@ -2,6 +2,15 @@
 
 Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026** e **13/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
+## Linha de base desta execução — 13/10/2026
+
+- `npm ci`: a primeira execução no sandbox falhou com `EPERM` ao remover `FrontEnd/node_modules/eslint-plugin-react/node_modules/resolve/test/resolver/other_path/root.js`; a repetição restrita à pasta `FrontEnd/` concluiu e instalou 438 pacotes. O npm reportou 7 vulnerabilidades no grafo (5 altas, 2 moderadas) e um script `postinstall` de `esbuild` aguardando aprovação.
+- `npm run check`: a primeira execução passou pelo lint e parou em `format:check`, que apontou apenas `docs/PROPOSTAS_CONTRATOS_API.md`. O arquivo foi formatado com Prettier; a repetição completa passou por lint, formatação, typecheck, cobertura e build.
+- `npm run test:coverage`: **171 testes em 41 arquivos passaram**. Cobertura: 95,98% statements, 94,62% branches, 96,31% functions e 97,69% lines.
+- `npm run build`: passou com Vite 6.4.4.
+- `npm run test:e2e`: **27 passaram, 0 falharam e 2 foram ignorados** por exigirem API real; Playwright/axe rodou em Chromium. `test:e2e:real` não foi executado, pois é opt-in e não havia ambiente configurado.
+- `npm audit --json --cache .npm-cache` e `npm audit --omit=dev --cache .npm-cache`: não conseguiram acessar `https://registry.npmjs.org/-/npm/v1/security/advisories/bulk`; o serviço respondeu erro de rede. O resultado de 7 vulnerabilidades somente de desenvolvimento registrado antes desta execução permanece como referência histórica, sem auditoria online atual.
+
 ## Resultado final pós-correções — 13/10/2026
 
 - `npm.cmd run check`: passou; executou lint, `format:check`, typecheck, cobertura e build.

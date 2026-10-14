@@ -34,6 +34,40 @@
  * @typedef {{ date: string, users: UserDailySummary[] }} DailySummary
  */
 
+/** @typedef {{ id: string, description: string, created_at: string, updated_at: string }} Task */
+
+/**
+ * @typedef {{
+ *   username: string,
+ *   first_activity_at: string | null,
+ *   last_activity_at: string | null
+ * }} AttendanceUser
+ */
+
+/** @typedef {{ date: string, timezone: 'America/Sao_Paulo', as_of: string, users: AttendanceUser[] }} Attendance */
+
+/** @typedef {{ task_id: string, description: string, total_seconds: number }} TaskHoursEntry */
+
+/**
+ * @typedef {{
+ *   start_date: string,
+ *   end_date: string,
+ *   timezone: 'America/Sao_Paulo',
+ *   tasks: TaskHoursEntry[]
+ * }} TaskHours
+ */
+
+/**
+ * @typedef {{
+ *   username: string,
+ *   hostname: string,
+ *   last_record_at: string | null,
+ *   connection_status: 'online' | 'offline' | 'unknown'
+ * }} AgentStatus
+ */
+
+/** @typedef {{ agents: AgentStatus[] }} AgentStatusResponse */
+
 /**
  * @typedef {{ capture_interval_seconds: number, idle_timeout_seconds: number, updated_at?: string | null }} SystemSettings
  */
