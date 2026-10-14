@@ -7,10 +7,13 @@ Use este índice para localizar informações sobre o estado atual, a arquitetur
 - [Funcionalidades](FUNCIONALIDADES.md): telas, comportamentos disponíveis e relação com os requisitos.
 - [Pendências](PENDENCIAS.md): bloqueios organizados por área, impacto, prioridade e workaround.
 
+O backend implementa cadastro/login JWT e `GET /auth/me`; métodos HTTP correspondentes estão preparados, mas o frontend não iniciou integração de sessão e o login continua adiado no MVP. A PR #122 do Agent foi integrada. O backend deste checkout ainda não apresenta geração/consulta de código, `POST /associate/` ou persistência do vínculo. O card visual permanece oculto e não representa integração ponta a ponta.
+
 ## Arquitetura e contratos
 
 - [Arquitetura](ARQUITETURA.md): estrutura do código, camadas, fluxo da aplicação, estado e decisões arquiteturais.
 - [Contratos da API](CONTRATOS_API.md): endpoints consumidos, parâmetros, respostas, validação e comportamento do cliente HTTP.
+- [Propostas de contratos da API](PROPOSTAS_CONTRATOS_API.md): contratos candidatos ainda não implementados para Tasks, associação, jornada diária, agregações, autorização e fusos.
 
 ## Testes e histórico
 

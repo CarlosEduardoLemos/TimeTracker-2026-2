@@ -2,6 +2,32 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
+## 13/10/2026 — Correções pós-atualização do frontend
+
+- **Formatação:** os sete arquivos apontados pelo `format:check` foram formatados com Prettier. Nenhum comportamento ou lógica foi alterado nesses sete arquivos.
+- **Contratos JWT:** `getCurrentManager` agora rejeita token ausente, vazio, malformado, com espaços ou caracteres de controle antes de criar o cabeçalho. A checagem valida somente a forma compacta de três segmentos; assinatura, expiração e autorização continuam no backend. Cadastro/login validam o tipo e presença de e-mail/senha, enviam apenas esses campos e não refletem credenciais em erros.
+- **Validadores:** a resposta `Token` agora também precisa trazer token com forma compacta de JWT. Os schemas `ManagerOut` e `Token` continuam rejeitando propriedades extras; campos novos exigem revisão explícita do contrato.
+- **Dependências:** Vite 6.4.3 foi atualizado para 6.4.4 com correções upstream no mesmo ramo; `source-map-js` 1.2.1 foi atualizado para 1.2.2 dentro das faixas existentes. O audit passou de 8 para 7 entradas. As pendências que exigem Tailwind 4 ou não têm versão corrigida estão em [Pendências](PENDENCIAS.md).
+- **Validação executada:** `npm.cmd run check` e `npm.cmd run check:full` passaram. Vitest: 171 testes em 41 arquivos; cobertura 95,98% statements, 94,62% branches, 96,31% functions e 97,69% lines. E2E: 27 passaram, 2 ignorados por dependerem da API real. `git diff --check` passou; nenhum teste de integração real foi configurado.
+- **MVP e escopo:** acesso sem login, `AuthPage` informativa, card de associação oculto, dashboard, navegação, status e contratos de relatórios foram preservados. Não houve alteração fora de `FrontEnd/`, commit, push, PR ou merge.
+
+## 13/10/2026 — Alinhamento às PRs #122 e #123 (estado anterior à revisão pós-atualização)
+
+- **Estado das integrações:** registrada a incorporação da PR #122 do Agent (`ed48ad7cfff9e724406ef9ffffeb6c0f132caf32`, merge `e43673b4dca212eaa991308d14c9dc25b6c64061`) e da PR #123 de autenticação (`c5a053916747751a3894b93e45c1f4e2dafc34b6`, merge `0fc4e7b7333ceb4fdd120f7f1f753f9836163e30`).
+- **Contratos:** `CONTRATOS_API.md` agora documenta `POST /auth/register`, `POST /auth/login` e `GET /auth/me`, separa operações de tela de contratos disponíveis e esclarece que `ManagerOut` não contém `association_code`.
+- **Código:** adicionados à camada isolada da API os métodos `registerManager`, `loginManager` e `getCurrentManager`, validadores para `ManagerOut`/`Token` e testes de contrato, 409/401, resposta inválida, Bearer, cancelamento e não exposição de detalhes de autenticação.
+- **Documentação e MVP:** atualizados README, arquitetura, funcionalidades e pendências. O Agent tem o cliente de associação integrado, mas os routers/modelos/schemas/CRUD locais ainda não implementam geração/consulta de código, `POST /associate/` ou persistência/isolamento do vínculo. Login continua adiado no MVP; nenhuma sessão ou proteção de rota foi ativada. Mantidos os registros históricos de 09/10 e anteriores.
+- **Validação em 13/10:** `npm.cmd ci` concluiu após a primeira tentativa no sandbox receber `EPERM` para remover `node_modules/nwsapi/dist/lint.log`; o arquivo vazio foi restaurado. Lint, typecheck, Vitest/cobertura (168 testes em 41 arquivos), build e E2E (27 passaram, 2 cenários reais ignorados) passaram quando executados. `format:check` global aponta sete arquivos preexistentes e intocados; os 15 arquivos desta revisão passam na checagem explícita do Prettier. O npm informou 8 vulnerabilidades e script do `esbuild` pendente; nenhuma correção automática foi aplicada. `git diff --check` passou. Detalhes em [Testes](TESTES.md).
+- **Permissões:** nenhuma alteração foi feita fora de `FrontEnd/`; não houve commit, push, PR ou merge.
+
+## 09/10/2026 — Adequação documental à PR externa #122
+
+- **Alterações locais:** esclarecido em `PENDENCIAS.md`, `CONTRATOS_API.md`, `ARQUITETURA.md`, `FUNCIONALIDADES.md`, `README.md` e `docs/README.md` que o card de associação é apenas visual, está oculto no MVP e depende de contratos de backend e sessão do gestor. Registrada a separação entre rotas consumidas pelo frontend, caminhos previstos, rota consumida pelo Agent e rotas localizadas no backend deste checkout.
+- **Referência externa:** documentada a PR #122 (`ed48ad7cfff9e724406ef9ffffeb6c0f132caf32`, `agent/association`) como implementação do lado Agent fornecida para análise, ainda não integrada neste checkout. A documentação registra `POST /associate/`, payload string com código de seis dígitos, tolerância do Agent a `token`/`access_token`, DPAPI, Bearer e bloqueio de monitoramento sem associação, sem afirmar suporte correspondente do servidor.
+- **Segurança e limites:** explicitada a diferença entre token do Agent e futura sessão do gestor, a necessidade de autorização/isolamento no backend e a interpretação ambígua de 401/403 na PR. Não foi adicionada chamada HTTP nem alterada lógica de status ou filtragem de dados.
+- **Testes do card:** adicionada cobertura para códigos ausentes/malformados/não string e ausência da Clipboard API. A execução ficou impedida pela ausência dos binários de ESLint/Vitest; detalhes constam em `TESTES.md`.
+- **Fora do FrontEnd:** nenhum arquivo foi alterado. Não houve commit, push, abertura/aprovação de PR ou merge.
+
 ## 07/10/2026 — Revisão dos contratos e validação do MVP
 
 - Reinspecionados backend, Agent e requisitos atuais em modo somente leitura. Não foram encontrados contratos de jornada diária nem consulta/criação persistente de Tasks; o Agent continua sem `task_id` e sem controle de Task.

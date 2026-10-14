@@ -18,9 +18,9 @@ export function AuthPage({ mode = 'login' }) {
         {register ? 'Criar conta' : 'Entrar no Dashboard'}
       </h1>
       <div className="mt-5">
-        <IntegrationNotice title="Autenticação indisponível">
-          Cadastro e login dependem de endpoints, sessão e autorização no backend. Ainda não é
-          possível criar conta nem entrar por esta interface.
+        <IntegrationNotice title="Sessão do gestor não integrada">
+          O backend oferece cadastro, login JWT e identificação do gestor, mas esta interface ainda
+          não integra uma sessão autenticada. O acesso permanece aberto no MVP.
         </IntegrationNotice>
       </div>
       <a className="secondary-button mt-5 inline-block" href="#/painel">

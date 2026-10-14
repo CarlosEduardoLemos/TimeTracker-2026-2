@@ -58,6 +58,28 @@ describe('AssociationCodeCard', () => {
     expect(screen.getByRole('button', { name: 'Copiar código de associação' })).toBeDisabled();
   });
 
+  it.each([undefined, null, '', 123456, '12a456', '1234567'])(
+    'não exibe nem permite copiar código inválido (%s)',
+    (code) => {
+      render(<AssociationCodeCard code={code} />);
+
+      expect(screen.getByText(/Código indisponível/)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Copiar código de associação' })).toBeDisabled();
+    },
+  );
+
+  it('informa quando Clipboard API está indisponível', async () => {
+    delete navigator.clipboard;
+    render(<AssociationCodeCard code="123456" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copiar código de associação' }));
+
+    expect(await screen.findByText('Não foi possível copiar o código.')).toHaveAttribute(
+      'aria-live',
+      'polite',
+    );
+  });
+
   it('apresenta erro de integração como alerta', () => {
     render(<AssociationCodeCard error="Não foi possível consultar o código." />);
 

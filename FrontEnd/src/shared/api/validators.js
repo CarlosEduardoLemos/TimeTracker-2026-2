@@ -1,5 +1,17 @@
 import { isIsoDate } from '../lib/date';
 
+const BASE64URL_SEGMENT_PATTERN = /^[A-Za-z0-9_-]+$/;
+
+/** @param {unknown} value */
+export function validJwtAccessToken(value) {
+  if (typeof value !== 'string') return false;
+  const segments = value.split('.');
+  return (
+    segments.length === 3 &&
+    segments.every((segment) => BASE64URL_SEGMENT_PATTERN.test(segment) && segment.length % 4 !== 1)
+  );
+}
+
 function optionalText(value) {
   return value == null || typeof value === 'string';
 }
@@ -66,5 +78,39 @@ export function validSettings(value) {
     value.capture_interval_seconds > 0 &&
     Number.isSafeInteger(value?.idle_timeout_seconds) &&
     value.idle_timeout_seconds > 0
+  );
+}
+
+/** @param {any} value @returns {value is import('./contracts').Manager} */
+export function validManager(value) {
+  return Boolean(
+    value &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    Object.keys(value).every((field) => ['id', 'email', 'created_at'].includes(field)) &&
+    typeof value.id === 'string' &&
+    /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(value.id) &&
+    typeof value.email === 'string' &&
+    value.email.length > 0 &&
+    !/\s/.test(value.email) &&
+    value.email.includes('@') &&
+    typeof value.created_at === 'string' &&
+    Number.isFinite(Date.parse(value.created_at)),
+  );
+}
+
+/** @param {any} value @returns {value is import('./contracts').ManagerToken} */
+export function validManagerToken(value) {
+  return Boolean(
+    value &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    Object.keys(value).every((field) =>
+      ['access_token', 'token_type', 'expires_in'].includes(field),
+    ) &&
+    validJwtAccessToken(value.access_token) &&
+    value.token_type === 'bearer' &&
+    Number.isSafeInteger(value.expires_in) &&
+    value.expires_in > 0,
   );
 }

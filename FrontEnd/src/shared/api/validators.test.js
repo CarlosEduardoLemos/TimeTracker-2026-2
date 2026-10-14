@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { validRealtime, validSettings, validSummary, validUsers } from './validators';
+import {
+  validManager,
+  validManagerToken,
+  validJwtAccessToken,
+  validRealtime,
+  validSettings,
+  validSummary,
+  validUsers,
+} from './validators';
+
+const ACCESS_TOKEN = `eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYW5hZ2VyIn0.${'A'.repeat(43)}`;
 
 describe('contratos da API', () => {
   it('aceita usuários únicos e campos opcionais ausentes ou nulos', () => {
@@ -58,5 +68,47 @@ describe('contratos da API', () => {
     expect(validSettings({ ...settings, idle_timeout_seconds: '300' })).toBe(false);
     expect(validSettings({ capture_interval_seconds: 10 })).toBe(false);
     expect(validSettings(null)).toBe(false);
+  });
+
+  it('validates ManagerOut without accepting password fields', () => {
+    const manager = {
+      id: 'b06e3df5-c23b-49ec-9a40-081a451620b3',
+      email: 'gestor@empresa.com',
+      created_at: '2026-10-13T12:00:00Z',
+    };
+    expect(validManager(manager)).toBe(true);
+    expect(validManager({ ...manager, password_hash: 'hash' })).toBe(false);
+    expect(validManager({ ...manager, password: 'segredo' })).toBe(false);
+    expect(validManager({ ...manager, association_code: '012345' })).toBe(false);
+    expect(validManager({ ...manager, email: null })).toBe(false);
+    expect(validManager({ ...manager, id: 'not-a-uuid' })).toBe(false);
+    expect(validManager({ ...manager, created_at: 'ontem' })).toBe(false);
+  });
+
+  it('validates bearer token and positive expiry in seconds', () => {
+    const token = {
+      access_token: ACCESS_TOKEN,
+      token_type: 'bearer',
+      expires_in: 3600,
+    };
+    expect(validManagerToken(token)).toBe(true);
+    expect(validManagerToken({ ...token, token_type: 'Bearer' })).toBe(false);
+    expect(validManagerToken({ ...token, expires_in: 0 })).toBe(false);
+    expect(validManagerToken({ ...token, expires_in: 1.5 })).toBe(false);
+    expect(validManagerToken({ ...token, access_token: '' })).toBe(false);
+    expect(validManagerToken({ ...token, access_token: 'header.payload' })).toBe(false);
+    expect(validManagerToken({ ...token, access_token: 'header.payload.signature\n' })).toBe(false);
+    expect(validManagerToken({ ...token, password: 'nao-incluir' })).toBe(false);
+  });
+
+  it('validates only the compact JWT token shape without verifying its signature', () => {
+    expect(validJwtAccessToken(ACCESS_TOKEN)).toBe(true);
+    expect(validJwtAccessToken('')).toBe(false);
+    expect(validJwtAccessToken(null)).toBe(false);
+    expect(validJwtAccessToken(' header.payload.signature')).toBe(false);
+    expect(validJwtAccessToken('header.payload.signature\r\nX-Injected: yes')).toBe(false);
+    expect(validJwtAccessToken('header.payload')).toBe(false);
+    expect(validJwtAccessToken('header..signature')).toBe(false);
+    expect(validJwtAccessToken('a.b.c')).toBe(false);
   });
 });

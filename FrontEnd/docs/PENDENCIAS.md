@@ -1,8 +1,21 @@
 # Pendências do frontend e dependências externas
 
-Revisão: **02/10/2026**. `backend/`, `agent/` e a pasta [requisitos](../../requisitos/visao.md) foram consultados somente para leitura. Nenhum contrato externo foi alterado. Os IDs clicáveis em **Problema/requisito** levam às seções de origem em [RN/RF](../../requisitos/requisitos/rn_rf.md), [RNF](../../requisitos/requisitos/rnf.md) ou [critérios de aceite](../../requisitos/requisitos/ca.md). Situação, prioridade, impacto e contrato necessário são conclusões da revisão do código e da API, não texto dos requisitos. Prioridade alta indica risco de acesso, integridade ou bloqueio funcional; média indica lacuna relevante; baixa indica manutenção.
+Revisão: **13/10/2026**. `backend/`, `agent/` e `requisitos/` foram consultados somente para leitura. Os IDs em **Problema/requisito** apontam para [RN/RF](../../requisitos/requisitos/rn_rf.md), [RNF](../../requisitos/requisitos/rnf.md), [critérios de aceite](../../requisitos/requisitos/ca.md) ou [RBAC](../../requisitos/rbac.md). Situação e prioridade refletem o código e os contratos observados neste checkout.
 
-Revisão do recorte MVP 13/10: **07/10/2026**. `backend/`, `agent/` e `requisitos/` foram reinspecionados em modo somente leitura; os bloqueios de Tasks, jornada diária e fuso continuam presentes nos contratos locais atuais.
+As PRs #122 (Agent, merge `e43673b4dca212eaa991308d14c9dc25b6c64061`) e #123 (autenticação do backend, merge `0fc4e7b7333ceb4fdd120f7f1f753f9836163e30`) já foram incorporadas à `main` da organização. A implementação local do backend confirma os contratos de cadastro/login/JWT/`/auth/me`; a associação no backend continua ausente. O escopo aprovado do MVP de 13/10 permanece sem login na apresentação.
+
+## Auditoria de dependências npm — 13/10/2026
+
+Depois das correções compatíveis abaixo, `npm audit --json` reportou **7 entradas** no grafo de desenvolvimento: 5 altas e 2 moderadas. Os pacotes de produção não aparecem como vulneráveis. O relatório agrupa cadeias transitivas; não é evidência de exploração do projeto.
+
+| Pacote instalado                                                                               | Dependência                                      | Severidade/estado                                                                                                                                                      | Decisão                                                                                                                                                                                     |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vite` 6.4.3 → 6.4.4                                                                           | Direta de desenvolvimento                        | Dois advisories upstream recentes (1 baixa, 1 moderada) afetavam `<=6.4.3`; 6.4.4 corrige na mesma linha 6.x.                                                          | Corrigido em `package.json` e `package-lock.json`; build, cobertura e E2E passaram com 6.4.4.                                                                                               |
+| `source-map-js` 1.2.1 → 1.2.2                                                                  | Transitiva via PostCSS e `magicast`              | Alta; 1.2.2 é a versão corrigida dentro do intervalo declarado.                                                                                                        | Corrigido no lockfile; reduziu a contagem do npm de 8 para 7.                                                                                                                               |
+| `braces` 3.0.3, `chokidar` 3.6.0, `micromatch` 4.0.8, `fast-glob` 3.3.3 e `tailwindcss` 3.4.17 | Transitivas e Tailwind direto de desenvolvimento | 5 entradas altas associadas à vulnerabilidade de recursão do `braces`; o advisory não informa versão corrigida para `braces`. O `npm audit` sugere Tailwind CSS 4.3.3. | Não aplicar: o salto para Tailwind 4 é major e requer revisão/migração visual e de configuração. `fast-glob` e `micromatch` já estão nas versões compatíveis máximas publicadas observadas. |
+| `postcss-selector-parser` 6.1.4 e `postcss-nested` 6.2.0                                       | Transitivas do Tailwind                          | 2 entradas moderadas. A correção 7.1.6 fica fora das faixas `^6.x` exigidas pelos consumidores atuais.                                                                 | Não aplicar override major sem validação; a correção automatizada sugerida também migra para Tailwind 4.                                                                                    |
+
+O resultado atual do `npm audit` não listou Vite, embora advisories oficiais do próprio projeto indiquem que 6.4.3 era afetado. O Vite foi atualizado com base nesses advisories. O histórico da instalação que reportou inicialmente 8 vulnerabilidades permanece em [Testes](TESTES.md).
 
 ## Estado do MVP 13/10 nesta revisão
 
@@ -19,44 +32,45 @@ Os bloqueios funcionais impedem concluir o recorte anunciado como utilizável so
 
 **Atualização de alinhamentos da liderança: 02/10/2026.** As decisões abaixo foram incorporadas às entradas I-01, I-03, I-05/B-10, I-06, I-07, B-03 e B-06. Elas registram a direção acordada; não significam que backend, Agent ou contratos já tenham sido alterados.
 
-| ID   | Pendência                                                         | Área                 | Prioridade | Status                     |
-| ---- | ----------------------------------------------------------------- | -------------------- | ---------- | -------------------------- |
-| B-01 | Autorização dos endpoints e isolamento dos dados                  | Backend              | Alta       | AGUARDANDO BACKEND         |
-| B-02 | CORS e HTTPS por ambiente                                         | Backend              | Alta       | AGUARDANDO BACKEND         |
-| B-03 | Seed incompatível com chave UUID                                  | Backend              | Alta       | AGUARDANDO BACKEND         |
-| B-04 | Limite salvo não aplicado ao realtime                             | Backend              | Média      | PARCIAL; BACKEND PENDENTE  |
-| B-05 | Capturas empatadas no realtime                                    | Backend              | Média      | AGUARDANDO BACKEND         |
-| B-06 | Reenvio de atividades sem deduplicação                            | Backend              | Alta       | AGUARDANDO BACKEND         |
-| B-07 | Datas futuras e tempo relativo negativo                           | Backend              | Média      | AGUARDANDO BACKEND         |
-| B-08 | Segurança e fidelidade dos arquivos exportados                    | Backend              | Média      | AGUARDANDO BACKEND         |
-| B-09 | Configuração global sem unicidade garantida                       | Backend              | Média      | AGUARDANDO BACKEND         |
-| B-10 | Flag de inatividade pode gerar status `offline`                   | Backend              | Média      | AGUARDANDO BACKEND         |
-| I-01 | Conta, login e sessão do gestor                                   | Integração           | Pós-MVP    | ADIADO PARA DEPOIS DO MVP  |
-| I-02 | Associação gestor–colaborador e código                            | Integração           | Alta       | BLOQUEADO                  |
-| I-03 | Tasks, atribuição, escopo e monitoramento consentido              | Integração           | Alta       | BLOQUEADO                  |
-| I-04 | Jornada individual e possível hora extra                          | Integração           | Alta       | BLOQUEADO                  |
-| I-05 | Conexão real do agente                                            | Integração           | Média      | BLOQUEADO                  |
-| I-06 | Dashboard, timeline e relatórios completos                        | Integração           | Alta       | BLOQUEADO                  |
-| I-07 | Referência de fuso e virada do dia                                | Integração           | Média      | BLOQUEADO                  |
-| I-08 | Teste de integração com serviço real                              | Integração           | Média      | PENDENTE DE AMBIENTE       |
-| F-01 | Integração das telas após contratos                               | Frontend             | Alta       | BLOQUEADO                  |
-| F-02 | Instalação PWA e política offline                                 | Frontend             | Média      | FRONTEND FUTURO            |
-| F-03 | Validação humana e matriz de navegadores                          | Frontend             | Média      | FRONTEND FUTURO            |
-| D-01 | Atualizar [responsividade.md](../../requisitos/responsividade.md) | Documentação externa | Baixa      | AGUARDANDO REVISÃO EXTERNA |
+| ID   | Pendência                                                         | Área                 | Prioridade | Status                             |
+| ---- | ----------------------------------------------------------------- | -------------------- | ---------- | ---------------------------------- |
+| B-01 | Autorização dos endpoints e isolamento dos dados                  | Backend              | Alta       | AGUARDANDO BACKEND                 |
+| B-02 | CORS e HTTPS por ambiente                                         | Backend              | Alta       | AGUARDANDO BACKEND                 |
+| B-03 | Seed incompatível com chave UUID                                  | Backend              | Alta       | AGUARDANDO BACKEND                 |
+| B-04 | Limite salvo não aplicado ao realtime                             | Backend              | Média      | PARCIAL; BACKEND PENDENTE          |
+| B-05 | Capturas empatadas no realtime                                    | Backend              | Média      | AGUARDANDO BACKEND                 |
+| B-06 | Reenvio de atividades sem deduplicação                            | Backend              | Alta       | AGUARDANDO BACKEND                 |
+| B-07 | Datas futuras e tempo relativo negativo                           | Backend              | Média      | AGUARDANDO BACKEND                 |
+| B-08 | Segurança e fidelidade dos arquivos exportados                    | Backend              | Média      | AGUARDANDO BACKEND                 |
+| B-09 | Configuração global sem unicidade garantida                       | Backend              | Média      | AGUARDANDO BACKEND                 |
+| B-10 | Flag de inatividade pode gerar status `offline`                   | Backend              | Média      | AGUARDANDO BACKEND                 |
+| I-01 | Conta, login e sessão do gestor                                   | Integração           | Pós-MVP    | ADIADO PARA DEPOIS DO MVP          |
+| I-02 | Associação gestor–colaborador e código                            | Integração           | Alta       | AGENT INTEGRADO; BACKEND BLOQUEADO |
+| I-03 | Tasks, atribuição, escopo e monitoramento consentido              | Integração           | Alta       | BLOQUEADO                          |
+| I-04 | Jornada individual e possível hora extra                          | Integração           | Alta       | BLOQUEADO                          |
+| I-05 | Conexão real do agente                                            | Integração           | Média      | BLOQUEADO                          |
+| I-06 | Dashboard, timeline e relatórios completos                        | Integração           | Alta       | BLOQUEADO                          |
+| I-07 | Referência de fuso e virada do dia                                | Integração           | Média      | BLOQUEADO                          |
+| I-08 | Teste de integração com serviço real                              | Integração           | Média      | PENDENTE DE AMBIENTE               |
+| F-01 | Integração das telas após contratos                               | Frontend             | Alta       | BLOQUEADO                          |
+| F-02 | Instalação PWA e política offline                                 | Frontend             | Média      | FRONTEND FUTURO                    |
+| F-03 | Validação humana e matriz de navegadores                          | Frontend             | Média      | FRONTEND FUTURO                    |
+| D-01 | Atualizar [responsividade.md](../../requisitos/responsividade.md) | Documentação externa | Baixa      | AGUARDANDO REVISÃO EXTERNA         |
 
 Cada ID identifica uma pendência específica para facilitar referências no texto e na ordem de execução. A letra indica a área: `B` = backend, `I` = integração entre frontend e backend, `F` = frontend e `D` = documentação externa. O número distingue os itens da mesma área; não indica prioridade nem status, que aparecem em colunas próprias.
 
 Os status descrevem a dependência atual; a prioridade indica impacto. Eles não indicam que todo o frontend esteja parado.
 
-| Status                         | Significado                                                                                                                                                                                                 |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **BLOQUEADO**                  | A funcionalidade não pode ser concluída com os contratos, dados ou ambiente disponíveis no momento. Depende de uma definição ou implementação externa, como autenticação no backend para o login do gestor. |
-| **ADIADO PARA DEPOIS DO MVP**  | A funcionalidade foi explicitamente retirada do recorte de 13/10; não bloqueia a demonstração solicitada.                                                                                                   |
-| **AGUARDANDO BACKEND**         | A correção precisa ser feita ou garantida no servidor, como a autorização dos endpoints.                                                                                                                    |
-| **PARCIAL; BACKEND PENDENTE**  | O Agent já consome a configuração, mas a classificação realtime ainda depende de limites próprios do backend.                                                                                               |
-| **PENDENTE DE AMBIENTE**       | O cenário de integração está preparado; falta serviço real, banco, origem configurada e dados autorizados para executá-lo.                                                                                  |
-| **FRONTEND FUTURO**            | Trabalho previsto para uma etapa posterior do frontend, como instalação PWA ou validação em dispositivos reais.                                                                                             |
-| **AGUARDANDO REVISÃO EXTERNA** | Depende da revisão de um documento fora de `FrontEnd/`; neste caso, `requisitos/responsividade.md`.                                                                                                         |
+| Status                                 | Significado                                                                                                                                         |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **BLOQUEADO**                          | A funcionalidade não pode ser concluída com os contratos, dados ou ambiente disponíveis no momento; depende de definição ou implementação externa.  |
+| **ADIADO PARA DEPOIS DO MVP**          | A funcionalidade foi explicitamente retirada do recorte de 13/10; não bloqueia a demonstração solicitada.                                           |
+| **AGUARDANDO BACKEND**                 | A correção precisa ser feita ou garantida no servidor, como a autorização dos endpoints.                                                            |
+| **PARCIAL; BACKEND PENDENTE**          | O Agent já consome a configuração, mas a classificação realtime ainda depende de limites próprios do backend.                                       |
+| **AGENT INTEGRADO; BACKEND BLOQUEADO** | O cliente Agent da PR #122 foi integrado; geração/consulta de código, associação e vínculo autorizado continuam ausentes no backend; consulte I-02. |
+| **PENDENTE DE AMBIENTE**               | O cenário de integração está preparado; falta serviço real, banco, origem configurada e dados autorizados para executá-lo.                          |
+| **FRONTEND FUTURO**                    | Trabalho previsto para uma etapa posterior do frontend, como instalação PWA ou validação em dispositivos reais.                                     |
+| **AGUARDANDO REVISÃO EXTERNA**         | Depende da revisão de um documento fora de `FrontEnd/`; neste caso, `requisitos/responsividade.md`.                                                 |
 
 As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID. O motivo específico aparece em **Motivo do bloqueio** ou **Motivo da pendência**.
 
@@ -68,7 +82,7 @@ As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID
 - **Problema/requisito:** ausência de autorização; [RN-15](../../requisitos/requisitos/rn_rf.md#rn-15--controle-de-acesso-aos-dados), [RF-23](../../requisitos/requisitos/rn_rf.md#rf-23--consultar-registros), [CA-09](../../requisitos/requisitos/ca.md#ca-09--privacidade-e-segurança) e [escopo de acesso no RBAC](../../requisitos/rbac.md#5-escopo-de-acesso).
 - **Frontend afetado:** todas as páginas com dados, especialmente `SettingsPage`, `DashboardPage`, `CollaboratorsPage` e `ReportsPage`.
 - **Backend relacionado:** `app/main.py`, routers `users`, `activities`, `dashboard` e `config`.
-- **Atual/impacto:** consultas globais e `PUT /config/` sem verificação de gestor permitem leitura e escrita sem identidade validada.
+- **Atual/impacto:** `get_current_manager` protege `GET /auth/me`, mas não está aplicado aos endpoints de dados. Consultas globais e `PUT /config/` permitem leitura/escrita sem identidade validada.
 - **Alteração necessária:** impor identidade, permissões e restrição por equipe no servidor, inclusive nas exportações e no recebimento de atividades.
 - **Workaround frontend:** não existe para proteção real; avisos informam a limitação, mas não protegem a API.
 - **Motivo do bloqueio:** esconder componentes ou filtrar listas localmente não autoriza nem isola dados no servidor. O fluxo visual de acesso está em I-01.
@@ -182,26 +196,36 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 
 ### I-01 — Conta, login e sessão do gestor — Alta
 
-- **Status:** BLOQUEADO.
-- **Problema/requisito:** [RF-02](../../requisitos/requisitos/rn_rf.md#rf-02--criar-e-acessar-conta-do-gestor)/[RF-23](../../requisitos/requisitos/rn_rf.md#rf-23--consultar-registros) e [CA-01](../../requisitos/requisitos/ca.md#ca-01--identificação-acesso-e-associação) sem contratos de autenticação.
-- **Frontend afetado:** `AuthPage`, `App`, cliente HTTP e navegação.
-- **Backend relacionado:** routers/schemas atuais não oferecem conta do gestor, login ou sessão.
-- **Atual/impacto:** login/cadastro são páginas informativas, sem coleta de credenciais; não há gestor autenticado.
-- **Decisão para o MVP de 13/10:** login/cadastro não são necessários; o acesso direto às rotas fica aberto e o link “Criar conta” foi ocultado da navegação. Autenticação permanece adiada para depois do MVP; o código existente foi preservado.
-- **Contrato necessário:** definir cadastro, login/logout, sessão, expiração, erros e proteção contra CSRF conforme a estratégia escolhida; se JWT for aprovado, especificar emissão, renovação/expiração, armazenamento e transmissão. O servidor aplica B-01.
-- **Workaround frontend:** não existe; formulário visual ou senha local não autentica.
-- **Motivo do bloqueio:** implementar o fluxo exige identidade verificável e acordo sobre transporte da sessão.
+- **Status:** backend implementado; integração frontend **ADIADA PARA DEPOIS DO MVP**.
+- **Problema/requisito:** [RF-02](../../requisitos/requisitos/rn_rf.md#rf-02--criar-e-acessar-conta-do-gestor)/[RF-23](../../requisitos/requisitos/rn_rf.md#rf-23--consultar-registros) e [CA-01](../../requisitos/requisitos/ca.md#ca-01--identificação-acesso-e-associação).
+- **Backend implementado pela PR #123:** cadastro `POST /auth/register`, login `POST /auth/login`, JWT assinado/expirável, validação do token e consulta protegida `GET /auth/me`. O merge é `0fc4e7b7333ceb4fdd120f7f1f753f9836163e30`; `ManagerOut` contém `id`, `email`, `created_at` e não contém código de associação.
+- **Frontend:** `api.registerManager`, `api.loginManager` e `api.getCurrentManager` estão preparados com validação de resposta, timeout, cancelamento e erros HTTP. `AuthPage` continua sem coletar credenciais; não há gerenciamento de sessão, logout, recuperação de expiração nem proteção de rota.
+- **Decisão do MVP de 13/10:** login/cadastro continuam adiados; o acesso direto permanece e “Criar conta” fica oculto na apresentação. A entrega do backend não altera essa aprovação de produto.
+- **Alternativas avaliadas; nenhuma foi ativada:**
+
+  | Estratégia                          | XSS e exposição                                                                   | Recarga/restauração                                                                                             | Backend necessário                                                                                     |
+  | ----------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+  | JWT em memória                      | JavaScript da página ainda pode ler o token; não há cópia persistente no storage. | A recarga encerra a sessão e exige novo login.                                                                  | Nenhuma mudança para enviar o Bearer pelo contrato JSON atual.                                         |
+  | `sessionStorage`                    | Legível por JavaScript e sujeito a roubo por XSS.                                 | Sobrevive à recarga da mesma aba; normalmente termina com a aba/sessão do navegador.                            | Nenhuma mudança; precisa limpar no logout e em `401`.                                                  |
+  | `localStorage`                      | Legível por JavaScript e sujeito a roubo por XSS; aumenta o tempo de exposição.   | Restaura após recargas e reinício do navegador; sincronização de logout entre abas também precisa ser definida. | Nenhuma mudança; precisa limpar no logout e em `401`.                                                  |
+  | Cookie `HttpOnly; Secure; SameSite` | JavaScript não lê o JWT; XSS ainda pode iniciar ações autenticadas na página.     | Enviado automaticamente e pode restaurar após recarga até expirar ou ser removido.                              | Emissão/remoção do cookie, CORS com credenciais e proteção CSRF; o contrato atual retorna JWT em JSON. |
+
+- **Recomendação para uma decisão futura:** preferir cookie `HttpOnly; Secure; SameSite` com proteção CSRF e CORS configurados no backend. Se essa arquitetura não for viável, manter o JWT somente em memória; evitar persistência em `localStorage` e `sessionStorage`. A liderança precisa aprovar a estratégia antes de ativar login.
+- **Comportamento que qualquer estratégia ainda precisa definir:** expiração baseada em `expires_in` e validade do servidor, restauração, logout, limpeza no primeiro `401` e coordenação de respostas `401` concorrentes. Logout apenas no navegador não revoga o JWT emitido, que permanece válido até expirar sem um contrato de revogação no backend.
+- **Autorização pendente:** proteger as rotas de dados e aplicar isolamento por gestor conforme B-01 antes de tratar login como proteção do Dashboard.
+- **Workaround frontend:** não existe; o formulário e a sessão permanecem indisponíveis na experiência atual.
 
 ### I-02 — Associação gestor–colaborador e código — Alta
 
-- **Status:** BLOQUEADO.
+- **Status:** cliente de associação do Agent integrado; associação do backend **BLOQUEADA**.
 - **Problema/requisito:** [RF-03](../../requisitos/requisitos/rn_rf.md#rf-03--disponibilizar-código-de-associação)/[RF-04](../../requisitos/requisitos/rn_rf.md#rf-04--associar-colaborador)/[RF-05](../../requisitos/requisitos/rn_rf.md#rf-05--gerenciar-colaboradores-associados), [CA-01](../../requisitos/requisitos/ca.md#ca-01--identificação-acesso-e-associação)/[CA-07](../../requisitos/requisitos/ca.md#ca-07--consulta-relatórios-e-exportação) e [associação no RBAC](../../requisitos/rbac.md#6-associação).
 - **Frontend afetado:** painel, colaboradores, relatórios e futura exibição do código do gestor.
-- **Backend relacionado:** `User` e `/users/`; não há modelo gestor/equipe/código.
-- **Atual/impacto:** usuários globais; nenhum código ou vínculo real é fornecido. A issue #113 é a dependência de backend indicada para geração/consulta do código; não foi possível confirmar seu estado remoto nesta revisão. No código local consultado, não existe `association_code`, endpoint `/auth/me` ou `/manager/association-code`, modelo gestor/equipe, autenticação ou sessão JWT.
-- **Contrato necessário:** código de seis dígitos como string validado no servidor, associado ao gestor autenticado; confirmar endpoint/resposta, autorização e ciclo de vida/erros do código e do vínculo. A consulta precisa usar a sessão definida em I-01 e ser independente dos filtros analíticos.
-- **Workaround frontend:** issue #114 mantém o componente visual desacoplado, com carregamento, erro, indisponibilidade, cópia acessível e validação visual do formato. Ele foi ocultado temporariamente do Dashboard do MVP, sem remover sua implementação. Não foi adicionada chamada de rede nem dado fictício.
-- **Motivo do bloqueio:** os dados e regras do vínculo ainda não existem na API local, e o gestor não pode autenticar. A integração real da issue #114 depende da conclusão/definição de #113 e de I-01, incluindo estratégia de JWT/sessão; o card e seus testes de interface estão concluídos no frontend.
+- **A. Implementado no frontend:** `AssociationCodeCard` apresenta um código string de seis dígitos, preserva zeros à esquerda, oferece cópia com feedback e estados de carregamento, erro e indisponibilidade. Os testes verificam os estados visuais e acessíveis. O card permanece oculto no Dashboard do MVP.
+- **B. Implementado e integrado pela PR #122:** o Agent recebe código numérico de seis dígitos como string, envia `POST /associate/` com `code`, `username` e `hostname`, aceita token na resposta como `token` ou `access_token`, persiste o token protegido por DPAPI, reutiliza Bearer nas chamadas posteriores e não inicia monitoramento antes da associação. Commit de implementação `ed48ad7cfff9e724406ef9ffffeb6c0f132caf32`; merge `e43673b4dca212eaa991308d14c9dc25b6c64061`.
+- **C. Pendente no backend após inspeção de routers, `models.py`, `schemas.py` e `crud.py`:** geração e consulta autenticada do código (issue #113), `POST /associate/`, persistência do vínculo, validação/validade do código e isolamento de colaboradores por gestor. Não há `association_code` em `ManagerOut`; `GET /auth/me` não retorna esse campo e não substitui endpoint de código.
+- **D. Pendente no frontend:** após o backend definir rota e schema de consulta do código e a sessão do gestor ser aprovada, integrar o código e considerar exibi-lo (issue #114). A API não inventa rota e o card continua oculto no MVP.
+- **Segurança e impacto:** o token protegido localmente do Agent e o JWT do gestor são credenciais distintas. As rotas de usuários, realtime, painel, exportação e configuração continuam globais e sem dependência `get_current_manager`; a autenticação nova não prova autorização nem isolamento. Filtros locais não protegem dados. Estados realtime não são prova de associação ou conexão ativa.
+- **Motivo do bloqueio:** a PR #122 implementa o lado cliente Agent, mas o backend deste checkout ainda não tem código, endpoints ou persistência de associação. Também falta autorização e isolamento por gestor.
 
 ### I-03 — Tasks, atribuição, escopo e monitoramento consentido — Alta
 
