@@ -2,6 +2,7 @@ import { isIsoDate } from '../lib/date';
 import {
   validManager,
   validManagerToken,
+  validJwtAccessToken,
   validRealtime,
   validSettings,
   validSummary,
@@ -145,6 +146,26 @@ async function validateResponse(promise, validator) {
   return value;
 }
 
+/** @param {unknown} credentials */
+function managerCredentialsBody(credentials) {
+  if (!credentials || typeof credentials !== 'object' || Array.isArray(credentials)) {
+    throw new ApiError('Credenciais inválidas', { type: 'client' });
+  }
+
+  const payload = /** @type {Record<string, unknown>} */ (credentials);
+  const { email, password } = payload;
+  if (
+    typeof email !== 'string' ||
+    email.trim().length === 0 ||
+    typeof password !== 'string' ||
+    password.length === 0
+  ) {
+    throw new ApiError('Credenciais inválidas', { type: 'client' });
+  }
+
+  return { email, password };
+}
+
 function summaryPath(date, username = '') {
   if (!isIsoDate(date)) {
     throw new Error('Selecione uma data válida');
@@ -172,35 +193,40 @@ export const api = {
       request('/config/', { method: 'PUT', body: JSON.stringify(payload), signal }),
       validSettings,
     ),
-  registerManager: (credentials, signal) =>
+  registerManager: async (credentials, signal) =>
     validateResponse(
       request('/auth/register', {
         method: 'POST',
-        body: JSON.stringify(credentials),
+        body: JSON.stringify(managerCredentialsBody(credentials)),
         signal,
         omitErrorDetails: true,
       }),
       validManager,
     ),
-  loginManager: (credentials, signal) =>
+  loginManager: async (credentials, signal) =>
     validateResponse(
       request('/auth/login', {
         method: 'POST',
-        body: JSON.stringify(credentials),
+        body: JSON.stringify(managerCredentialsBody(credentials)),
         signal,
         omitErrorDetails: true,
       }),
       validManagerToken,
     ),
-  getCurrentManager: (accessToken, signal) =>
-    validateResponse(
+  getCurrentManager: async (accessToken, signal) => {
+    if (!validJwtAccessToken(accessToken)) {
+      throw new ApiError('Token JWT inválido', { type: 'client' });
+    }
+
+    return validateResponse(
       request('/auth/me', {
         signal,
         headers: { Authorization: `Bearer ${accessToken}` },
         omitErrorDetails: true,
       }),
       validManager,
-    ),
+    );
+  },
   async exportFile(format, date, username = '', signal) {
     return request(exportPath(format, date, username), { signal }, (response) => {
       const expectedType = format === 'csv' ? 'text/csv' : 'application/pdf';

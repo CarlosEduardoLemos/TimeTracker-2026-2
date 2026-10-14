@@ -1,8 +1,19 @@
 ﻿# Testes e validação do frontend
 
-Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026** e a tentativa atual de **13/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
+Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026** e **13/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
-## Tentativa de validação desta revisão — 13/10/2026
+## Resultado final pós-correções — 13/10/2026
+
+- `npm.cmd run check`: passou; executou lint, `format:check`, typecheck, cobertura e build.
+- `npm.cmd run check:full`: passou e repetiu a validação completa junto ao E2E.
+- `npm.cmd run test:coverage`: **171 testes em 41 arquivos passaram**. Cobertura: 95,98% statements, 94,62% branches, 96,31% functions e 97,69% lines.
+- `npm.cmd run build`: passou com Vite 6.4.4.
+- `npm.cmd run test:e2e`: **27 passaram, 0 falharam e 2 foram ignorados** por exigirem API real; Playwright/axe rodou em Chromium.
+- `npm.cmd audit --json --cache .npm-cache`: 7 entradas (5 altas, 2 moderadas), todas em dependências de desenvolvimento. `source-map-js` 1.2.1→1.2.2 removeu uma entrada alta. Tailwind 3.4.17 e sua árvore mantêm achados sem correção compatível sem migração major; Vite foi corrigido com base em advisories upstream que não constaram no relatório npm. Detalhes em [Pendências](PENDENCIAS.md).
+- O pacote `esbuild@0.25.12` declara `postinstall: node install.js`; a configuração atual tem `ignore-scripts=false` e o binário Windows está instalado. Build e E2E passaram com o binário presente. As atualizações npm foram executadas com scripts desabilitados, portanto não provocaram nova execução de `postinstall`; uma instalação limpa ainda pode depender da política de aprovação de scripts do ambiente.
+- Não foi configurado ambiente de API real nem executada chamada externa de integração. `git diff --check` passou e as alterações permanecem dentro de `FrontEnd/`.
+
+## Tentativa inicial antes das correções — 13/10/2026
 
 - `npm.cmd ci`: a primeira tentativa no sandbox falhou com `EPERM`/`unlink` em `FrontEnd/node_modules/nwsapi/dist/lint.log`. Após a permissão elevada autorizada, concluiu e instalou 438 pacotes; o arquivo vazio preexistente foi restaurado. O npm reportou 8 vulnerabilidades (2 moderadas, 6 altas) e script `postinstall` do `esbuild` pendente de aprovação; não apliquei correções automáticas.
 - `npm.cmd run check`: lint passou; `format:check` global falhou somente em sete arquivos preexistentes e intocados (`e2e/app.spec.js`, `Sidebar.jsx`/teste, `DashboardPage.jsx`/teste e `TasksPage.jsx`/teste). Os 14 arquivos modificados passam em `prettier --check` explícito.

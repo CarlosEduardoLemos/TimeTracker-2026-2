@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { api } from './api';
 
+const ACCESS_TOKEN = `eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYW5hZ2VyIn0.${'A'.repeat(43)}`;
+
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.useRealTimers();
@@ -17,7 +19,7 @@ describe('cliente da API', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(
-      api.registerManager({ email: manager.email, password: 'SenhaSegura123!' }),
+      api.registerManager({ email: manager.email, password: 'SenhaSegura123!', role: 'admin' }),
     ).resolves.toEqual(manager);
     expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/auth/register');
     expect(fetchMock.mock.calls[0][1]).toMatchObject({
@@ -31,7 +33,11 @@ describe('cliente da API', () => {
   });
 
   it('logs in with the server-issued bearer token and expiry in seconds', async () => {
-    const response = { access_token: 'jwt-do-servidor', token_type: 'bearer', expires_in: 3600 };
+    const response = {
+      access_token: ACCESS_TOKEN,
+      token_type: 'bearer',
+      expires_in: 3600,
+    };
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => response }));
     vi.stubGlobal('fetch', fetchMock);
 
@@ -47,6 +53,7 @@ describe('cliente da API', () => {
   });
 
   it('gets the current manager using the caller-provided in-memory bearer token', async () => {
+    const token = ACCESS_TOKEN;
     const manager = {
       id: 'b06e3df5-c23b-49ec-9a40-081a451620b3',
       email: 'gestor@empresa.com',
@@ -55,10 +62,10 @@ describe('cliente da API', () => {
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => manager }));
     vi.stubGlobal('fetch', fetchMock);
 
-    await expect(api.getCurrentManager('jwt-em-memoria')).resolves.toEqual(manager);
+    await expect(api.getCurrentManager(token)).resolves.toEqual(manager);
     expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/auth/me');
     expect(fetchMock.mock.calls[0][1].headers).toEqual({
-      Authorization: 'Bearer jwt-em-memoria',
+      Authorization: `Bearer ${token}`,
     });
   });
 
@@ -109,14 +116,14 @@ describe('cliente da API', () => {
     const controller = new AbortController();
     controller.abort();
 
-    await expect(api.getCurrentManager('jwt-em-memoria', controller.signal)).rejects.toMatchObject({
+    await expect(api.getCurrentManager(ACCESS_TOKEN, controller.signal)).rejects.toMatchObject({
       type: 'canceled',
     });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('does not expose a bearer token or reflected server details on auth errors', async () => {
-    const token = 'jwt-privado-nao-exibir';
+    const token = `eyJhbGciOiJIUzI1NiJ9.eyJzZWNyZXQiOiJwcm92YWRvIn0.${'A'.repeat(43)}`;
     const json = vi.fn(async () => ({ detail: `Token invalido: ${token}` }));
     vi.stubGlobal(
       'fetch',
@@ -131,7 +138,7 @@ describe('cliente da API', () => {
   });
 
   it('rejects invalid token responses without reproducing the token', async () => {
-    const token = 'jwt-em-resposta-invalida';
+    const token = ACCESS_TOKEN;
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => ({
@@ -145,6 +152,56 @@ describe('cliente da API', () => {
       .catch((error) => error);
     expect(failure).toMatchObject({ type: 'invalid-response' });
     expect(failure.message).not.toContain(token);
+  });
+
+  it('rejects invalid JWT arguments before fetch without echoing the supplied value', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const invalidTokens = [
+      '',
+      null,
+      undefined,
+      42,
+      'header.payload',
+      'header..signature',
+      ' header.payload.signature',
+      'header.payload.signature ',
+      'header.payload.signature\r\nX-Injected: yes',
+      'a.b.c',
+    ];
+
+    for (const token of invalidTokens) {
+      await expect(api.getCurrentManager(token)).rejects.toMatchObject({
+        type: 'client',
+        status: null,
+        message: 'Token JWT inválido',
+      });
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects malformed credential payloads before fetch without echoing values', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const invalidPayloads = [
+      null,
+      [],
+      {},
+      { email: '   ', password: 'senha' },
+      { email: 'gestor@empresa.com', password: '' },
+      { email: 'gestor@empresa.com', password: 123 },
+    ];
+
+    for (const authCall of [api.registerManager, api.loginManager]) {
+      for (const payload of invalidPayloads) {
+        await expect(authCall(payload)).rejects.toMatchObject({
+          type: 'client',
+          status: null,
+          message: 'Credenciais inválidas',
+        });
+      }
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
   });
   it('não envia uma consulta cujo sinal já foi cancelado, mesmo com motivo timeout', async () => {
     const fetchMock = vi.fn();

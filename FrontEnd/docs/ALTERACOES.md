@@ -2,7 +2,16 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
-## 13/10/2026 — Alinhamento às PRs #122 e #123
+## 13/10/2026 — Correções pós-atualização do frontend
+
+- **Formatação:** os sete arquivos apontados pelo `format:check` foram formatados com Prettier. Nenhum comportamento ou lógica foi alterado nesses sete arquivos.
+- **Contratos JWT:** `getCurrentManager` agora rejeita token ausente, vazio, malformado, com espaços ou caracteres de controle antes de criar o cabeçalho. A checagem valida somente a forma compacta de três segmentos; assinatura, expiração e autorização continuam no backend. Cadastro/login validam o tipo e presença de e-mail/senha, enviam apenas esses campos e não refletem credenciais em erros.
+- **Validadores:** a resposta `Token` agora também precisa trazer token com forma compacta de JWT. Os schemas `ManagerOut` e `Token` continuam rejeitando propriedades extras; campos novos exigem revisão explícita do contrato.
+- **Dependências:** Vite 6.4.3 foi atualizado para 6.4.4 com correções upstream no mesmo ramo; `source-map-js` 1.2.1 foi atualizado para 1.2.2 dentro das faixas existentes. O audit passou de 8 para 7 entradas. As pendências que exigem Tailwind 4 ou não têm versão corrigida estão em [Pendências](PENDENCIAS.md).
+- **Validação executada:** `npm.cmd run check` e `npm.cmd run check:full` passaram. Vitest: 171 testes em 41 arquivos; cobertura 95,98% statements, 94,62% branches, 96,31% functions e 97,69% lines. E2E: 27 passaram, 2 ignorados por dependerem da API real. `git diff --check` passou; nenhum teste de integração real foi configurado.
+- **MVP e escopo:** acesso sem login, `AuthPage` informativa, card de associação oculto, dashboard, navegação, status e contratos de relatórios foram preservados. Não houve alteração fora de `FrontEnd/`, commit, push, PR ou merge.
+
+## 13/10/2026 — Alinhamento às PRs #122 e #123 (estado anterior à revisão pós-atualização)
 
 - **Estado das integrações:** registrada a incorporação da PR #122 do Agent (`ed48ad7cfff9e724406ef9ffffeb6c0f132caf32`, merge `e43673b4dca212eaa991308d14c9dc25b6c64061`) e da PR #123 de autenticação (`c5a053916747751a3894b93e45c1f4e2dafc34b6`, merge `0fc4e7b7333ceb4fdd120f7f1f753f9836163e30`).
 - **Contratos:** `CONTRATOS_API.md` agora documenta `POST /auth/register`, `POST /auth/login` e `GET /auth/me`, separa operações de tela de contratos disponíveis e esclarece que `ManagerOut` não contém `association_code`.

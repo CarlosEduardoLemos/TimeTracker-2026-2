@@ -1,5 +1,17 @@
 import { isIsoDate } from '../lib/date';
 
+const BASE64URL_SEGMENT_PATTERN = /^[A-Za-z0-9_-]+$/;
+
+/** @param {unknown} value */
+export function validJwtAccessToken(value) {
+  if (typeof value !== 'string') return false;
+  const segments = value.split('.');
+  return (
+    segments.length === 3 &&
+    segments.every((segment) => BASE64URL_SEGMENT_PATTERN.test(segment) && segment.length % 4 !== 1)
+  );
+}
+
 function optionalText(value) {
   return value == null || typeof value === 'string';
 }
@@ -96,8 +108,7 @@ export function validManagerToken(value) {
     Object.keys(value).every((field) =>
       ['access_token', 'token_type', 'expires_in'].includes(field),
     ) &&
-    typeof value.access_token === 'string' &&
-    value.access_token.length > 0 &&
+    validJwtAccessToken(value.access_token) &&
     value.token_type === 'bearer' &&
     Number.isSafeInteger(value.expires_in) &&
     value.expires_in > 0,

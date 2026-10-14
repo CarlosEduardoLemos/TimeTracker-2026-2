@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest';
 import {
   validManager,
   validManagerToken,
+  validJwtAccessToken,
   validRealtime,
   validSettings,
   validSummary,
   validUsers,
 } from './validators';
+
+const ACCESS_TOKEN = `eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYW5hZ2VyIn0.${'A'.repeat(43)}`;
 
 describe('contratos da API', () => {
   it('aceita usuários únicos e campos opcionais ausentes ou nulos', () => {
@@ -84,7 +87,7 @@ describe('contratos da API', () => {
 
   it('validates bearer token and positive expiry in seconds', () => {
     const token = {
-      access_token: 'jwt-recebido-do-servidor',
+      access_token: ACCESS_TOKEN,
       token_type: 'bearer',
       expires_in: 3600,
     };
@@ -93,6 +96,19 @@ describe('contratos da API', () => {
     expect(validManagerToken({ ...token, expires_in: 0 })).toBe(false);
     expect(validManagerToken({ ...token, expires_in: 1.5 })).toBe(false);
     expect(validManagerToken({ ...token, access_token: '' })).toBe(false);
+    expect(validManagerToken({ ...token, access_token: 'header.payload' })).toBe(false);
+    expect(validManagerToken({ ...token, access_token: 'header.payload.signature\n' })).toBe(false);
     expect(validManagerToken({ ...token, password: 'nao-incluir' })).toBe(false);
+  });
+
+  it('validates only the compact JWT token shape without verifying its signature', () => {
+    expect(validJwtAccessToken(ACCESS_TOKEN)).toBe(true);
+    expect(validJwtAccessToken('')).toBe(false);
+    expect(validJwtAccessToken(null)).toBe(false);
+    expect(validJwtAccessToken(' header.payload.signature')).toBe(false);
+    expect(validJwtAccessToken('header.payload.signature\r\nX-Injected: yes')).toBe(false);
+    expect(validJwtAccessToken('header.payload')).toBe(false);
+    expect(validJwtAccessToken('header..signature')).toBe(false);
+    expect(validJwtAccessToken('a.b.c')).toBe(false);
   });
 });
