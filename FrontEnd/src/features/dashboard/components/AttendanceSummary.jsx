@@ -22,7 +22,7 @@ function MockAttendance({ devApi, date, username }) {
   const { data, loading, error, refresh } = useAttendanceData(devApi, date, username);
 
   return (
-    <section className="card" aria-labelledby="attendance-title">
+    <section className="card" aria-labelledby="attendance-title" data-mock-only="true">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 id="attendance-title" className="text-lg font-bold">
           Entrada e último registro
@@ -101,7 +101,7 @@ function MockAttendance({ devApi, date, username }) {
 }
 
 export function AttendanceSummary({ devApi = null, date, username }) {
-  return devApi ? (
+  return import.meta.env.DEV && devApi ? (
     <MockAttendance devApi={devApi} date={date} username={username} />
   ) : (
     <UnavailableAttendance />

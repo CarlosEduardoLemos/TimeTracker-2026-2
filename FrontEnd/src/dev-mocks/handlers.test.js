@@ -75,6 +75,35 @@ describe('handlers das propostas de contrato', () => {
     });
   });
 
+  it('applies date and collaborator filters to business-day records', async () => {
+    const response = await fetch(`${baseUrl}/dashboard/attendance?date=2026-10-14&username=ana`);
+    const body = await response.json();
+    expect(body.date).toBe('2026-10-14');
+    expect(body.users.map(({ username }) => username)).toEqual(['ana']);
+
+    const first = body.users[0].first_activity_at;
+    const last = body.users[0].last_activity_at;
+    const format = (value, options) =>
+      new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'America/Sao_Paulo',
+        ...options,
+      }).format(new Date(value));
+    expect(format(first, { year: 'numeric', month: '2-digit', day: '2-digit' })).toBe('14/10/2026');
+    expect(format(first, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })).toBe('08:15');
+    expect(format(last, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })).toBe('17:42');
+
+    const missing = await fetch(`${baseUrl}/dashboard/attendance?date=2026-10-14&username=unknown`);
+    expect((await missing.json()).users).toEqual([]);
+  });
+
+  it('blocks API routes without a development mock instead of bypassing to the backend', async () => {
+    const response = await fetch(`${baseUrl}/activities/realtime`);
+
+    expect(response.status).toBe(501);
+    expect(await response.json()).toMatchObject({
+      detail: expect.stringContaining('chamada real bloqueada'),
+    });
+  });
   it('valida data, oferece agregação sem ranking e status separado de inatividade', async () => {
     const invalidDate = await fetch(`${baseUrl}/dashboard/attendance?date=2026-02-31`);
     expect(invalidDate.status).toBe(422);
@@ -98,5 +127,10 @@ describe('handlers das propostas de contrato', () => {
       ['bruno', 'unknown'],
     ]);
     expect(body.agents[0]).not.toHaveProperty('is_idle');
+    const filtered = await fetch(`${baseUrl}/agents/status?username=ana`);
+    expect((await filtered.json()).agents.map(({ username }) => username)).toEqual(['ana']);
+
+    const noMatch = await fetch(`${baseUrl}/agents/status?username=unknown`);
+    expect((await noMatch.json()).agents).toEqual([]);
   });
 });

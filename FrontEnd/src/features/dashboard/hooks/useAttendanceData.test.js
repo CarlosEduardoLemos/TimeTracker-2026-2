@@ -34,18 +34,20 @@ describe('useAttendanceData', () => {
 
   it('cancela resposta obsoleta quando os filtros mudam', async () => {
     let finish;
+    let firstSignal;
     const nextAttendance = { ...attendance, date: '2026-10-12' };
-    devApi.attendance.mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          finish = resolve;
-        }),
-    );
+    devApi.attendance.mockImplementationOnce((_date, _username, signal) => {
+      firstSignal = signal;
+      return new Promise((resolve) => {
+        finish = resolve;
+      });
+    });
     devApi.attendance.mockResolvedValueOnce(nextAttendance);
     const { result, rerender } = renderHook(({ date }) => useAttendanceData(devApi, date, ''), {
       initialProps: { date: '2026-10-13' },
     });
     rerender({ date: '2026-10-12' });
+    expect(firstSignal.aborted).toBe(true);
     await waitFor(() => expect(result.current.loading).toBe(false));
     await act(async () => finish?.({ ...attendance, date: '2026-10-13' }));
     expect(result.current.data.date).toBe('2026-10-12');

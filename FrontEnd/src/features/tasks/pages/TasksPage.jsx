@@ -63,7 +63,11 @@ function MockTasks({ devApi }) {
         Esta tela usa os contratos propostos apenas quando os mocks de desenvolvimento estão ativos.
         Criar uma Task não inicia monitoramento nem a atribui a um colaborador.
       </IntegrationNotice>
-      <section className="card mt-5 max-w-3xl" aria-labelledby="create-task-title">
+      <section
+        className="card mt-5 max-w-3xl"
+        aria-labelledby="create-task-title"
+        data-mock-only="true"
+      >
         <h2 id="create-task-title" className="text-lg font-bold">
           Criar Task
         </h2>
@@ -142,5 +146,5 @@ function MockTasks({ devApi }) {
 }
 
 export function TasksPage({ devApi = null }) {
-  return devApi ? <MockTasks devApi={devApi} /> : <UnavailableTasks />;
+  return import.meta.env.DEV && devApi ? <MockTasks devApi={devApi} /> : <UnavailableTasks />;
 }

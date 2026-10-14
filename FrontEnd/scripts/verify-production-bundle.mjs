@@ -4,11 +4,14 @@ import { pathToFileURL } from 'node:url';
 
 const blockedText = [
   'src/dev-mocks',
+  'mockServiceWorker.js',
   'msw/browser',
   'setupWorker',
   '/dashboard/attendance',
   '/dashboard/task-hours',
   '/agents/status',
+  'chamada real bloqueada',
+  'data-mock-only="true"',
 ];
 
 export function findDevMockArtifacts(paths, contents) {

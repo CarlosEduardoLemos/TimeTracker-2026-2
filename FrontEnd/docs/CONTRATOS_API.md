@@ -104,7 +104,7 @@ Assim, qualquer cliente que alcance a API pode consultar os dados expostos e alt
 
 ## Tasks e jornada diária
 
-Não foi localizado modelo/schema/endpoint de consulta ou gravação persistente de Tasks nem dados confiáveis de primeiro/último registro diário. O `realtime` descreve a última atividade e não substitui a jornada. O Agent não envia `task_id`. O frontend não chama rotas presumidas nem inventa esses dados; veja I-03 e I-04–I-07 em [Pendências](PENDENCIAS.md).
+Não foi localizado modelo/schema/endpoint de consulta ou gravação persistente de Tasks nem dados confiáveis de primeiro/último registro diário. O `realtime` descreve a última atividade e não substitui a jornada. O Agent não envia `task_id`. O cliente HTTP de produção não chama rotas presumidas nem infere esses dados. A demonstração local usa rotas candidatas somente com mocks de desenvolvimento explicitamente habilitados; ela não representa integração real. Veja I-03 e I-04–I-07 em [Pendências](PENDENCIAS.md).
 
 ## Erros, validação e cancelamento
 

@@ -35,6 +35,17 @@ function validTimestamp(value) {
   );
 }
 
+function timestampMatchesDate(value, date, timezone) {
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date(value));
+  const values = Object.fromEntries(parts.map(({ type, value: part }) => [type, part]));
+  return date === `${values.year}-${values.month}-${values.day}`;
+}
+
 function uniqueBy(value, keyOf) {
   return Array.isArray(value) && new Set(value.map(keyOf)).size === value.length;
 }
@@ -78,14 +89,20 @@ export function validAttendance(value) {
     isIsoDate(value.date) &&
     validTimestamp(value.as_of) &&
     Array.isArray(value.users) &&
-    value.users.every(
-      (user) =>
-        user &&
-        typeof user.username === 'string' &&
-        user.username.trim().length > 0 &&
-        (user.first_activity_at === null || validTimestamp(user.first_activity_at)) &&
-        (user.last_activity_at === null || validTimestamp(user.last_activity_at)),
-    ) &&
+    value.users.every((user) => {
+      if (!user || typeof user.username !== 'string' || user.username.trim().length === 0) {
+        return false;
+      }
+
+      const { first_activity_at: first, last_activity_at: last } = user;
+      if (first === null && last === null) return true;
+      if (!validTimestamp(first) || !validTimestamp(last)) return false;
+      return (
+        timestampMatchesDate(first, value.date, value.timezone) &&
+        timestampMatchesDate(last, value.date, value.timezone) &&
+        Date.parse(first) <= Date.parse(last)
+      );
+    }) &&
     uniqueBy(value.users, (user) => user.username),
   );
 }

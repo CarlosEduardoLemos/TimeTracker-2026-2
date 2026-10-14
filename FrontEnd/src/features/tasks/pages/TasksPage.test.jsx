@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { TasksPage } from './TasksPage';
 
@@ -34,7 +34,7 @@ describe('TasksPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Criar Task' }));
     expect(await screen.findByText('Revisar relatório')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Task criada em dados simulados');
-    expect(devApi.createTask).toHaveBeenCalledWith('Revisar relatório');
+    expect(devApi.createTask).toHaveBeenCalledWith('Revisar relatório', expect.any(AbortSignal));
   });
 
   it('exibe erro de consulta e oferece retry', async () => {
@@ -65,8 +65,8 @@ describe('TasksPage', () => {
     render(<TasksPage devApi={devApi} />);
     expect(screen.getByRole('status', { name: 'Carregando Tasks…' })).toBeInTheDocument();
     await waitFor(() => expect(finish).toBeDefined());
-    finish([]);
-    fireEvent.click(screen.getByRole('button', { name: 'Criar Task' }));
+    await act(async () => finish([]));
+    fireEvent.submit(screen.getByRole('textbox').closest('form'));
     expect(screen.getByRole('alert')).toHaveTextContent('Informe uma descrição');
     expect(devApi.createTask).not.toHaveBeenCalled();
   });

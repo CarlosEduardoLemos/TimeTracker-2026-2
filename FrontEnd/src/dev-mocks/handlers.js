@@ -30,7 +30,7 @@ function taskBodyIsValid(body) {
 
 function timestampAt(date, hour, minute) {
   return new Date(
-    `${date}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00Z`,
+    `${date}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00-03:00`,
   ).toISOString();
 }
 
@@ -38,8 +38,8 @@ function attendanceFor(date, username) {
   const people = [
     {
       username: 'ana',
-      first_activity_at: timestampAt(date, 11, 15),
-      last_activity_at: timestampAt(date, 20, 42),
+      first_activity_at: timestampAt(date, 8, 15),
+      last_activity_at: timestampAt(date, 17, 42),
     },
     { username: 'bruno', first_activity_at: null, last_activity_at: null },
   ];
@@ -123,23 +123,34 @@ export const handlers = [
       ? HttpResponse.json(response)
       : HttpResponse.json({ detail: 'Resposta inválida' }, { status: 500 });
   }),
-  http.get(`${API_BASE_URL}/agents/status`, () => {
-    const response = {
-      agents: [
-        {
-          username: 'ana',
-          hostname: 'ESTACAO-01',
-          last_record_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-          connection_status: 'online',
-        },
-        {
-          username: 'bruno',
-          hostname: 'ESTACAO-02',
-          last_record_at: null,
-          connection_status: 'unknown',
-        },
-      ],
-    };
-    return HttpResponse.json(response);
+  http.get(`${API_BASE_URL}/agents/status`, ({ request }) => {
+    const url = new URL(request.url);
+    const username = url.searchParams.get('username') || '';
+    const agents = [
+      {
+        username: 'ana',
+        hostname: 'ESTACAO-01',
+        last_record_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+        connection_status: 'online',
+      },
+      {
+        username: 'bruno',
+        hostname: 'ESTACAO-02',
+        last_record_at: null,
+        connection_status: 'unknown',
+      },
+    ];
+    return HttpResponse.json({
+      agents: username ? agents.filter((agent) => agent.username === username) : agents,
+    });
+  }),
+  http.all(`${API_BASE_URL}/*`, ({ request }) => {
+    const { pathname } = new URL(request.url);
+    return HttpResponse.json(
+      {
+        detail: `Sem mock de desenvolvimento para ${request.method} ${pathname}; chamada real bloqueada.`,
+      },
+      { status: 501 },
+    );
   }),
 ];

@@ -10,6 +10,12 @@ Este documento descreve o código executado atualmente em `FrontEnd/`: estrutura
 - `src/app/App.jsx` compõe `Sidebar`, conteúdo principal e páginas carregadas com `React.lazy`/`Suspense`. `src/app/routes.js` reúne label, título, menu e componente de cada rota. `useHashRoute` observa `hashchange` e consulta o guarda de saída quando há alterações não salvas. Hash vazio abre o painel; hash desconhecido produz a página não encontrada. `#/login` e `#/cadastro` usam o layout próprio de `AuthPage`.
 - `App` ajusta `document.title` por rota e mantém uma única instância de `useTheme`. O hook usa `timetracker-theme` no `localStorage`; sem preferência salva, consulta `prefers-color-scheme`.
 
+## Mocks de desenvolvimento
+
+`src/main.jsx` só carrega `dev-mocks/start.js` e `dev-mocks/client.js` quando `import.meta.env.DEV` e `VITE_USE_MOCKS=true`. Os imports são dinâmicos e a aplicação só monta depois que o Service Worker inicia. Falha de import ou inicialização mostra um alerta com opção de nova tentativa; quando mocks foram solicitados, a interface não troca para chamadas reais. Handlers conhecidos simulam as rotas implementadas e uma rota final responde `501` para endpoints da API sem mock; outros requests não tratados na origem configurada causam erro MSW em vez de bypass ao Backend. Em desenvolvimento sem mocks, um módulo de limpeza remove apenas registros do `mockServiceWorker.js` deste app e recarrega a página se o worker antigo ainda controla a aba.
+
+As ramificações simuladas de Tasks e jornada também verificam `import.meta.env.DEV`. O cliente dos mocks usa `requestValidated` do cliente HTTP compartilhado, então mantém o timeout, o cancelamento e os erros de rede/HTTP/schema. `handlers.js` produz timestamps no fuso `America/Sao_Paulo`; essa demonstração não implementa nem confirma os contratos do Backend. O build de produção omite os módulos e componentes simulados, e `scripts/verify-production-bundle.mjs` verifica artefatos conhecidos.
+
 ## Mapa do código
 
 - `app/`: composição das páginas, layout, navegação por hash, tema, barreiras de erro e estilos globais. `src/main.jsx` permanece como entrada do Vite.
@@ -19,21 +25,21 @@ Este documento descreve o código executado atualmente em `FrontEnd/`: estrutura
 
 `app` pode importar `features` e `shared`; cada funcionalidade pode importar `shared` e seus próprios arquivos. `shared` não deve depender de `app` ou `features`. A regra local em `lint/architecture.js` verifica imports relativos, reexports e imports dinâmicos literais em `npm run lint`. Imports de pacotes externos ficam fora dessa regra. Use imports diretos, inclusive nos imports dinâmicos das páginas, sem arquivos de reexportação.
 
-| Caminho                                                                          | Responsabilidade                                                                                       |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `src/shared/api/api.js`                                                          | Cliente HTTP único, timeout, cancelamento, parâmetros, downloads e contratos isolados de autenticação. |
-| `src/shared/api/validators.js`                                                   | Validação das respostas de usuários, realtime, resumo, configurações e schemas públicos do gestor/JWT. |
-| `src/shared/lib/date.js`, `duration.js`, `team.js`, `activityStatus.js`          | Funções reutilizadas para datas, duração, equipe e rótulos de status.                                  |
-| `src/features/dashboard/hooks/useDashboardData.js`                               | Estado e atualização das fontes do painel: resumo, usuários e realtime.                                |
-| `src/features/dashboard/hooks/useAutoRefresh.js`                                 | Atualização periódica apenas com a aba visível e atualização ao retornar.                              |
-| `src/features/dashboard/lib/summary.js`                                          | Soma de duração e consolidação de categorias do painel.                                                |
-| `src/features/dashboard/pages/DashboardPage.jsx`                                 | Composição de filtros, indicadores, atividade e categorias.                                            |
-| `src/features/dashboard/components/AssociationCodeCard.jsx`                      | Apresentação isolada do código de associação, cópia e estados da interface.                            |
-| `src/features/collaborators/hooks/useCollaboratorsData.js` e `components/`       | Consultas, combinação de usuários/realtime e visualização responsiva.                                  |
-| `src/features/settings/hooks/useSettings.js` e `components/SettingsForm.jsx`     | Leitura, edição, validação, gravação e guarda de alterações não salvas.                                |
-| `src/features/reports/`                                                          | Página, consulta de usuários e exportação organizadas por responsabilidade.                            |
-| `src/features/auth/pages/AuthPage.jsx`, `src/features/tasks/pages/TasksPage.jsx` | Mensagens de indisponibilidade; não coletam credenciais nem dados de task.                             |
-| `src/app/layout/Sidebar.jsx`                                                     | Navegação desktop e diálogo móvel.                                                                     |
+| Caminho                                                                          | Responsabilidade                                                                                                         |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `src/shared/api/api.js`                                                          | Cliente HTTP único, timeout, cancelamento, parâmetros, downloads e contratos isolados de autenticação.                   |
+| `src/shared/api/validators.js`                                                   | Validação das respostas de usuários, realtime, resumo, configurações e schemas públicos do gestor/JWT.                   |
+| `src/shared/lib/date.js`, `duration.js`, `team.js`, `activityStatus.js`          | Funções reutilizadas para datas, duração, equipe e rótulos de status.                                                    |
+| `src/features/dashboard/hooks/useDashboardData.js`                               | Estado e atualização das fontes do painel: resumo, usuários e realtime.                                                  |
+| `src/features/dashboard/hooks/useAutoRefresh.js`                                 | Atualização periódica apenas com a aba visível e atualização ao retornar.                                                |
+| `src/features/dashboard/lib/summary.js`                                          | Soma de duração e consolidação de categorias do painel.                                                                  |
+| `src/features/dashboard/pages/DashboardPage.jsx`                                 | Composição de filtros, indicadores, atividade e categorias.                                                              |
+| `src/features/dashboard/components/AssociationCodeCard.jsx`                      | Apresentação isolada do código de associação, cópia e estados da interface.                                              |
+| `src/features/collaborators/hooks/useCollaboratorsData.js` e `components/`       | Consultas, combinação de usuários/realtime e visualização responsiva.                                                    |
+| `src/features/settings/hooks/useSettings.js` e `components/SettingsForm.jsx`     | Leitura, edição, validação, gravação e guarda de alterações não salvas.                                                  |
+| `src/features/reports/`                                                          | Página, consulta de usuários e exportação organizadas por responsabilidade.                                              |
+| `src/features/auth/pages/AuthPage.jsx`, `src/features/tasks/pages/TasksPage.jsx` | Auth permanece informativa; Tasks só tem formulário de dados em memória quando os mocks de desenvolvimento estão ativos. |
+| `src/app/layout/Sidebar.jsx`                                                     | Navegação desktop e diálogo móvel.                                                                                       |
 
 ## Fluxo de dados do painel
 

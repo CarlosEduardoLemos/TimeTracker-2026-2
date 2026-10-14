@@ -30,7 +30,7 @@ describe('useTasks', () => {
     expect(result.current.tasks).toEqual([demoTask]);
 
     await act(async () => expect(await result.current.createTask('Task nova')).toBe(true));
-    expect(devApi.createTask).toHaveBeenCalledWith('Task nova');
+    expect(devApi.createTask).toHaveBeenCalledWith('Task nova', expect.any(AbortSignal));
     expect(result.current.tasks).toEqual([demoTask, createdTask]);
     expect(result.current.created).toBe(true);
   });
@@ -50,5 +50,49 @@ describe('useTasks', () => {
     await act(async () => expect(await result.current.createTask('  ')).toBe(false));
     expect(result.current.saveError).toMatch(/descrição/);
     expect(devApi.createTask).not.toHaveBeenCalled();
+  });
+
+  it('aborts an older load and ignores its delayed response', async () => {
+    let finishFirst;
+    let firstSignal;
+    devApi.tasks.mockImplementationOnce((signal) => {
+      firstSignal = signal;
+      return new Promise((resolve) => {
+        finishFirst = resolve;
+      });
+    });
+    const { result } = renderHook(() => useTasks(devApi));
+    await waitFor(() => expect(firstSignal).toBeInstanceOf(AbortSignal));
+
+    await act(async () => result.current.load());
+    expect(firstSignal.aborted).toBe(true);
+    await act(async () => finishFirst([demoTask]));
+    expect(result.current.tasks).toEqual([]);
+  });
+
+  it('aborts a pending create when the hook unmounts', async () => {
+    let finish;
+    let signal;
+    devApi.createTask.mockImplementation((_description, requestSignal) => {
+      signal = requestSignal;
+      return new Promise((resolve) => {
+        finish = resolve;
+      });
+    });
+    const { result, unmount } = renderHook(() => useTasks(devApi));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    let pending;
+    await act(async () => {
+      pending = result.current.createTask('Task nova');
+    });
+    expect(signal).toBeInstanceOf(AbortSignal);
+    unmount();
+    expect(signal.aborted).toBe(true);
+
+    await act(async () => {
+      finish(createdTask);
+      await expect(pending).resolves.toBe(false);
+    });
   });
 });

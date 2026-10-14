@@ -153,6 +153,24 @@ describe('contratos da API', () => {
       ],
     };
     expect(validAttendance(attendance)).toBe(true);
+    expect(
+      validAttendance({
+        ...attendance,
+        users: [{ ...attendance.users[0], first_activity_at: '2026-10-13T02:59:59Z' }],
+      }),
+    ).toBe(false);
+    expect(
+      validAttendance({
+        ...attendance,
+        users: [{ ...attendance.users[0], last_activity_at: '2026-10-13T03:10:00Z' }],
+      }),
+    ).toBe(false);
+    expect(
+      validAttendance({
+        ...attendance,
+        users: [{ ...attendance.users[0], last_activity_at: null }],
+      }),
+    ).toBe(false);
     expect(validAttendance({ ...attendance, date: '2026-02-31' })).toBe(false);
     expect(validAttendance({ ...attendance, timezone: 'UTC' })).toBe(false);
     expect(

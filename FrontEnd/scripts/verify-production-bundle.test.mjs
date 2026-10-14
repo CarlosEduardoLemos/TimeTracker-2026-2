@@ -25,3 +25,20 @@ test('aceita bundle sem worker, handlers ou rotas propostas', () => {
     [],
   );
 });
+
+test('detecta componentes de interface exclusivos dos mocks', () => {
+  assert.deepEqual(
+    findDevMockArtifacts(
+      ['assets/tasks.js'],
+      [{ file: 'assets/tasks.js', text: '<section data-mock-only="true">' }],
+    ),
+    ['assets/tasks.js: data-mock-only="true"'],
+  );
+});
+
+test('detecta o bloqueio local de rotas sem mock', () => {
+  assert.deepEqual(
+    findDevMockArtifacts([], [{ file: 'assets/api.js', text: 'chamada real bloqueada' }]),
+    ['assets/api.js: chamada real bloqueada'],
+  );
+});

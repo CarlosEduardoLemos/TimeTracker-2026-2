@@ -146,6 +146,18 @@ async function validateResponse(promise, validator) {
   return value;
 }
 
+/**
+ * Performs an HTTP request with timeout, cancellation, and schema validation.
+ * @template T
+ * @param {string} path
+ * @param {(value: unknown) => value is T} validator
+ * @param {RequestInit & { omitErrorDetails?: boolean }} [options]
+ * @returns {Promise<T>}
+ */
+export function requestValidated(path, validator, options = {}) {
+  return validateResponse(request(path, options), validator);
+}
+
 /** @param {unknown} credentials */
 function managerCredentialsBody(credentials) {
   if (!credentials || typeof credentials !== 'object' || Array.isArray(credentials)) {

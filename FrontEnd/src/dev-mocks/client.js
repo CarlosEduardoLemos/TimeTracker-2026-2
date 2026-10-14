@@ -1,3 +1,4 @@
+import { requestValidated } from '../shared/api/api';
 import {
   validAgentStatuses,
   validAttendance,
@@ -8,26 +9,9 @@ import {
 } from '../shared/api/validators';
 import { isIsoDate } from '../shared/lib/date';
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 const UUID_PATTERN = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
 
-async function request(path, validator, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, options);
-  if (!response.ok) {
-    let detail = '';
-    try {
-      const body = await response.json();
-      detail = typeof body?.detail === 'string' ? body.detail : '';
-    } catch {
-      // Mantém o status HTTP se a resposta de erro não tiver JSON.
-    }
-    throw new Error(detail || `API respondeu ${response.status}`);
-  }
-
-  const value = await response.json();
-  if (!validator(value)) throw new Error('Resposta inválida da API');
-  return value;
-}
+const request = requestValidated;
 
 function jsonOptions(method, body, signal) {
   return {
