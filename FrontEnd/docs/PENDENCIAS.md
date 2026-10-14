@@ -4,6 +4,28 @@ Revisão: **13/10/2026**. `backend/`, `agent/` e `requisitos/` foram consultados
 
 As PRs #122 (Agent, merge `e43673b4dca212eaa991308d14c9dc25b6c64061`) e #123 (autenticação do backend, merge `0fc4e7b7333ceb4fdd120f7f1f753f9836163e30`) já foram incorporadas à `main` da organização. A implementação local do backend confirma os contratos de cadastro/login/JWT/`/auth/me`; a associação no backend continua ausente. O escopo aprovado do MVP de 13/10 permanece sem login na apresentação.
 
+## Navegação
+
+- [Auditoria de dependências](#auditoria-dependencias)
+- [Estado do MVP](#estado-do-mvp)
+- [Resumo das pendências](#resumo-das-pendencias)
+- [Pendências do Backend](#pendencias-backend)
+- [Pendências de integração](#pendencias-integracao)
+- [Pendências futuras do Frontend](#pendencias-frontend)
+- [Propostas de contratos](#propostas-de-contratos-de-integracao)
+  - [Tasks e escopo](#proposta-tasks-crud)
+  - [Colaboradores atribuídos às Tasks](#proposta-task-collaborators)
+  - [Código de associação do gestor](#proposta-association-code)
+  - [Associação do Agent](#proposta-agent-association)
+  - [Autorização e isolamento](#proposta-authorization)
+  - [Primeiro e último registro diário](#proposta-attendance)
+  - [Horas agregadas por Task](#proposta-task-hours)
+  - [Datas e fusos horários](#proposta-timezone)
+- [Decisões pendentes da liderança](#decisoes-pendentes-lideranca)
+- [Próximos passos](#proximos-passos)
+
+<a id="auditoria-dependencias"></a>
+
 ## Auditoria de dependências npm — 13/10/2026
 
 Depois das correções compatíveis abaixo, `npm audit --json` reportou **7 entradas** no grafo de desenvolvimento: 5 altas e 2 moderadas. Os pacotes de produção não aparecem como vulneráveis. O relatório agrupa cadeias transitivas; não é evidência de exploração do projeto.
@@ -17,6 +39,8 @@ Depois das correções compatíveis abaixo, `npm audit --json` reportou **7 entr
 
 O resultado atual do `npm audit` não listou Vite, embora advisories oficiais do próprio projeto indiquem que 6.4.3 era afetado. O Vite foi atualizado com base nesses advisories. O histórico da instalação que reportou inicialmente 8 vulnerabilidades permanece em [Testes](TESTES.md).
 
+<a id="estado-do-mvp"></a>
+
 ## Estado do MVP 13/10 nesta revisão
 
 | Funcionalidade                           | Prioridade              | Estado                          | Área/frontend afetado                         | Contrato/dependência e impacto                                                                                                                                                                                                                                                                                                                                |
@@ -27,6 +51,8 @@ O resultado atual do `npm audit` não listou Vite, embora advisories oficiais do
 | Acesso direto sem login                  | Alta                    | **OK**                          | `App`, rotas e menu                           | Rotas do MVP abrem diretamente; o link "Criar conta" não aparece no menu e o `AssociationCodeCard` está oculto no Dashboard. Autenticação permanece **ADIADA PARA DEPOIS DO MVP**; implementação futura foi preservada.                                                                                                                                       |
 
 Os bloqueios funcionais impedem concluir o recorte anunciado como utilizável somente com o frontend atual. A apresentação de status realtime e o resumo por categoria continuam sendo fontes distintas; nenhuma delas é convertida em jornada ou Task.
+
+<a id="resumo-das-pendencias"></a>
 
 ## Resumo das pendências
 
@@ -74,6 +100,8 @@ Os status descrevem a dependência atual; a prioridade indica impacto. Eles não
 
 As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID. O motivo específico aparece em **Motivo do bloqueio** ou **Motivo da pendência**.
 
+<a id="pendencias-backend"></a>
+
 ## Pendências do backend
 
 ### B-01 — Autorização dos endpoints e isolamento dos dados — Alta
@@ -86,6 +114,7 @@ As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID
 - **Alteração necessária:** impor identidade, permissões e restrição por equipe no servidor, inclusive nas exportações e no recebimento de atividades.
 - **Workaround frontend:** não existe para proteção real; avisos informam a limitação, mas não protegem a API.
 - **Motivo do bloqueio:** esconder componentes ou filtrar listas localmente não autoriza nem isola dados no servidor. O fluxo visual de acesso está em I-01.
+- **Política proposta:** [autorização e isolamento por gestor](#proposta-authorization).
 
 ### B-02 — CORS e HTTPS por ambiente — Alta
 
@@ -190,6 +219,8 @@ As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID
 - **Workaround frontend:** exibir o status retornado com texto neutro, sem reinterpretar o campo ou afirmar desconexão.
 - **Motivo da pendência:** o critério de produto foi definido, mas precisa ser implementado e exposto pelo backend; o frontend não consegue inferir a última gravação da máquina a partir dos campos atuais.
 
+<a id="pendencias-integracao"></a>
+
 ## Pendências de integração Frontend + Backend
 
 As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), [Sprint 2](../../requisitos/sprints/sprint2.md) e [EP-01](../../requisitos/epicos/EP-01.md) mencionam dados simulados e monitoramento “fingindo” task. Elas não autorizam mocks em produção nesta revisão: prevalecem as restrições do usuário e as regras atuais de [task ativa](../../requisitos/requisitos/rn_rf.md#rn-05--monitoramento-vinculado-à-task) e [ciência do colaborador](../../requisitos/requisitos/rn_rf.md#rn-06--transparência-e-ciência). A liderança definiu que o Dashboard deve apresentar somente as horas gastas em cada task e não deve exibir rankings. I-06 continua bloqueada pela ausência de tarefas, registros vinculados e consultas agregadas; a tela de referência e RN-19/RF-27 podem precisar ser alinhados a essa decisão em documentação mantida fora de `FrontEnd/`.
@@ -226,6 +257,7 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **D. Pendente no frontend:** após o backend definir rota e schema de consulta do código e a sessão do gestor ser aprovada, integrar o código e considerar exibi-lo (issue #114). A API não inventa rota e o card continua oculto no MVP.
 - **Segurança e impacto:** o token protegido localmente do Agent e o JWT do gestor são credenciais distintas. As rotas de usuários, realtime, painel, exportação e configuração continuam globais e sem dependência `get_current_manager`; a autenticação nova não prova autorização nem isolamento. Filtros locais não protegem dados. Estados realtime não são prova de associação ou conexão ativa.
 - **Motivo do bloqueio:** a PR #122 implementa o lado cliente Agent, mas o backend deste checkout ainda não tem código, endpoints ou persistência de associação. Também falta autorização e isolamento por gestor.
+- **Propostas detalhadas:** [consulta do código](#proposta-association-code) e [associação do Agent](#proposta-agent-association).
 
 ### I-03 — Tasks, atribuição, escopo e monitoramento consentido — Alta
 
@@ -240,6 +272,7 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Contrato necessário:** para o recorte mínimo de Tasks, consulta e criação persistentes com schema e validações reais; para RF-06 completo, também edição, descrição, colaboradores atribuídos, aplicações do escopo e autorização. A integração Agent exige ainda listagem/seleção/início/encerramento, `task_id` nos registros e confirmação de ciência.
 - **Workaround frontend:** não existe; armazenamento local, CRUD fictício ou reaproveitar categorias violaria a regra de negócio.
 - **Motivo do bloqueio:** depende do modelo central de monitoramento e de implementação backend/agente.
+- **Propostas detalhadas:** [gerenciamento de Tasks](#proposta-tasks-crud) e [atribuição de colaboradores](#proposta-task-collaborators).
 
 ### I-04 — Jornada individual e possível hora extra — Alta
 
@@ -267,7 +300,7 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 ### I-06 — Dashboard, timeline e relatórios completos — Alta
 
 - **Status:** BLOQUEADO.
-- **Prioridade para o MVP 13/10:** alta para entrada/último registro diário. O backend não oferece campos de primeiro/último registro nem endpoint diário; é necessária consulta que devolva os registros extremos por usuário para a data e usuário filtrados. O endpoint ilustrativo `/dashboard/attendance?date=AAAA-MM-DD&username=<opcional>` e o schema `{date, timezone, users:[{username, first_activity_at, last_activity_at}]}` são requisitos de integração, não contratos existentes; não foram adicionados ao cliente HTTP.
+- **Prioridade para o MVP 13/10:** alta para entrada/último registro diário. O backend não oferece campos de primeiro/último registro nem endpoint diário; é necessária consulta dos registros extremos por usuário e data. O endpoint e schema candidatos, sem chamada no cliente, estão detalhados em [PROPOSTA — NÃO IMPLEMENTADO: primeiro e último registro diário](#proposta-attendance).
 - **Área/arquivos responsáveis:** Backend, `backend/app/models.py`, `schemas.py`, `crud.py` e `routers/dashboard.py`; a consulta e o schema precisam ser confirmados pelo responsável da API antes da integração frontend.
 - **Semântica:** `last_activity_at` deve ser exibido como “Último registro” (ou “Saída / último registro”), nunca como encerramento definitivo sem evento explícito. Ausência de registro, dia em andamento e indisponibilidade da fonte devem ser distinguíveis. Falha dessa fonte não pode derrubar resumo, usuários ou realtime.
 - **Problema/requisito:** [RF-24](../../requisitos/requisitos/rn_rf.md#rf-24--gerar-relatórios)/[RF-25](../../requisitos/requisitos/rn_rf.md#rf-25--exportar-relatórios)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico) e [CA-07](../../requisitos/requisitos/ca.md#ca-07--consulta-relatórios-e-exportação)/[CA-10](../../requisitos/requisitos/ca.md#ca-10--dashboard-analítico).
@@ -278,6 +311,7 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Contrato necessário:** consultas autorizadas que forneçam duração por task e filtros definidos; dados de task precisam estar vinculados aos registros. Exportação deve respeitar filtros e permissões. A definição exclui rankings; não define por si só métricas adicionais de produtividade.
 - **Workaround frontend:** manter resumo/exportação diária atual. Não inventar duração por task, série temporal ou reconstruir períodos a partir de realtime. A decisão de não usar rankings está registrada; implementação por task aguarda os dados e consultas do backend.
 - **Motivo do bloqueio:** a fonte agregada atual não fornece duração por task nem as consultas necessárias para apresentar as horas gastas em cada tarefa.
+- **Propostas detalhadas:** [primeiro e último registro diário](#proposta-attendance) e [horas agregadas por Task](#proposta-task-hours).
 
 ### I-07 — Referência de fuso e virada do dia — Média
 
@@ -291,6 +325,7 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Contrato necessário:** backend deve agrupar por `America/Sao_Paulo` e declarar o timezone da resposta diária. O frontend poderá formatar timestamps com `Intl.DateTimeFormat` usando o timezone confirmado; não deve reagrupar registros nem compensar erro do backend.
 - **Workaround frontend:** não há correção segura unilateral; a data enviada pelo navegador e a agregação do banco precisam compartilhar a configuração regional acordada.
 - **Motivo do bloqueio:** a decisão de Brasília está registrada, mas depende de alinhamento e configuração coordenada no backend e no frontend, incluindo o contrato para a variável de ambiente planejada.
+- **Regras propostas:** [datas e fusos horários](#proposta-timezone).
 
 ### I-08 — Teste de integração com serviço real — Média
 
@@ -302,6 +337,8 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Contrato/alteração necessária:** disponibilizar ambiente de teste autorizado, dados e origem; executar `RUN_REAL_API=1 npm run test:e2e:real` e conferir CSV/PDF, falhas e reinício. Sem alteração de endpoints.
 - **Workaround frontend:** fixtures de teste protegem comportamento do cliente, mas não comprovam a API real.
 - **Motivo da pendência:** o ambiente depende de serviço e banco disponíveis e de dados de teste autorizados; executar o cenário requer o ambiente real configurado.
+
+<a id="pendencias-frontend"></a>
 
 ## Pendências futuras do Frontend
 
@@ -348,6 +385,381 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Atual/impacto:** o documento externo pode levar à escolha de dependências e caminhos desatualizados; as diretrizes de responsividade continuam como requisito, mas o inventário técnico não reflete o frontend presente.
 - **Alteração necessária:** revisar versões, dependências e caminhos no documento de requisitos quando sua manutenção for autorizada. Para o estado atual, consultar [README](../README.md), [Arquitetura](ARQUITETURA.md) e `package.json`.
 - **Motivo da pendência:** o arquivo fica fora de `FrontEnd/` e não foi alterado nesta revisão documental.
+
+<a id="propostas-de-contratos-de-integracao"></a>
+
+## Propostas de contratos de integração
+
+> **Todos os contratos desta seção são PROPOSTA — NÃO IMPLEMENTADO.** São candidatos para discussão e confirmação pelo Backend e pela liderança. Não representam rotas disponíveis e não autorizam chamadas, mocks ou alterações de comportamento no frontend. [Contratos da API](CONTRATOS_API.md) continua sendo a referência dos contratos existentes; os status e bloqueios permanecem nos IDs abaixo.
+
+### Inventário dos contratos observados
+
+Estado observado no checkout em 13/10/2026. A tabela resume a auditoria que fundamenta as propostas; os contratos efetivamente implementados e seu comportamento ficam descritos em [Contratos da API](CONTRATOS_API.md).
+
+| Área                   | Contrato observado                                                                                                                                             | Lacuna ou incompatibilidade                                                                                                                                                          |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Autenticação do gestor | POST /auth/register, POST /auth/login e GET /auth/me. A última exige JWT de gestor e retorna id, email e created_at.                                           | A autenticação não está integrada à experiência aprovada para o MVP. ManagerOut não inclui código de associação. Ver I-01 e I-02.                                                    |
+| Colaboradores          | GET /users/ retorna usuários como UserOut.                                                                                                                     | A rota não exige identidade nem filtra por gestor; não há associação persistida gestor–colaborador nos modelos inspecionados. Ver B-01 e I-02.                                       |
+| Atividades e realtime  | POST /activities/, GET /activities/realtime, resumo diário e exportações existem. ActivityLogCreate não contém task_id e captured_at aceita datetime opcional. | As rotas de dados não exigem JWT. Realtime não representa entrada/saída diária. O resumo agrega duration_seconds por categoria usando date(captured_at). Ver B-01, B-06 e I-06/I-07. |
+| Tasks e atribuição     | Não foi encontrado modelo, schema ou router de Tasks.                                                                                                          | Não há criação, consulta ou edição persistentes, escopo de aplicações por Task nem atribuição de colaboradores. Categorias não substituem o escopo de Task. Ver I-03.                |
+| Associação pelo Agent  | O cliente Agent da PR #122 envia POST /associate/ com code, username e hostname; aceita token ou access_token na resposta.                                     | Não foram encontrados no backend a rota, a validação do código, a persistência do vínculo ou a emissão de credencial de Agent. Ver I-02.                                             |
+| Fuso horário           | O Agent serializa captured_at em UTC. O resumo do backend filtra date(captured_at) sem declarar fuso.                                                          | A data do resumo pode divergir do dia de Brasília; o contrato do backend não declara timezone. Ver I-07.                                                                             |
+| Configuração           | GET/PUT /config/ usa capture_interval_seconds e idle_timeout_seconds.                                                                                          | A configuração é global, as rotas não exigem identidade e não representam jornada por colaborador. Ver B-01, B-09 e I-04.                                                            |
+
+### Convenções transversais candidatas
+
+- IDs persistidos são UUIDs, seguindo os modelos atuais.
+- Os erros mantêm o envelope FastAPI observado, por exemplo: { "detail": "..." }. Não se propõe novo envelope.
+- Endpoints gerenciais recebem Authorization: Bearer &lt;JWT_DO_GESTOR&gt;. O servidor deriva o gestor do token validado e nunca confia em manager_id enviado pelo browser.
+- Datas de calendário usam AAAA-MM-DD. Instantes usam ISO 8601/RFC 3339 com offset explícito; a serialização preferencial é UTC com Z.
+- Recursos fora do escopo não devem revelar a existência de dados de outro gestor. A convenção proposta usa 404 para recurso inexistente ou fora do escopo e 401 para token ausente ou inválido; 403 fica reservado à identidade autenticada sem a função exigida.
+- A referência de calendário definida pela liderança é Brasília, America/Sao_Paulo. O nome e o mecanismo da configuração futura por ambiente continuam pendentes em I-07.
+
+### I-03 — Tasks e atribuição
+
+<a id="proposta-tasks-crud"></a>
+
+#### PROPOSTA — NÃO IMPLEMENTADO: criar, consultar e gerenciar Tasks
+
+**Necessidade e referências:** RF-06 e RF-11, RN-03 e RN-04, CA-02 a CA-04 e pendência I-03. O RF-06 pede criação/edição pelo Dashboard, descrição, colaboradores e aplicações no escopo. Consultar Tasks persistidas também é necessário para TasksPage. Criar ou editar uma Task não inicia monitoramento; início, encerramento, ciência do colaborador e envio de task_id dependem de contratos próprios do Agent.
+
+| Método | Endpoint candidato     | Uso proposto                                         |
+| ------ | ---------------------- | ---------------------------------------------------- |
+| GET    | /tasks                 | Listar Tasks do gestor autenticado.                  |
+| POST   | /tasks                 | Criar uma Task persistente.                          |
+| GET    | /tasks/{task_id}       | Consultar uma Task do gestor autenticado.            |
+| PATCH  | /tasks/{task_id}       | Editar campos da Task; não inicia monitoramento.     |
+| PUT    | /tasks/{task_id}/scope | Substituir a lista completa de aplicações do escopo. |
+
+Não se propõe exclusão física. Retenção de registros e arquivamento devem ser decididos antes de expor exclusão ou estados de ciclo de vida.
+
+**Parâmetros e schemas candidatos:** task_id é UUID no caminho. GET /tasks não exige filtro nesta proposta; paginação, ordenação e filtros por estado ainda precisam ser definidos. POST recebe description. PATCH aceita description e exige ao menos um campo alterável. PUT /tasks/{task_id}/scope substitui o conjunto integral do escopo, não é incremental.
+
+Requisição de criação:
+
+```json
+{
+  "description": "Revisar o relatório mensal"
+}
+```
+
+Requisição de edição:
+
+```json
+{
+  "description": "Revisar e publicar o relatório mensal"
+}
+```
+
+Requisição para substituir o escopo:
+
+```json
+{
+  "applications": [{ "process_name": "EXCEL.EXE" }, { "process_name": "POWERPNT.EXE" }]
+}
+```
+
+Resposta candidata, usada em GET /tasks/{task_id} e nos itens da listagem:
+
+```json
+{
+  "id": "6e7b94da-5651-46a0-bf28-fcb8f4f14c04",
+  "description": "Revisar o relatório mensal",
+  "applications": [{ "process_name": "EXCEL.EXE" }, { "process_name": "POWERPNT.EXE" }],
+  "created_at": "2026-10-13T14:20:00Z",
+  "updated_at": "2026-10-13T14:20:00Z"
+}
+```
+
+A listagem responde com um array desses objetos. Os campos e schemas são candidatos, não implementados.
+
+**Validação, autorização e respostas:**
+
+- description não pode ficar vazia depois de remover espaços. O limite máximo deve ser definido e aplicado pelo Backend; nenhum limite numérico de negócio foi confirmado. O mock de desenvolvimento atual limita a 200 caracteres, mas esse comportamento local não confirma o limite do contrato ou da regra de negócio.
+- Cada aplicação do escopo precisa de identificador estável. Rejeitar duplicatas e entradas vazias. A escolha entre nome de processo, executável, padrão ou outra chave permanece pendente.
+- task_id deve ser UUID e o servidor deve confirmar que a Task pertence ao gestor autenticado.
+- Todas as rotas exigem JWT de gestor e limitam leitura/escrita às Tasks desse gestor. IDs enviados pelo browser não concedem acesso.
+- POST responde 201; consultas e edição respondem 200; 401 sem autenticação; 404 se inexistente ou fora do escopo; 409 para conflito de estado, por exemplo alteração incompatível com execução ativa, depois que a regra for acordada; 422 para payload inválido; 5xx para indisponibilidade.
+
+**Impacto e dependências:** TasksPage só poderá passar de informativa para CRUD depois da implementação e publicação do contrato. O frontend deverá validar schemas, exibir erros e distinguir carregamento, lista vazia e falha; esta proposta não adiciona chamadas. Backend precisa de modelo/migração, schemas, router, relação com gestor, persistência do escopo e regras transacionais/histórico. O Agent precisa receber lista/escopo e só registrar atividade durante execução consentida. A liderança define identidade e correspondência de aplicações, campos obrigatórios, limite de description, arquivamento/exclusão e efeito de alterar escopo durante Task ativa.
+
+<a id="proposta-task-collaborators"></a>
+
+#### PROPOSTA — NÃO IMPLEMENTADO: associar colaboradores às Tasks
+
+**Necessidade e referências:** RF-06 exige atribuição pelo gestor; RF-07 restringe a lista do Agent às Tasks do colaborador; RN-04 limita acesso às Tasks atribuídas. I-03 depende primeiro da associação gestor–colaborador de I-02.
+
+| Método | Endpoint candidato             | Uso proposto                                                |
+| ------ | ------------------------------ | ----------------------------------------------------------- |
+| GET    | /tasks/{task_id}/collaborators | Consultar colaboradores atribuídos a uma Task do gestor.    |
+| PUT    | /tasks/{task_id}/collaborators | Substituir o conjunto completo de colaboradores atribuídos. |
+
+Requisição candidata:
+
+```json
+{
+  "collaborator_ids": [
+    "d94a4d6c-8542-4c3e-889b-89db302ef4cc",
+    "52ba0ef0-0c95-4cbf-b5a8-897b0b93ef27"
+  ]
+}
+```
+
+Resposta candidata:
+
+```json
+{
+  "task_id": "6e7b94da-5651-46a0-bf28-fcb8f4f14c04",
+  "collaborators": [
+    {
+      "id": "d94a4d6c-8542-4c3e-889b-89db302ef4cc",
+      "username": "ana",
+      "full_name": "Ana Souza"
+    }
+  ]
+}
+```
+
+O corpo collaborator_ids e o schema de resposta não estão implementados. As opções podem vir de GET /users/ depois que a rota for protegida e filtrada por gestor; hoje a resposta é global e aberta.
+
+- task_id e cada collaborator_id são UUIDs. Rejeitar IDs duplicados e colaboradores não associados ao gestor.
+- A semântica candidata de [] é remover todas as atribuições; a liderança ainda deve confirmar se a lista vazia é válida.
+- Não vincular colaborador de outro gestor, mesmo quando o cliente conhece o UUID. O gestor precisa possuir a Task e cada colaborador deve pertencer à sua equipe. A autorização da Task pelo Agent deve usar credencial própria do colaborador e validação no servidor.
+- Respostas propostas: 200 em consulta/substituição; 401 sem JWT; 404 para Task ou colaborador fora do escopo; 409 se alteração conflitar com execução ativa; 422 para UUID/lista inválida; 5xx para falha do serviço.
+- O formulário depende de colaboradores carregados com isolamento real; não é seguro usar a resposta global atual de /users/. A interface deve distinguir erro de carregamento de lista vazia.
+- Backend precisa da associação gestor–colaborador, relação muitos-para-muitos Task–colaborador, validação transacional do escopo e proteção da listagem. O Agent precisa de consulta de Tasks disponíveis, seleção/início/fim e regra para alteração de atribuição. A liderança define multiplicidade de colaboradores, efeito de remoção durante execução e se lista vazia é permitida.
+
+### I-02 — Associação gestor–colaborador e código
+
+<a id="proposta-association-code"></a>
+
+#### PROPOSTA — NÃO IMPLEMENTADO: consultar o código de associação do gestor
+
+**Necessidade e referências:** RF-03, CA-01, Sprint 2 US-06, issue #113 e I-02. GET /auth/me existe, mas ManagerOut não contém association_code; não se deve assumir que a rota atual fornece o código.
+
+Sugestão de GET /auth/association-code, exigindo JWT do gestor:
+
+```http
+GET /auth/association-code
+Authorization: Bearer <JWT_DO_GESTOR>
+```
+
+Resposta candidata:
+
+```json
+{
+  "code": "012345"
+}
+```
+
+O endpoint e schema são candidatos, não implementados. code é string de seis algarismos para preservar zeros à esquerda. Não se define validade na resposta até que expiração e rotação sejam decididas.
+
+<a id="proposta-agent-association"></a>
+
+#### PROPOSTA — NÃO IMPLEMENTADO: associação do Agent
+
+A PR #122 do Agent espera POST /associate/, mas a rota não foi encontrada no backend inspecionado. O payload candidato preserva os campos que o cliente envia:
+
+```json
+{
+  "code": "012345",
+  "username": "colaborador",
+  "hostname": "ESTACAO-01"
+}
+```
+
+Resposta candidata compatível com o cliente:
+
+```json
+{
+  "access_token": "<JWT_DO_AGENT>",
+  "token_type": "bearer",
+  "expires_in": 3600
+}
+```
+
+Endpoint e schemas são candidatos, não implementados. O JWT de Agent deve ter audiência/finalidade próprias e não pode ser aceito como JWT de gestor. O Agent atual também tolera a propriedade token como alternativa a access_token.
+
+- Consultar o código exige gestor autenticado. Associar aceita o código como prova de vínculo, valida seis algarismos e deve aplicar limite de tentativas.
+- code nunca é número, para preservar zeros à esquerda. username e hostname precisam ser validados e associados de forma estável; depender somente desses campos exige análise de segurança.
+- Consulta: 401 sem JWT; 404 ou 409 se não houver código ativo, conforme decisão de produto; 5xx em falha do serviço.
+- Associação: 422 para payload malformado; 404 ou 410 para código inválido/expirado; 409 para vínculo existente ou conflito; 429 para excesso de tentativas; 5xx em falha. O Agent mapeia vários desses status como código inválido, mas a tolerância do cliente não define o contrato do servidor.
+- Associação válida deve persistir o vínculo e emitir credencial de Agent. Código inválido não cria usuário, vínculo ou sessão.
+- O card visual permanece fora do MVP e sem chamada de API. Após aprovar a sessão do gestor, o frontend poderá consultar o código e tratar indisponibilidade, erro e cópia. O frontend nunca reutiliza o token do Agent.
+- Backend precisa de campo/entidade, geração segura, endpoint autenticado, associação, vínculo persistente e credenciais distintas por tipo de cliente. O Agent já envia o payload e protege o token com DPAPI; schema final precisa ser alinhado. A liderança define geração sob demanda/no cadastro, expiração, rotação, revogação, reutilização/uso único, tentativas, troca de gestor e identidade duradoura do Agent.
+
+### B-01 — Autorização e isolamento por gestor
+
+<a id="proposta-authorization"></a>
+
+#### PROPOSTA — NÃO IMPLEMENTADO: política de autorização por rota
+
+**Necessidade e referências:** RN-15, RF-23, CA-09, RBAC seção 5 e B-01. Esta é uma condição transversal. get_current_manager existe e protege somente GET /auth/me; não protege automaticamente os outros routers. Não se propõe uma rota de autorização separada.
+
+A proposta de proteger rotas gerenciais inclui:
+
+- Rotas existentes: GET /users/, GET /activities/realtime, GET /dashboard/summary, GET /dashboard/export/csv e GET /dashboard/export/pdf.
+- GET/PUT /config/ somente depois de decidir se a configuração continua global ou passa a pertencer ao gestor.
+- Endpoints candidatos de Tasks, atribuições, jornada, registros diários e horas por Task descritos nas propostas desta seção.
+
+Exemplo de chamada futura a rota protegida:
+
+```http
+GET /users/
+Authorization: Bearer <JWT_DO_GESTOR>
+```
+
+A resposta candidata é um array de UserOut limitado aos colaboradores associados ao gestor. GET /users/ existe, mas autenticação JWT e filtro de equipe ainda não estão implementados. POST /activities/ é usado pelo Agent e precisa de autenticação de Agent, identidade associada e autorização do vínculo; não se deve proteger essa rota com JWT de gestor sem definir fluxo compatível. Categorias e configuração global exigem decisão de propriedade antes de receber filtros.
+
+- O servidor deriva manager_id dos claims validados do JWT, rejeita manager_id enviado pelo cliente e filtra toda leitura, escrita e exportação.
+- Operações sobre IDs de Task, usuário ou registro verificam o vínculo no banco em cada requisição, inclusive relações aninhadas.
+- JWT de gestor tem audiência de gestor. A credencial proposta do Agent tem audiência distinta e direitos mínimos para a identidade associada.
+- Respostas propostas: 401 para token ausente/inválido/expirado; 403 para identidade autenticada sem função exigida; 404 para recurso fora do escopo, sem revelar existência; 422 para filtro/payload inválido.
+- Exportações e filtros por username, task_id e data delimitam a consulta, mas nunca substituem autorização.
+- O MVP aprovado segue sem login e as chamadas atuais permanecem inalteradas. Antes de integrar sessão, o Backend deve proteger rotas e isolar dados; após decisão de produto, o frontend implementaria Bearer, expiração, logout e tratamento de 401. Esconder páginas ou filtrar tabelas localmente não protege a API.
+- Backend precisa de relações Manager–User–Task–Activity, dependências de autorização nos routers, isolamento nas exportações, testes de acesso cruzado e decisão sobre /config/ e categorias globais. O Agent precisa de identidade e autorização próprias para associação e atividade. A liderança aprova a estratégia de sessão pós-MVP e confirma a política de configuração e credenciais.
+
+### I-06 — Registros diários e horas por Task
+
+<a id="proposta-attendance"></a>
+
+#### PROPOSTA — NÃO IMPLEMENTADO: primeiro e último registro diário
+
+**Necessidade e referências:** RF-13, RF-24, RF-27, CA-07, CA-10 e I-06/I-07. O painel precisa mostrar o primeiro e o último registro sem inferir jornada pelo realtime. I-06 já contém o endpoint ilustrativo e o schema-base; esta proposta detalha o rascunho, não confirma uma rota.
+
+**Endpoint candidato:** GET /dashboard/attendance com date obrigatório em AAAA-MM-DD e username opcional.
+
+```json
+{
+  "date": "2026-10-13",
+  "timezone": "America/Sao_Paulo",
+  "users": [
+    {
+      "username": "ana",
+      "first_activity_at": "2026-10-13T11:15:00Z",
+      "last_activity_at": "2026-10-13T19:42:00Z"
+    },
+    {
+      "username": "bruno",
+      "first_activity_at": null,
+      "last_activity_at": null
+    }
+  ]
+}
+```
+
+Os campos date, timezone, users, username, first_activity_at e last_activity_at são candidatos, não implementados. Timestamps representam o primeiro e o último captured_at efetivamente persistido no dia de negócio; não confirmam início/fim de jornada nem saída. O produto pode usar os rótulos “Primeiro registro” e “Último registro”; o último não deve ser apresentado como saída definitiva e um dia em andamento não é jornada encerrada.
+
+- date é obrigatório e deve ser uma data real AAAA-MM-DD interpretada no timezone declarado pela resposta.
+- username é opcional, mantém compatibilidade com os filtros atuais e só seleciona colaborador associado ao gestor.
+- Timestamps são instantes RFC 3339/ISO 8601 em UTC. Sem registros, ambos são null; falha da consulta continua erro HTTP, nunca null.
+- O servidor deriva a equipe do JWT e não recebe manager_id do cliente. Resposta 200 deve conter um item por colaborador no escopo consultado.
+- Respostas propostas: 401 sem autenticação; 404 se o filtro apontar para usuário fora do escopo; 422 para data/filtro malformado; 5xx para indisponibilidade.
+- O frontend deve distinguir timestamp nulo de erro, cancelar/repetir consultas conforme filtros mudem e impedir que a falha dessa fonte derrube resumo, usuários ou realtime.
+- Backend precisa agregar min/max(captured_at), converter limites do dia corretamente, filtrar gestor e informar timezone. O Agent precisa de timestamps consistentes e sincronização sem duplicidades; idempotência segue pendente em B-06. A liderança confirma se a resposta inclui todos os colaboradores sem registro ou somente quem registrou e os rótulos funcionais. Eventos explícitos de entrada/saída não estão definidos.
+
+<a id="proposta-task-hours"></a>
+
+#### PROPOSTA — NÃO IMPLEMENTADO: agregação de horas por Task
+
+**Necessidade e referências:** RN-19, RF-24, RF-27 e I-06. A direção aprovada pela liderança é apresentar horas gastas por Task, sem rankings, notas ou comparações de desempenho. O resumo atual agrupa por categoria e não pode ser usado como tempo por Task.
+
+**Endpoint candidato:** GET /dashboard/task-hours com start_date e end_date obrigatórios e username/task_id opcionais.
+
+```json
+{
+  "start_date": "2026-10-01",
+  "end_date": "2026-10-13",
+  "timezone": "America/Sao_Paulo",
+  "tasks": [
+    {
+      "task_id": "6e7b94da-5651-46a0-bf28-fcb8f4f14c04",
+      "description": "Revisar o relatório mensal",
+      "total_seconds": 28800
+    }
+  ]
+}
+```
+
+O endpoint, os parâmetros e todos os campos de resposta são candidatos, não implementados. total_seconds é um nome proposto para duração agregada de atividade vinculada à Task. Inclusão de períodos inativos ou fora do escopo ainda requer aprovação.
+
+- start_date e end_date são datas válidas, obrigatórias, inclusivas e interpretadas no timezone declarado.
+- username e task_id são filtros opcionais limitados ao gestor autenticado; task_id é UUID.
+- end_date não pode anteceder start_date. O Backend deve definir período máximo para limitar custo da consulta.
+- Agregar somente registros com vínculo persistido com Task. Não deduzir task_id por categoria, aplicação, janela ativa ou estado realtime.
+- Ordenação estável por descrição/identificador; nunca ordenar por duração para formar ranking. Não incluir pontuação nem comparar desempenho entre colaboradores.
+- Consulta válida sem registros responde 200 com tasks: []. Respostas de erro propostas: 401 sem autenticação; 404 para filtro fora do escopo; 422 para período/UUID inválido; 5xx para indisponibilidade.
+- O Dashboard só mostra horas reais por Task depois que cada registro estiver ligado à Task correta e a regra de duração aprovada. A visualização respeita período, colaborador e Task.
+- Backend precisa persistir vínculo entre Task e registros/períodos, implementar agregação autorizada e idempotência (B-06). Agent precisa enviar task_id correto após seleção, início/fim e ciência do colaborador. A liderança decide se horas incluem inatividade, aplicações fora do escopo e períodos sem atividade, e se Tasks sem registro entram com zero ou são omitidas.
+
+### I-07 — Datas e fusos horários
+
+<a id="proposta-timezone"></a>
+
+#### PROPOSTA — NÃO IMPLEMENTADO: regras de datas e fusos horários
+
+**Necessidade e referências:** RF-20, RF-24, RF-27 e I-07. Brasília, timezone IANA America/Sao_Paulo, foi definida pela liderança como referência para o dia de negócio. Existe intenção de permitir configuração regional futura; nome e mecanismo da variável de ambiente ainda não foram definidos. O timezone não tem uma rota exclusiva: consultas diárias e por período informam o timezone de agrupamento.
+
+Exemplo de consulta e resposta candidatas:
+
+```http
+GET /dashboard/attendance?date=2026-10-13
+```
+
+```json
+{
+  "date": "2026-10-13",
+  "timezone": "America/Sao_Paulo",
+  "users": []
+}
+```
+
+A resposta segue o schema candidato de registros diários acima; a mesma regra vale para a agregação de horas por Task.
+
+- Datas de filtro são datas de calendário AAAA-MM-DD no timezone configurado pelo Backend, não datas UTC nem o dia local arbitrário do browser.
+- Instantes são retornados com offset explícito, preferencialmente UTC com sufixo Z. O timezone declara agrupamento/formatação e não altera o instante.
+- O Agent já envia captured_at em UTC quando presente. Proposta: Backend normaliza instantes com offset para UTC. Timestamp sem offset deve ser rejeitado com 422 ou interpretado por regra explícita aprovada. Quando captured_at é omitido, o Backend atual usa horário UTC de recebimento.
+- Converter início do dia local ao instante UTC correspondente antes da consulta; usar limite final exclusivo no início do dia seguinte para evitar dupla contagem.
+- Timezone não reconhecido ou data inválida resulta em 422. Dados fora do escopo seguem 404. Falha de consulta permanece 5xx, nunca data vazia.
+- Frontend formata timestamps usando timezone declarado pela API; não reagrupar atividades nem compensar erro de cálculo do servidor. O dia inicial do Dashboard usa a mesma configuração de negócio depois que sua origem for confirmada.
+- Backend precisa configurar timezone IANA e aplicá-lo em agregações, filtros, exportações e validações, além de expô-lo em respostas diárias. Agent mantém instantes com offset/UTC e evita relógio local sem zona. A liderança confirma nome da variável, configuração por instalação ou gestor/região, regra para timestamp sem offset e exibição de dias históricos em outros fusos.
+
+### Dependências externas das propostas
+
+| Responsável                          | Dependências                                                                                                                                                                                                                                             |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend                              | Persistir Tasks, escopo, atribuições, vínculo gestor–colaborador e vínculo de atividades com Task; implementar schemas/rotas; proteger e filtrar por identidade; agregar dados diários e por Task; aplicar timezone; definir idempotência e erros.       |
+| Agent                                | Consumir associação e credencial apropriada; listar Tasks autorizadas; exigir ciência antes do monitoramento; enviar task_id e timestamps consistentes; encerrar/trocar execução sem sobreposição. O payload atual de atividade ainda não envia task_id. |
+| Liderança/produto                    | Decidir semântica, ciclo de vida, associação, duração agregada, sessão e configuração regional/global listadas abaixo; as decisões já aprovadas permanecem preservadas.                                                                                  |
+| Frontend, após contratos disponíveis | Integrar somente endpoints e schemas confirmados, distinguindo estados de erro/vazio/carregamento. Esta proposta não adiciona chamadas nem altera a apresentação aprovada do MVP.                                                                        |
+
+<a id="decisoes-pendentes-lideranca"></a>
+
+### Decisões pendentes da liderança
+
+As decisões aprovadas continuam válidas: Dashboard sem rankings, exibição de horas gastas por Task, Agent offline após mais de 15 minutos sem novo registro no banco da máquina, fuso de Brasília como referência, autenticação do frontend adiada no MVP e associação gestor–colaborador dependente do Backend. As perguntas abaixo tratam dos detalhes ainda abertos e não reabrem essas decisões.
+
+1. Quais campos definem uma Task e qual o limite da descrição? A Task padrão solicitada para a Sprint 2 será seed, configuração ou registro operacional? Como identificar aplicação do escopo (nome exato de processo, executável ou regra)? Como arquivar ou excluir Task com histórico?
+2. Uma Task aceita vários colaboradores? O que acontece com execução ativa ao alterar escopo ou remover colaborador? O Agent recebe uma atualização pendente de ciência?
+3. “Horas gastas por Task” inclui tempo inativo, aplicação fora do escopo e intervalos sem atividade? Tasks sem registro aparecem com zero? A lista em ordem estável por descrição/identificador atende à decisão aprovada de não usar rankings?
+4. A consulta diária inclui todos os colaboradores associados sem registro, com timestamps nulos, ou apenas quem tem eventos? O produto quer primeiro/último registro ou eventos explícitos de entrada e saída?
+5. O código de associação expira, é rotativo, reutilizável ou de uso único? Qual o limite de tentativas? username e hostname identificam o Agent de modo suficiente ou é necessário identificador persistente?
+6. Qual estratégia de sessão do gestor será usada depois do MVP? A configuração global e as categorias permanecem globais ou passam a pertencer a cada gestor?
+7. O timezone America/Sao_Paulo vale por instalação ou gestor? Qual variável de ambiente será adotada? Como tratar captured_at sem offset?
+8. Qual política de conflito/status deve ser usada para 403/404/409 nos endpoints aninhados?
+
+### Referências e rastreabilidade
+
+- [Pendência de associação gestor–colaborador (I-02)](#proposta-association-code), [Tasks (I-03)](#proposta-tasks-crud), [autorização (B-01)](#proposta-authorization), [jornada diária e relatórios (I-06)](#proposta-attendance), e [datas e fusos (I-07)](#proposta-timezone).
+- [Contratos efetivamente existentes](CONTRATOS_API.md) permanecem separados destas propostas.
+- Requisitos de Tasks e escopo: [RF/RN](../../requisitos/requisitos/rn_rf.md), [critérios CA-02 a CA-04](../../requisitos/requisitos/ca.md#ca-02--tasks-e-início-do-monitoramento), [Sprint 2](../../requisitos/sprints/sprint2.md).
+- Associação e código: [RF-03 a RF-05](../../requisitos/requisitos/rn_rf.md#rf-03--disponibilizar-código-de-associação), [CA-01](../../requisitos/requisitos/ca.md#ca-01--identificação-acesso-e-associação), [RBAC, seção 6](../../requisitos/rbac.md#6-associação), Sprint 2 US-06/US-08, issues #113/#114.
+- Autorização: [RN-15, RF-23](../../requisitos/requisitos/rn_rf.md#rn-15--controle-de-acesso-aos-dados), [CA-09](../../requisitos/requisitos/ca.md#ca-09--privacidade-e-segurança), [RBAC, seção 5](../../requisitos/rbac.md#5-escopo-de-acesso).
+- Jornada e relatórios: RF-13, RF-19, RF-24, RF-27, CA-07 e CA-10. Datas e fuso: RF-20, RF-24 e RF-27.
+- Direção da liderança sobre Dashboard: RN-19 e I-06; telas de referência e descrições mais amplas fora de FrontEnd devem ser alinhadas se divergirem dessa decisão.
+- O arquivo complementar [Proposta de contratos do Backend](PROPOSTA_CONTRATOS_BACKEND.md) mantém um recorte específico para Backend; esta seção centraliza o conteúdo do arquivo de propostas migrado e as referências dos IDs.
+
+<a id="proximos-passos"></a>
 
 ## Ordem de execução
 

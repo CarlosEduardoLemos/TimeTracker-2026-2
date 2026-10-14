@@ -2,7 +2,7 @@
 
 > **PROPOSTAS — NÃO SÃO CONTRATOS EXISTENTES.** As rotas, schemas, validações e exemplos deste documento são sugestões para discussão e implementação pelo responsável do Backend. A inspeção de `backend/`, `agent/` e `requisitos/` foi somente para leitura. Nenhuma chamada HTTP de produção foi adicionada ao frontend.
 
-Revisão: **13/10/2026**. Este recorte trata de Tasks, jornada diária, horas por Task e conexão do Agent. Consulte também [Contratos existentes](CONTRATOS_API.md), [propostas de integração](PROPOSTAS_CONTRATOS_API.md) e [Pendências](PENDENCIAS.md).
+Revisão: **13/10/2026**. Este recorte trata de Tasks, jornada diária, horas por Task e conexão do Agent. Consulte também [Contratos existentes](CONTRATOS_API.md), [propostas de integração](PENDENCIAS.md#propostas-de-contratos-de-integracao) e [Pendências](PENDENCIAS.md).
 
 ## Situação observada
 
@@ -25,7 +25,7 @@ As respostas de erro mantêm o envelope FastAPI observado (`{"detail":"..."}`). 
 | `POST`  | `/tasks`           | Cria uma Task persistida.                              |
 | `PATCH` | `/tasks/{task_id}` | Altera parcialmente a descrição de uma Task do gestor. |
 
-Não há exclusão nesta proposta. A atribuição de colaboradores e o escopo de aplicações precisam de contratos próprios; a proposta detalhada está em [PROPOSTAS_CONTRATOS_API.md](PROPOSTAS_CONTRATOS_API.md). Criar ou editar a Task não inicia monitoramento.
+Não há exclusão nesta proposta. A atribuição de colaboradores e o escopo de aplicações precisam de contratos próprios; a proposta detalhada está em [proposta de atribuição de colaboradores](PENDENCIAS.md#proposta-task-collaborators). Criar ou editar a Task não inicia monitoramento.
 
 ### Schemas candidatos
 
@@ -37,7 +37,7 @@ Descrição do corpo de `POST /tasks`:
 }
 ```
 
-`description` é obrigatório, string não vazia depois de remover espaços externos, com máximo **proposto** de 200 caracteres. O limite precisa ser confirmado pelo produto e aplicado no Backend; hoje não existe campo/modelo Task que determine esse limite.
+description é obrigatório e deve permanecer não vazio após remover espaços externos. O limite máximo deve ser definido pelo produto e aplicado no Backend; nenhum valor numérico está confirmado.
 
 Corpo de `PATCH /tasks/{task_id}`: objeto JSON com `description` opcional. Se enviado, deve obedecer à mesma validação do `POST`. O objeto deve conter ao menos um campo alterável; `null`, string vazia e corpo vazio são inválidos. `task_id` deve ser UUID.
 
@@ -158,4 +158,4 @@ Valores candidatos de `connection_status`: `online`, `offline` ou `unknown`. Reg
 | Horas agregadas por Task, sem ranking  | I-06, I-03, B-01, B-06       | RN-03, RN-05, RN-08, RN-09, RN-19; RF-06, RF-13, RF-24, RF-27        |
 | Conexão do Agent                       | B-10, I-05, B-01, B-06       | RN-10, RN-11, RN-15; RF-14, RF-15, RF-16, RF-23                      |
 
-Antes de implementação, Backend e liderança precisam confirmar: limite de 200 caracteres da descrição; quais campos adicionais tornam uma Task pronta para atribuição; a implantação coordenada de `task_id`; inclusão de usuários sem registro na resposta diária; semântica para datas futuras; a definição de duração por Task; a identidade persistente do Agent; e o tratamento de um colaborador com vários Agents. As decisões pendentes permanecem abertas em [PENDENCIAS.md](PENDENCIAS.md). A tabela não marca nenhuma dependência como resolvida.
+Antes de implementação, Backend e liderança precisam confirmar: limite máximo da descrição; quais campos adicionais tornam uma Task pronta para atribuição; a implantação coordenada de `task_id`; inclusão de usuários sem registro na resposta diária; semântica para datas futuras; a definição de duração por Task; a identidade persistente do Agent; e o tratamento de um colaborador com vários Agents. As decisões pendentes permanecem abertas em [PENDENCIAS.md](PENDENCIAS.md). A tabela não marca nenhuma dependência como resolvida.
