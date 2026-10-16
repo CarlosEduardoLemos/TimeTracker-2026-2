@@ -11,7 +11,10 @@ import { todayIso } from '../../../shared/lib/date';
 import { deriveTeam, filterRealtimePeople } from '../../../shared/lib/team';
 import { categoryTotals, totalSeconds } from '../lib/summary';
 import { AttendanceSummary } from '../components/AttendanceSummary';
-import { filterPeopleByProcess, getRealtimeProcessOptions } from '../lib/processFilter';
+import {
+  filterPeopleByProcess,
+  getRealtimeProcessOptions,
+} from '../../../shared/lib/processFilter';
 
 export function DashboardPage({ dark, toggleTheme, devApi = null }) {
   const [date, setDate] = useState(todayIso());

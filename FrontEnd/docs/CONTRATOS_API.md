@@ -1,6 +1,6 @@
 # Contratos da API do Frontend
 
-Revisado em **13/10/2026** com base nos arquivos locais de `backend/app/` e no código de `FrontEnd/src/shared/api/`. A PR #122 do Agent e a PR #123 de autenticação foram incorporadas à `main` da organização conforme os commits informados. A existência de um contrato no backend não significa que a interface web o consuma.
+Revisado em **16/10/2026** com base nos arquivos locais de `backend/app/` e no código de `FrontEnd/src/shared/api/`. A PR #122 do Agent e a PR #123 de autenticação foram incorporadas à `main` da organização conforme os commits informados. A existência de um contrato no backend não significa que a interface web o consuma.
 
 ## Rotas usadas pelas telas do frontend
 
@@ -17,6 +17,12 @@ Revisado em **13/10/2026** com base nos arquivos locais de `backend/app/` e no c
 | `PUT /config/`              | JSON com `capture_interval_seconds` e `idle_timeout_seconds` inteiros positivos | Objeto de configuração                                                                              | Configurações                      |
 
 Essas chamadas continuam sem cabeçalho `Authorization`. O parâmetro `username` filtra uma consulta; não impõe autorização ou isolamento no servidor.
+
+### Resposta realtime consumida pelo Dashboard e por Colaboradores
+
+`GET /activities/realtime` retorna uma captura (a mais recente) por usuário com registro dentro da janela de até 24 horas; não retorna o status de cada máquina se houver múltiplos Agents por usuário. Os campos incluem `username`, `hostname`, `process_name`, `status` e `seconds_since_last_activity`; a resposta também contém `window_title`, `category` e `is_idle`. O tempo é calculado sobre `captured_at` da captura, não sobre uma confirmação de gravação/recebimento no servidor. Eventos antigos sincronizados posteriormente ou relógios divergentes podem, portanto, alterar a idade exibida.
+
+O backend atual classifica `offline` quando `is_idle` é verdadeiro **ou** quando passaram mais de 900 segundos desde a captura; `ausente` usa o limite de 300 segundos. Portanto, `offline` não comprova desconexão, e a regra acordada de conexão por máquina ainda não é garantida. Não há campo de conexão, versão, fila local, pausa, última sincronização ou Task ativa, nem rota `/agents/status` implementada. Consulte B-10/I-05 em [Pendências](PENDENCIAS.md).
 
 ## Autenticação de gestor implementada no backend
 

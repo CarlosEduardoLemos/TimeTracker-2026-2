@@ -57,7 +57,11 @@ Um aviso informa que `/users/` é global e que Online, Ausente e Offline são es
 
 ## Colaboradores (`#/colaboradores`)
 
-A tabela exibe `username`, `full_name` e `department` da lista global. Quando realtime está disponível, acrescenta o estado informado pela API e o processo mais recente. `offline` é exibido como “Offline (API)” e pode refletir uma captura marcada inativa, não necessariamente falta de evento recente; usuário sem entrada realtime em até 24 horas é “Sem dados”. Se realtime falhar, os usuários ainda aparecem e as colunas de atividade indicam indisponibilidade. Se a lista de usuários falhar, não se apresenta uma lista vazia como resultado real. Há estado de carregamento, aviso de falha, botão “Tentar novamente” e mensagem para lista validamente vazia. Esta tela não mostra código de associação, gestor, permissões ou conexão confirmada do Agent.
+A tabela exibe `username`, `full_name` e `department` da lista atual da API. Quando realtime está disponível, acrescenta o estado informado pela API, `process_name` e o tempo desde a captura mais recente (`seconds_since_last_activity`). `offline` é exibido como “Offline (API)” e pode refletir uma captura marcada inativa, não necessariamente falta de evento recente; usuário sem entrada realtime na janela de até 24 horas é “Sem dados”. Se realtime falhar, os usuários ainda aparecem e a atividade indica indisponibilidade. Se a lista de usuários falhar, não se apresenta uma lista vazia como resultado real.
+
+A tela permite pesquisar por nome, usuário ou departamento, combinar estado e aplicativo, ordenar por nome ou idade da leitura, consultar a contagem e limpar os filtros. “Atualizar” repete as consultas existentes de usuários e realtime; respostas antigas são ignoradas e não há polling adicional. Filtros de estado e aplicativo são locais e não limitam o acesso aos dados na API. A tela não exibe título de janela nem nome da máquina: embora `hostname` esteja na resposta, os endpoints atuais não restringem a equipe ao gestor autenticado.
+
+O aviso diferencia atividade capturada de conexão/sincronização. A idade mostrada é calculada pela API desde `captured_at`; ela não confirma contato atual do Agent nem recebimento recente no servidor. Esta tela não mostra código de associação, gestor, permissões ou conexão confirmada do Agent.
 
 ## Tasks (`#/tasks`)
 

@@ -2,6 +2,15 @@
 
 Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026**, **13/10/2026** e **16/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
+## Integração do Agent em Colaboradores — 16/10/2026
+
+- `npm.cmd run check:full` passou: ESLint, Prettier, typecheck, cobertura Vitest, build de produção, 4 verificações do bundle e Playwright E2E.
+- Vitest: **242 testes em 55 arquivos passaram**. Cobertura: **94,77% statements, 90,20% branches, 95,36% functions e 96,82% lines**.
+- E2E: **29 passaram, 0 falharam e 2 foram ignorados** por dependerem de API real. O novo cenário de Colaboradores combina pesquisa, estado e aplicativo, verifica tempo de leitura, contagem, limpeza, atualização manual e ausência do hostname na interface.
+- axe-core não detectou violações no fluxo de Colaboradores. A primeira tentativa E2E encontrou um seletor ambíguo preexistente no cenário de acessibilidade do Dashboard durante o carregamento; o teste foi ajustado para aguardar o texto específico da lista e a execução final passou.
+- `RUN_REAL_API` não estava configurado, portanto os contratos reais do Backend não foram exercitados. O Agent desktop também não foi executado; sua análise foi somente de código e os achados estão em [Pendências](PENDENCIAS.md).
+- `git diff --check` e auditoria do escopo final foram executados após a validação.
+
 ## Filtro realtime e demonstração de Tasks — 16/10/2026
 
 - **Linha de base antes das alterações:** `npm.cmd run check` passou com lint, formatação, typecheck, build e bundle; Vitest: **216 testes em 51 arquivos**, cobertura de 94,68% statements, 91,74% branches, 95,95% functions e 96,82% lines. E2E: **27 passaram e 2 foram ignorados** por exigirem API real.

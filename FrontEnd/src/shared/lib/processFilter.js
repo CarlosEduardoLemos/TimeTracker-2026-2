@@ -5,7 +5,7 @@ export function formatProcessName(value) {
 
 /**
  * Keep the raw process name as the option value. Formatting is only for the
- * label shown to the user; the API identifier remains untouched for filtering.
+ * label shown to the user; the API identifier remains untouched.
  * @param {unknown} people
  */
 export function getRealtimeProcessOptions(people) {

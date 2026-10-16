@@ -1,4 +1,6 @@
 import { ActivityStatusBadge } from '../../../shared/components/ActivityStatusBadge';
+import { formatLastRead } from '../../../shared/lib/relativeTime';
+import { formatProcessName } from '../../../shared/lib/processFilter';
 import { CollaboratorCard } from './CollaboratorCard';
 
 export function CollaboratorsTable({ people, realtimeAvailable }) {
@@ -27,8 +29,9 @@ export function CollaboratorsTable({ people, realtimeAvailable }) {
               </th>
               <th scope="col">Nome</th>
               <th scope="col">Departamento</th>
-              <th scope="col">Última atividade</th>
+              <th scope="col">Estado da atividade</th>
               <th scope="col">Aplicação</th>
+              <th scope="col">Última leitura</th>
             </tr>
           </thead>
           <tbody>
@@ -42,7 +45,12 @@ export function CollaboratorsTable({ people, realtimeAvailable }) {
                 <td>
                   <ActivityStatusBadge person={person} available={realtimeAvailable} />
                 </td>
-                <td>{person.realtime?.process_name || '—'}</td>
+                <td>{formatProcessName(person.realtime?.process_name) || '—'}</td>
+                <td>
+                  {realtimeAvailable
+                    ? formatLastRead(person.realtime?.seconds_since_last_activity)
+                    : '—'}
+                </td>
               </tr>
             ))}
           </tbody>

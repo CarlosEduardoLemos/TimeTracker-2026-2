@@ -2,6 +2,16 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
+## 16/10/2026 — Acompanhamento de atividade em Colaboradores
+
+- **Visualização:** a lista agora mostra o estado de atividade retornado pela API, o aplicativo mais recente e o tempo desde a captura. Essa idade não é apresentada como conexão ou sincronização confirmada.
+- **Filtros:** adicionadas pesquisa por nome/usuário/departamento, filtros combináveis de estado e aplicativo, ordenação por nome/idade da captura, contagem de resultados e limpeza.
+- **Atualização:** a ação manual reutiliza as chamadas já existentes para `/users/` e `/activities/realtime`; o hook mantém cancelamento e ignora respostas antigas. Não foi adicionado polling.
+- **Arquitetura:** a normalização e o filtro exato de `process_name` foram movidos para `shared/lib` e são reutilizados por Dashboard e Colaboradores.
+- **Privacidade:** `hostname` existe na resposta, mas não é exibido nem filtrável até o Backend aplicar autorização e escopo por gestor. `window_title` continua fora da interface.
+- **Contratos externos:** `PENDENCIAS.md` já documenta as lacunas do status de conexão (B-10/I-05), associação (I-02), autorização (B-01) e interface desktop do Agent (A-01); esta revisão acrescenta o bloqueio explícito de exposição de máquina à pendência B-01.
+- **Validação:** resultados desta revisão em [Testes](TESTES.md).
+
 ## 16/10/2026 — Filtro realtime e pesquisa de Tasks
 
 - **Dashboard:** adicionados seleção e contagem de aplicativos derivados do `process_name` realtime, combináveis com o usuário. O filtro atua somente na lista de última atividade; resumo diário e indicadores permanecem sem filtro de aplicativo. Nomes são formatados para leitura, mas o valor original continua sendo usado na filtragem.

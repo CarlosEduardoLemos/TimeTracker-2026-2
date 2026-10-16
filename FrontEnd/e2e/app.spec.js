@@ -116,6 +116,55 @@ test('filtra aplicativos somente na última atividade e combina com usuário', a
   await expect(activity).toContainText('Ana Silva');
 });
 
+test('filtra e atualiza a lista de atividade dos colaboradores', async ({ page }) => {
+  await page.route('http://localhost:8000/activities/realtime', (route) =>
+    route.fulfill({
+      json: [
+        {
+          username: 'ana',
+          status: 'online',
+          seconds_since_last_activity: 20,
+          process_name: 'Editor',
+          hostname: 'ESTACAO-01',
+        },
+        {
+          username: 'bia',
+          status: 'offline',
+          seconds_since_last_activity: 901,
+          process_name: 'Chrome',
+          hostname: 'ESTACAO-02',
+        },
+      ],
+    }),
+  );
+  let userRequests = 0;
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname === '/users/') userRequests += 1;
+  });
+  await page.goto('/#/colaboradores');
+
+  const table = page.getByRole('table', { name: 'Usuários cadastrados na API' });
+  await expect(table).toContainText('20s atrás');
+  await expect(table).toContainText('15min atrás');
+  await expect(table).not.toContainText('ESTACAO-01');
+  await expect(page.getByRole('status')).toContainText('2 de 2 colaboradores');
+
+  await page.getByRole('searchbox', { name: 'Pesquisar colaborador' }).fill('Bia Lima');
+  await page.getByLabel('Estado informado pela API').selectOption('offline');
+  await page.getByLabel('Aplicativo na última leitura').selectOption('Chrome');
+  await expect(table).toContainText('Bia Lima');
+  await expect(table).not.toContainText('Ana Silva');
+  await expect(page.getByRole('status')).toContainText('1 de 2 colaboradores');
+
+  await page.getByRole('button', { name: 'Limpar filtros' }).click();
+  await expect(table).toContainText('Ana Silva');
+  await expect(table).toContainText('Bia Lima');
+
+  await page.getByRole('button', { name: 'Atualizar' }).click();
+  await expect.poll(() => userRequests).toBe(2);
+  await expect(page.getByRole('button', { name: 'Atualizar' })).toBeEnabled();
+});
+
 test('mostra falha da API e recupera a lista ao tentar novamente', async ({ page }) => {
   let attempts = 0;
   await page.route('http://localhost:8000/users/', async (route) => {

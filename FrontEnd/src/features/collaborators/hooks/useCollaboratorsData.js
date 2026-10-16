@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../../../shared/api/api';
 import { requestFailure } from '../../../shared/lib/requestFailure';
 import { deriveTeam } from '../../../shared/lib/team';
@@ -38,7 +38,10 @@ export function useCollaboratorsData() {
     return () => active.current?.abort();
   }, [refresh]);
 
-  const people =
-    state.users && state.realtime ? deriveTeam(state.users, state.realtime) : state.users || [];
+  const people = useMemo(
+    () =>
+      state.users && state.realtime ? deriveTeam(state.users, state.realtime) : state.users || [],
+    [state.users, state.realtime],
+  );
   return { ...state, people, refresh };
 }

@@ -19,7 +19,7 @@ for (const route of ['painel', 'colaboradores', 'relatorios', 'configuracoes']) 
     await page.goto(`/#/${route}`);
     await expect(page.getByRole('main')).toBeVisible();
     if (route === 'painel') {
-      await expect(page.getByRole('status')).toContainText('0 usuários nesta lista');
+      await expect(page.getByText(/0 usuários nesta lista/)).toBeVisible();
     } else {
       await expect(page.getByRole('status')).toHaveCount(0);
     }

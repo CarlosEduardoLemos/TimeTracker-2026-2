@@ -52,6 +52,76 @@ describe('CollaboratorsPage', () => {
     expect(anaRow).not.toHaveTextContent('Indisponível');
   });
 
+  it('combina pesquisa, estado e aplicativo, mostra contagem e limpa os filtros', async () => {
+    api.users.mockResolvedValue(users);
+    api.realtime.mockResolvedValue([
+      {
+        username: 'ana',
+        status: 'online',
+        process_name: 'Editor',
+        seconds_since_last_activity: 20,
+      },
+      {
+        username: 'bia',
+        status: 'offline',
+        process_name: 'Chrome',
+        seconds_since_last_activity: 901,
+      },
+    ]);
+    render(<CollaboratorsPage />);
+
+    const table = await screen.findByRole('table', { name: 'Usuários cadastrados na API' });
+    expect(screen.getByRole('status')).toHaveTextContent('2 de 2 colaboradores');
+    expect(table).toHaveTextContent('20s atrás');
+    expect(table).toHaveTextContent('15min atrás');
+
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Pesquisar colaborador' }), {
+      target: { value: 'BIA' },
+    });
+    fireEvent.change(screen.getByLabelText('Estado informado pela API'), {
+      target: { value: 'offline' },
+    });
+    fireEvent.change(screen.getByLabelText('Aplicativo na última leitura'), {
+      target: { value: 'Chrome' },
+    });
+
+    expect(screen.getByRole('status')).toHaveTextContent('1 de 2 colaboradores');
+    expect(screen.getByRole('table')).toHaveTextContent('bia');
+    expect(screen.getByRole('table')).not.toHaveTextContent('ana');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Limpar filtros' }));
+    expect(screen.getByRole('status')).toHaveTextContent('2 de 2 colaboradores');
+    expect(screen.getByRole('table')).toHaveTextContent('ana');
+    expect(screen.getByRole('table')).toHaveTextContent('bia');
+  });
+
+  it('permite atualização manual sem criar chamadas duplicadas', async () => {
+    api.users.mockResolvedValue(users);
+    api.realtime.mockResolvedValue(realtime);
+    render(<CollaboratorsPage />);
+    await screen.findByRole('table', { name: 'Usuários cadastrados na API' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar' }));
+    await waitFor(() => expect(api.users).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(api.realtime).toHaveBeenCalledTimes(2));
+    expect(api.users.mock.calls[0][0].aborted).toBe(true);
+    expect(api.users.mock.calls[1][0].aborted).toBe(false);
+  });
+
+  it('filtra por indisponibilidade sem apresentar falha de realtime como offline', async () => {
+    api.users.mockResolvedValue(users);
+    api.realtime.mockRejectedValue(new Error('rede indisponível'));
+    render(<CollaboratorsPage />);
+
+    await screen.findByRole('table', { name: 'Usuários cadastrados na API' });
+    fireEvent.change(screen.getByLabelText('Estado informado pela API'), {
+      target: { value: 'unavailable' },
+    });
+    expect(screen.getByRole('status')).toHaveTextContent('2 de 2 colaboradores');
+    expect(screen.getByRole('table')).toHaveTextContent('Indisponível');
+    expect(screen.getByRole('table')).not.toHaveTextContent('Offline (API)');
+  });
+
   it('mantém usuários visíveis quando a atividade falha, sem sugerir estado offline', async () => {
     api.users.mockResolvedValue(users);
     api.realtime.mockRejectedValue(new Error('rede indisponível'));
