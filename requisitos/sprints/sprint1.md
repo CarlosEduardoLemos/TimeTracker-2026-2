@@ -1,6 +1,7 @@
 > **Documento de Requisitos — fabrica-bayarea/TimeTracker-2026-2**  
 > **responsáveis:** Patricia Pereira Martins e Marley Eduardo Rocha Guedes
 > (Time de requisitos e testes) 
+>**Figma:** https://www.figma.com/design/gu4VzuZMFzqcryfTEjlGsW/timeTracker?node-id=28-1260&p=f&t=AoZugVmEY6kE1QpQ-0  
 > **Data:**  21/setembro/2026
 > **Versão:** 1.1 — Sprint 1
 
