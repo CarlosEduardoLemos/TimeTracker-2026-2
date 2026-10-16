@@ -20,6 +20,10 @@ for (const route of ['painel', 'colaboradores', 'relatorios', 'configuracoes']) 
     await expect(page.getByRole('main')).toBeVisible();
     if (route === 'painel') {
       await expect(page.getByText(/0 usuários nesta lista/)).toBeVisible();
+    } else if (route === 'colaboradores') {
+      await expect(page.getByRole('status', { name: 'Atualização da consulta' })).toContainText(
+        'Última atualização da consulta',
+      );
     } else {
       await expect(page.getByRole('status')).toHaveCount(0);
     }

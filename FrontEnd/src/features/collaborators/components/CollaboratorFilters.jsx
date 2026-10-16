@@ -1,4 +1,4 @@
-import { formatProcessName } from '../../../shared/lib/processFilter';
+import { formatProcessName, formatProcessOption } from '../../../shared/lib/processFilter';
 import { getCollaboratorStatusLabel } from '../lib/agentFilters';
 
 const statuses = ['online', 'ausente', 'offline', 'no-data', 'unavailable'];
@@ -17,6 +17,7 @@ export function CollaboratorFilters({
   resultCount,
   totalCount,
   hasFilters,
+  canClearFilters = hasFilters,
   onClear,
 }) {
   const selectedProcessAvailable = processOptions.includes(process);
@@ -65,7 +66,7 @@ export function CollaboratorFilters({
             )}
             {processOptions.map((value) => (
               <option key={value} value={value}>
-                {formatProcessName(value)}
+                {formatProcessOption(value, processOptions)}
               </option>
             ))}
           </select>
@@ -88,7 +89,12 @@ export function CollaboratorFilters({
           {resultCount} de {totalCount} colaboradores
           {hasFilters ? ' com os filtros atuais' : ''}
         </p>
-        <button type="button" className="secondary-button" onClick={onClear} disabled={!hasFilters}>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={onClear}
+          disabled={!canClearFilters}
+        >
           Limpar filtros
         </button>
       </div>

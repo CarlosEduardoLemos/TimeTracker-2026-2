@@ -1,7 +1,7 @@
 import { EmptyState, LoadingSkeleton } from '../../../shared/components/AsyncFeedback';
 import { ActivityStatusBadge } from '../../../shared/components/ActivityStatusBadge';
 import { formatLastRead } from '../../../shared/lib/relativeTime';
-import { formatProcessName } from '../../../shared/lib/processFilter';
+import { formatProcessName, formatProcessOption } from '../../../shared/lib/processFilter';
 
 export { formatLastRead };
 
@@ -45,7 +45,7 @@ export function LastActivityTable({
             )}
             {processOptions.map((processName) => (
               <option key={processName} value={processName}>
-                {formatProcessName(processName)}
+                {formatProcessOption(processName, processOptions)}
               </option>
             ))}
           </select>
@@ -65,7 +65,7 @@ export function LastActivityTable({
       {!loading && available && (
         <p className="mt-2 text-xs font-semibold muted" role="status" aria-live="polite">
           {selectedProcess
-            ? `Filtro ativo: ${formatProcessName(selectedProcess)}; ${people.length} de ${totalPeople} usuários nesta lista`
+            ? `Filtro ativo: ${formatProcessOption(selectedProcess, processOptions)}; ${people.length} de ${totalPeople} usuários nesta lista`
             : `${people.length} usuários nesta lista`}
         </p>
       )}
@@ -97,7 +97,9 @@ export function LastActivityTable({
                     <ActivityStatusBadge person={person} />
                   </dd>
                   <dt className="muted">Aplicação</dt>
-                  <dd>{formatProcessName(person.realtime?.process_name) || '—'}</dd>
+                  <dd>
+                    {formatProcessOption(person.realtime?.process_name, processOptions) || '—'}
+                  </dd>
                   <dt className="muted">Última leitura</dt>
                   <dd>{lastRead(person)}</dd>
                 </dl>
@@ -133,7 +135,9 @@ export function LastActivityTable({
                     <td>
                       <ActivityStatusBadge person={person} />
                     </td>
-                    <td>{formatProcessName(person.realtime?.process_name) || '—'}</td>
+                    <td>
+                      {formatProcessOption(person.realtime?.process_name, processOptions) || '—'}
+                    </td>
                     <td>{lastRead(person)}</td>
                   </tr>
                 ))}

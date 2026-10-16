@@ -71,7 +71,7 @@ describe('CollaboratorsPage', () => {
     render(<CollaboratorsPage />);
 
     const table = await screen.findByRole('table', { name: 'Usuários cadastrados na API' });
-    expect(screen.getByRole('status')).toHaveTextContent('2 de 2 colaboradores');
+    expect(screen.getByText(/2 de 2 colaboradores/)).toBeInTheDocument();
     expect(table).toHaveTextContent('20s atrás');
     expect(table).toHaveTextContent('15min atrás');
 
@@ -84,15 +84,85 @@ describe('CollaboratorsPage', () => {
     fireEvent.change(screen.getByLabelText('Aplicativo na última leitura'), {
       target: { value: 'Chrome' },
     });
+    fireEvent.change(screen.getByLabelText('Ordenar por'), { target: { value: 'oldest' } });
 
-    expect(screen.getByRole('status')).toHaveTextContent('1 de 2 colaboradores');
+    expect(screen.getByText(/1 de 2 colaboradores/)).toBeInTheDocument();
     expect(screen.getByRole('table')).toHaveTextContent('bia');
     expect(screen.getByRole('table')).not.toHaveTextContent('ana');
 
     fireEvent.click(screen.getByRole('button', { name: 'Limpar filtros' }));
-    expect(screen.getByRole('status')).toHaveTextContent('2 de 2 colaboradores');
+    expect(screen.getByText(/2 de 2 colaboradores/)).toBeInTheDocument();
     expect(screen.getByRole('table')).toHaveTextContent('ana');
     expect(screen.getByRole('table')).toHaveTextContent('bia');
+    expect(screen.getByLabelText('Ordenar por')).toHaveValue('name');
+  });
+
+  it('permite restaurar a ordenação padrão mesmo sem critérios de filtro', async () => {
+    api.users.mockResolvedValue(users);
+    api.realtime.mockResolvedValue(realtime);
+    render(<CollaboratorsPage />);
+    await screen.findByRole('table', { name: 'Usuários cadastrados na API' });
+
+    const clearButton = screen.getByRole('button', { name: 'Limpar filtros' });
+    expect(clearButton).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Ordenar por'), { target: { value: 'recent' } });
+    expect(clearButton).toBeEnabled();
+    fireEvent.click(clearButton);
+    expect(screen.getByLabelText('Ordenar por')).toHaveValue('name');
+    expect(clearButton).toBeDisabled();
+  });
+
+  it('separa a recepção da consulta da idade da última leitura e envelhece sem novo pedido', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-16T12:00:00Z'));
+    try {
+      api.users.mockResolvedValue(users);
+      api.realtime.mockResolvedValue([
+        {
+          username: 'ana',
+          status: 'online',
+          process_name: 'Editor',
+          seconds_since_last_activity: 20,
+        },
+      ]);
+      render(<CollaboratorsPage />);
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(screen.getByRole('table')).toHaveTextContent('20s atrás');
+      expect(screen.getByRole('status', { name: 'Atualização da consulta' })).toHaveTextContent(
+        'Última atualização da consulta: 16/10/2026, 09:00',
+      );
+
+      await act(async () => vi.advanceTimersByTime(60_000));
+      expect(screen.getByRole('table')).toHaveTextContent('1min atrás');
+      expect(api.realtime).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('identifica resposta parcial e não inventa horário de atualização em uma falha total', async () => {
+    api.users.mockResolvedValue(users);
+    api.realtime.mockRejectedValue(new Error('atividade indisponível'));
+    render(<CollaboratorsPage />);
+
+    await waitFor(() =>
+      expect(screen.getByRole('status', { name: 'Atualização da consulta' })).toHaveTextContent(
+        'Resposta parcial da consulta recebida',
+      ),
+    );
+    expect(screen.getByRole('alert')).toHaveTextContent('Atividade: atividade indisponível');
+
+    api.users.mockRejectedValue(new Error('API indisponível'));
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar' }));
+    await waitFor(() =>
+      expect(screen.getByRole('status', { name: 'Atualização da consulta' })).toHaveTextContent(
+        'Falha na atualização atual. Última resposta válida recebida em',
+      ),
+    );
   });
 
   it('permite atualização manual sem criar chamadas duplicadas', async () => {
@@ -117,7 +187,7 @@ describe('CollaboratorsPage', () => {
     fireEvent.change(screen.getByLabelText('Estado informado pela API'), {
       target: { value: 'unavailable' },
     });
-    expect(screen.getByRole('status')).toHaveTextContent('2 de 2 colaboradores');
+    expect(screen.getByText(/2 de 2 colaboradores/)).toBeInTheDocument();
     expect(screen.getByRole('table')).toHaveTextContent('Indisponível');
     expect(screen.getByRole('table')).not.toHaveTextContent('Offline (API)');
   });

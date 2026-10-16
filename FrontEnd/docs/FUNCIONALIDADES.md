@@ -63,7 +63,11 @@ A tela permite pesquisar por nome, usuário ou departamento, combinar estado e a
 
 O aviso diferencia atividade capturada de conexão/sincronização. A idade mostrada é calculada pela API desde `captured_at`; ela não confirma contato atual do Agent nem recebimento recente no servidor. Esta tela não mostra código de associação, gestor, permissões ou conexão confirmada do Agent.
 
+O horário de atualização indica quando o frontend recebeu a última resposta válida da consulta, formatado no horário de Brasília. Respostas parciais e falhas ficam identificadas; numa falha total, a tela informa quando ocorreu a última resposta válida, sem apresentá-la como atual. A idade da leitura realtime avança a cada minuto usando relógio monotônico da sessão, sem novas consultas. O processo continua sendo filtrado pelo valor exato de `process_name`; espaços são normalizados somente no rótulo e rótulos visualmente iguais mostram o identificador original para distingui-los. Limpar filtros também restaura a ordenação por nome.
+
 ## Tasks (`#/tasks`)
+
+A revisão manteve `TasksPage` sem extrações adicionais: a tela de demonstração já separa a indisponibilidade de produção, o fluxo assíncrono no hook `useTasks` e pesquisa/ordenação em `taskList.js`. Novos componentes não reduziriam acoplamento nem criariam reutilização neste escopo.
 
 O Backend deste checkout não oferece consulta, criação, edição ou persistência de tasks, seleção de colaboradores associados nem aplicações do escopo. Sem mocks, esta página é informativa e não oferece formulário. Apenas em desenvolvimento com `VITE_USE_MOCKS=true`, há uma demonstração em memória com criação, pesquisa por descrição, ordenação por data ou descrição e seleção local para consultar detalhes. A tela identifica os dados como simulados, que não persistem nem representam o Backend. A seleção pode ser limpa e não é guardada como sessão. Criar ou selecionar uma task não inicia nem controla o monitoramento pelo Agent, que depende de contratos separados de seleção operacional, início/fim e `task_id` nos registros. O requisito [RF-06](../../requisitos/requisitos/rn_rf.md#rf-06--criar-e-editar-tasks) permanece dependente dos contratos indicados em [Pendências](PENDENCIAS.md).
 

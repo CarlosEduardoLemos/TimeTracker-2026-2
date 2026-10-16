@@ -17,6 +17,16 @@ Histórico de alterações por data, em ordem da mais recente para a mais antiga
 - **Agent:** `PENDENCIAS.md` registra em A-01 o placeholder literal de usuário em `agent/UI/AssociationForm.cs:42` e recomenda correção e revisão visual pela equipe do Agent. Nenhum arquivo fora de `FrontEnd/` foi escrito.
 - **Validação:** baseline e resultados finais constam em [Testes](TESTES.md). `npm.cmd run check:full` passou; nenhum contrato ou dependência de produção foi alterado.
 
+## 16/10/2026 — Revisão complementar dos filtros, nomes e temporalidade
+
+- **Integração:** routers e schemas usados pelo frontend foram comparados em leitura. Os endpoints, métodos, parâmetros e payloads correspondem aos contratos atuais; não há ambiente real habilitado para uma chamada E2E autorizada. Validadores passaram a rejeitar tipos incorretos em `is_idle`, `CategorySummary.color` e `SystemSettingsOut.updated_at` quando presentes.
+- **Colaboradores:** “Limpar filtros” restaura pesquisa, estado, aplicativo e ordenação por nome; alterar somente a ordenação também habilita a ação.
+- **Aplicativos:** identificadores `process_name` seguem exatos para filtros. Espaços são normalizados só nos rótulos, e rótulos que colidem após a apresentação mostram o valor original para continuar distinguíveis; não foi encontrado catálogo confiável que justifique mapear processos a produtos.
+- **Temporalidade:** o estado registra o momento em que cada resposta válida chegou ao navegador e distingue sucesso completo, parcial e falha. A idade da leitura realtime avança a cada minuto com relógio monotônico, sem nova requisição. A interface não apresenta esse horário como conexão do Agent.
+- **Tasks:** nenhuma componentização adicional foi feita. A separação entre tela indisponível, demonstração em `TasksPage`, fluxo assíncrono em `useTasks` e filtro/ordenação em `taskList.js` já atende ao escopo; novas abstrações não trariam reuso neste momento.
+- **Dependências externas:** B-10 em `PENDENCIAS.md` registra que status confiável de conexão depende de timestamp de recebimento e identidade de Agent/máquina no contrato autorizado do Backend.
+- **Validação:** linha de base, resultados finais, cenários reais ignorados e limites do ambiente estão em [Testes](TESTES.md).
+
 ## 13/10/2026 — Atualização do frontend: autenticação, mocks e jornada simulada
 
 - **Inicialização e isolamento:** MSW e cliente simulado só são importados em desenvolvimento quando `VITE_USE_MOCKS=true`. A aplicação aguarda o worker; falha apresenta alerta e não usa a API real. Rotas da API sem handler retornam `501`, e requests não tratados na origem da API são bloqueados pelo MSW. Ao desativar mocks em desenvolvimento, registros antigos do worker são removidos sem atingir outros Service Workers.

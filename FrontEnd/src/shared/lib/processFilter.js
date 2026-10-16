@@ -4,6 +4,23 @@ export function formatProcessName(value) {
 }
 
 /**
+ * Keep options with visually identical labels distinguishable without changing
+ * the raw process identifier used as the select value or filter key.
+ * @param {unknown} value
+ * @param {unknown} options
+ */
+export function formatProcessOption(value, options = []) {
+  const label = formatProcessName(value);
+  if (!label || !Array.isArray(options)) return label;
+
+  const duplicateLabel = options.some(
+    (option) => option !== value && formatProcessName(option) === label,
+  );
+  const rawIdentifier = JSON.stringify(value).replace(/ /g, '␠');
+  return duplicateLabel ? `${label} (${rawIdentifier})` : label;
+}
+
+/**
  * Keep the raw process name as the option value. Formatting is only for the
  * label shown to the user; the API identifier remains untouched.
  * @param {unknown} people

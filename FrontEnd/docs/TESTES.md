@@ -2,6 +2,17 @@
 
 Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026**, **13/10/2026** e **16/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
+## Revisão complementar — 16/10/2026
+
+- **Linha de base:** antes das alterações, `npm.cmd run check` passou. Vitest: 242 testes em 55 arquivos; cobertura de 94,77% statements, 90,20% branches, 95,36% functions e 96,82% lines. O E2E inicial teve 29 aprovados e 2 ignorados por dependerem da API real.
+- **Resultado final:** `npm.cmd run check:full` passou com lint, Prettier, typecheck, cobertura, build de produção, 4 verificações do bundle e E2E.
+- **Vitest/cobertura:** 254 testes em 55 arquivos passaram; cobertura de 95,23% statements, 90,84% branches, 96,11% functions e 97,13% lines.
+- **E2E:** 29 passaram, 0 falharam e 2 testes de API real foram ignorados. axe-core não encontrou violações nos fluxos cobertos; viewport móvel, tema escuro e ampliação de 200% também passaram.
+- A primeira execução E2E após incluir o anúncio acessível do horário encontrou dois seletores genéricos ambíguos/obsoletos; os testes passaram a distinguir o horário da consulta da contagem e a execução completa seguinte passou.
+- Testes focados de API cobrem 400, 401, 403, 404 e 500, além de 422/503, resposta inválida, timeout e cancelamento. Os testes de Colaboradores cobrem resposta parcial, falha, cancelamento, resposta antiga, ordenação, duplicidade visual de nomes e envelhecimento da leitura sem nova requisição.
+- `backend/.env` não existe e `RUN_REAL_API` não está habilitado. Nenhuma chamada real foi tentada; os dois E2E reais permaneceram ignorados e nenhum teste escreveu dados no Backend.
+- `git diff --check` passou; `git diff --name-only` confirmou que todas as 21 alterações versionadas estão em `FrontEnd/`.
+
 ## Integração do Agent em Colaboradores — 16/10/2026
 
 - `npm.cmd run check:full` passou: ESLint, Prettier, typecheck, cobertura Vitest, build de produção, 4 verificações do bundle e Playwright E2E.

@@ -227,6 +227,11 @@ As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID
 - **Workaround frontend:** exibir o status retornado com texto neutro, sem reinterpretar o campo ou afirmar desconexão.
 - **Motivo da pendência:** o critério de produto foi definido, mas precisa ser implementado e exposto pelo backend; o frontend não consegue inferir a última gravação da máquina a partir dos campos atuais.
 
+**Complemento frontend (16/10/2026):** Colaboradores agora distingue o instante local de recepção da consulta da idade realtime calculada pelo servidor. O primeiro não confirma gravação no banco; o segundo ainda depende do `captured_at` enviado pelo Agent e pode refletir relógio divergente ou sincronização atrasada. Nenhum campo novo foi presumido. Para estado de conexão confiável, permanece necessário status e instante do último recebimento por identidade estável de Agent/máquina, com escopo autorizado. A equipe responsável e os critérios de aceitação já constam nesta pendência B-10.
+
+- **Equipe responsável/contrato necessário:** equipe Backend deve persistir o instante de recebimento da gravação e associá-lo a um identificador estável de Agent/máquina; expor esse instante e `connection_status` numa resposta autenticada e limitada à equipe do gestor. O contrato também deve definir máquinas sem registro e múltiplos Agents por colaborador.
+- **Critérios de aceitação:** `offline` após mais de 15 minutos sem novo registro persistido por máquina; `is_idle` não altera o estado de conexão; a resposta identifica cada máquina autorizada, declara o instante de recebimento com timezone e distingue ausência de registro de falha da consulta.
+
 <a id="pendencias-integracao"></a>
 
 ## Pendências de integração Frontend + Backend

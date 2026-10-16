@@ -1,9 +1,15 @@
 import { ActivityStatusBadge } from '../../../shared/components/ActivityStatusBadge';
-import { formatLastRead } from '../../../shared/lib/relativeTime';
-import { formatProcessName } from '../../../shared/lib/processFilter';
+import { formatLastReadAt } from '../../../shared/lib/relativeTime';
+import { formatProcessOption } from '../../../shared/lib/processFilter';
 import { CollaboratorCard } from './CollaboratorCard';
 
-export function CollaboratorsTable({ people, realtimeAvailable }) {
+export function CollaboratorsTable({
+  people,
+  realtimeAvailable,
+  processOptions = [],
+  lastReadObservedAt = null,
+  now,
+}) {
   return (
     <>
       <div className="grid gap-3 sm:hidden" aria-label="Usuários cadastrados na API">
@@ -12,6 +18,9 @@ export function CollaboratorsTable({ people, realtimeAvailable }) {
             key={person.username}
             person={person}
             realtimeAvailable={realtimeAvailable}
+            processOptions={processOptions}
+            lastReadObservedAt={lastReadObservedAt}
+            now={now}
           />
         ))}
       </div>
@@ -45,10 +54,14 @@ export function CollaboratorsTable({ people, realtimeAvailable }) {
                 <td>
                   <ActivityStatusBadge person={person} available={realtimeAvailable} />
                 </td>
-                <td>{formatProcessName(person.realtime?.process_name) || '—'}</td>
+                <td>{formatProcessOption(person.realtime?.process_name, processOptions) || '—'}</td>
                 <td>
                   {realtimeAvailable
-                    ? formatLastRead(person.realtime?.seconds_since_last_activity)
+                    ? formatLastReadAt(
+                        person.realtime?.seconds_since_last_activity,
+                        lastReadObservedAt,
+                        now,
+                      )
                     : '—'}
                 </td>
               </tr>

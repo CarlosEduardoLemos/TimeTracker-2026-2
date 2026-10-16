@@ -147,14 +147,14 @@ test('filtra e atualiza a lista de atividade dos colaboradores', async ({ page }
   await expect(table).toContainText('20s atrás');
   await expect(table).toContainText('15min atrás');
   await expect(table).not.toContainText('ESTACAO-01');
-  await expect(page.getByRole('status')).toContainText('2 de 2 colaboradores');
+  await expect(page.getByText(/2 de 2 colaboradores/)).toBeVisible();
 
   await page.getByRole('searchbox', { name: 'Pesquisar colaborador' }).fill('Bia Lima');
   await page.getByLabel('Estado informado pela API').selectOption('offline');
   await page.getByLabel('Aplicativo na última leitura').selectOption('Chrome');
   await expect(table).toContainText('Bia Lima');
   await expect(table).not.toContainText('Ana Silva');
-  await expect(page.getByRole('status')).toContainText('1 de 2 colaboradores');
+  await expect(page.getByText(/1 de 2 colaboradores/)).toBeVisible();
 
   await page.getByRole('button', { name: 'Limpar filtros' }).click();
   await expect(table).toContainText('Ana Silva');
