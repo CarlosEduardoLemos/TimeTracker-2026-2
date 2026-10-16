@@ -1,6 +1,6 @@
 # Pendências do frontend e dependências externas
 
-Revisão: **13/10/2026**. `backend/`, `agent/` e `requisitos/` foram consultados somente para leitura. Os IDs em **Problema/requisito** apontam para [RN/RF](../../requisitos/requisitos/rn_rf.md), [RNF](../../requisitos/requisitos/rnf.md), [critérios de aceite](../../requisitos/requisitos/ca.md) ou [RBAC](../../requisitos/rbac.md). Situação e prioridade refletem o código e os contratos observados neste checkout.
+Revisão: **16/10/2026**. `backend/`, `agent/` e `requisitos/` foram consultados somente para leitura. Os IDs em **Problema/requisito** apontam para [RN/RF](../../requisitos/requisitos/rn_rf.md), [RNF](../../requisitos/requisitos/rnf.md), [critérios de aceite](../../requisitos/requisitos/ca.md) ou [RBAC](../../requisitos/rbac.md). Situação e prioridade refletem o código e os contratos observados neste checkout.
 
 As PRs #122 (Agent, merge `e43673b4dca212eaa991308d14c9dc25b6c64061`) e #123 (autenticação do backend, merge `0fc4e7b7333ceb4fdd120f7f1f753f9836163e30`) já foram incorporadas à `main` da organização. A implementação local do backend confirma os contratos de cadastro/login/JWT/`/auth/me`; a associação no backend continua ausente. O escopo aprovado do MVP de 13/10 permanece sem login na apresentação.
 
@@ -11,6 +11,7 @@ As PRs #122 (Agent, merge `e43673b4dca212eaa991308d14c9dc25b6c64061`) e #123 (au
 - [Resumo das pendências](#resumo-das-pendencias)
 - [Pendências do Backend](#pendencias-backend)
 - [Pendências de integração](#pendencias-integracao)
+- [Pendências do Agent](#pendencias-agent)
 - [Pendências futuras do Frontend](#pendencias-frontend)
 - [Propostas de contratos](#propostas-de-contratos-de-integracao)
   - [Tasks e escopo](#proposta-tasks-crud)
@@ -41,7 +42,7 @@ O resultado atual do `npm audit` não listou Vite, embora advisories oficiais do
 
 <a id="estado-do-mvp"></a>
 
-## Estado do MVP 13/10 nesta revisão
+## Estado do MVP — revisão de 16/10/2026
 
 | Funcionalidade                           | Prioridade              | Estado                          | Área/frontend afetado                         | Contrato/dependência e impacto                                                                                                                                                                                                                                                                                                                                |
 | ---------------------------------------- | ----------------------- | ------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -51,6 +52,11 @@ O resultado atual do `npm audit` não listou Vite, embora advisories oficiais do
 | Acesso direto sem login                  | Alta                    | **OK**                          | `App`, rotas e menu                           | Rotas do MVP abrem diretamente; o link "Criar conta" não aparece no menu e o `AssociationCodeCard` está oculto no Dashboard. Autenticação permanece **ADIADA PARA DEPOIS DO MVP**; implementação futura foi preservada.                                                                                                                                       |
 
 Os bloqueios funcionais impedem concluir o recorte anunciado como utilizável somente com o frontend atual. A apresentação de status realtime e o resumo por categoria continuam sendo fontes distintas; nenhuma delas é convertida em jornada ou Task.
+
+### Entregas frontend desta revisão — 16/10/2026
+
+- O filtro de aplicativo deriva opções dos `process_name` recebidos no realtime e filtra somente a tabela atual de última atividade. Pode ser combinado com o usuário selecionado; não altera os indicadores ou o resumo diário e não responde a perguntas históricas de uso.
+- A demonstração de Tasks em desenvolvimento agora permite pesquisar descrições, ordenar a lista e selecionar uma Task para consultar detalhes. Criação e seleção continuam em dados simulados; a seleção não inicia monitoramento nem representa persistência.
 
 <a id="resumo-das-pendencias"></a>
 
@@ -82,8 +88,9 @@ Os bloqueios funcionais impedem concluir o recorte anunciado como utilizável so
 | F-02 | Instalação PWA e política offline                                 | Frontend             | Média      | FRONTEND FUTURO                    |
 | F-03 | Validação humana e matriz de navegadores                          | Frontend             | Média      | FRONTEND FUTURO                    |
 | D-01 | Atualizar [responsividade.md](../../requisitos/responsividade.md) | Documentação externa | Baixa      | AGUARDANDO REVISÃO EXTERNA         |
+| A-01 | Identidade e revisão visual da interface desktop do Agent         | Agent                | Alta       | ABERTO PARA EQUIPE DO AGENT        |
 
-Cada ID identifica uma pendência específica para facilitar referências no texto e na ordem de execução. A letra indica a área: `B` = backend, `I` = integração entre frontend e backend, `F` = frontend e `D` = documentação externa. O número distingue os itens da mesma área; não indica prioridade nem status, que aparecem em colunas próprias.
+Cada ID identifica uma pendência específica para facilitar referências no texto e na ordem de execução. A letra indica a área: `B` = backend, `I` = integração entre frontend e backend, `F` = frontend, `A` = Agent e `D` = documentação externa. O número distingue os itens da mesma área; não indica prioridade nem status, que aparecem em colunas próprias.
 
 Os status descrevem a dependência atual; a prioridade indica impacto. Eles não indicam que todo o frontend esteja parado.
 
@@ -96,6 +103,7 @@ Os status descrevem a dependência atual; a prioridade indica impacto. Eles não
 | **AGENT INTEGRADO; BACKEND BLOQUEADO** | O cliente Agent da PR #122 foi integrado; geração/consulta de código, associação e vínculo autorizado continuam ausentes no backend; consulte I-02. |
 | **PENDENTE DE AMBIENTE**               | O cenário de integração está preparado; falta serviço real, banco, origem configurada e dados autorizados para executá-lo.                          |
 | **FRONTEND FUTURO**                    | Trabalho previsto para uma etapa posterior do frontend, como instalação PWA ou validação em dispositivos reais.                                     |
+| **ABERTO PARA EQUIPE DO AGENT**        | Há correção ou revisão necessária em arquivos do Agent, que foram consultados somente para leitura nesta auditoria.                                 |
 | **AGUARDANDO REVISÃO EXTERNA**         | Depende da revisão de um documento fora de `FrontEnd/`; neste caso, `requisitos/responsividade.md`.                                                 |
 
 As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID. O motivo específico aparece em **Motivo do bloqueio** ou **Motivo da pendência**.
@@ -267,10 +275,10 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Frontend afetado:** `TasksPage`, painel e relatórios.
 - **Backend relacionado:** modelos/schemas/routers não contêm task; atividades não contêm vínculo, início/fim ou classificação de escopo.
 - **Agent relacionado:** `agent/Dtos/ApiDtos.cs`, `agent/Services/QueueSenderService.cs` e payload de atividade não têm `task_id` nem comandos de seleção/início/encerramento.
-- **Atual/impacto:** não há Task model/schema nem `GET /tasks`, `POST /tasks` ou contrato equivalente; a tela permanece informativa e não simula gravação. Categorias não equivalem às aplicações de uma task. A criação persistida pelo Dashboard, quando houver contrato, será distinta do controle de monitoramento pelo Agent.
+- **Atual/impacto:** não há Task model/schema nem `GET /tasks`, `POST /tasks` ou contrato equivalente. Sem mocks de desenvolvimento, a tela é informativa; com `VITE_USE_MOCKS=true`, demonstra criação em memória, pesquisa por descrição, ordenação e seleção local para consultar detalhes. Esses dados não persistem e não representam o Backend. Categorias não equivalem às aplicações de uma task. A criação persistida pelo Dashboard, quando houver contrato, será distinta do controle de monitoramento pelo Agent.
 - **Alinhamento da liderança para Sprint 2:** será solicitado a Danyyel que crie uma task padrão. A solicitação ainda não equivale a task disponível na API nem define se ela será criada como seed, configuração ou registro operacional.
 - **Contrato necessário:** para o recorte mínimo de Tasks, consulta e criação persistentes com schema e validações reais; para RF-06 completo, também edição, descrição, colaboradores atribuídos, aplicações do escopo e autorização. A integração Agent exige ainda listagem/seleção/início/encerramento, `task_id` nos registros e confirmação de ciência.
-- **Workaround frontend:** não existe; armazenamento local, CRUD fictício ou reaproveitar categorias violaria a regra de negócio.
+- **Limite do frontend:** a demonstração não é workaround de produção. Não usar `localStorage`, CRUD fictício em produção ou categorias como substituto da integração real.
 - **Motivo do bloqueio:** depende do modelo central de monitoramento e de implementação backend/agente.
 - **Propostas detalhadas:** [gerenciamento de Tasks](#proposta-tasks-crud) e [atribuição de colaboradores](#proposta-task-collaborators).
 
@@ -337,6 +345,22 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Contrato/alteração necessária:** disponibilizar ambiente de teste autorizado, dados e origem; executar `RUN_REAL_API=1 npm run test:e2e:real` e conferir CSV/PDF, falhas e reinício. Sem alteração de endpoints.
 - **Workaround frontend:** fixtures de teste protegem comportamento do cliente, mas não comprovam a API real.
 - **Motivo da pendência:** o ambiente depende de serviço e banco disponíveis e de dados de teste autorizados; executar o cenário requer o ambiente real configurado.
+
+<a id="pendencias-agent"></a>
+
+## Pendências do Agent
+
+### A-01 — Identidade e revisão visual da interface desktop — Alta
+
+- **Identificação:** A-01; área responsável: equipe do Agent; prioridade P1 para a identificação incorreta e P2 para a revisão visual; status: ABERTO PARA EQUIPE DO AGENT.
+- **Problema:** o formulário de associação mostra o placeholder `{orchestrator.Username}` em vez do nome real. As telas também usam dimensões e posições fixas; a bandeja mantém o ícone genérico do Windows Forms.
+- **Evidência:** em [`AssociationForm.cs`](../../agent/UI/AssociationForm.cs#L42), a estação usa interpolação, mas a linha `"Usuário: {orchestrator.Username}\n\n"` é uma string comum. [`StatusForm.cs`](../../agent/UI/StatusForm.cs#L28) define `ClientSize` 420×260 e posiciona controles por coordenadas fixas; [`AssociationForm.cs`](../../agent/UI/AssociationForm.cs#L36) define 380×230. [`TrayApplicationContext.cs`](../../agent/UI/TrayApplicationContext.cs#L47) usa `SystemIcons.Application` com comentário para substituí-lo por ícone próprio. `StatusForm` também exibe o título da janela capturada.
+- **Impacto:** durante a associação, o colaborador não consegue confirmar pela janela qual usuário está sendo associado. Rótulos longos ou escala de tela ampliada podem deixar os formulários apertados; a aparência do ícone não identifica a aplicação. Exibir título de janela merece revisão de necessidade e apresentação por conter texto potencialmente sensível.
+- **Justificativa:** identidade correta evita associação feita com contexto equivocado. Melhor hierarquia, escala, legibilidade e informação de privacidade tornam mais claro o estado de captura e conexão. O código consultado é externo ao escopo autorizado do Frontend.
+- **Solução proposta:** corrigir a string para `$"Usuário: {orchestrator.Username}\n\n"`. Em tarefa própria do Agent, reorganizar controles em layouts ancorados/contêineres com escala adequada, tratar textos longos, revisar ordem de teclado e foco, diferenciar estados por texto e ícone além da cor, e substituir o ícone genérico. Confirmar se o título da janela é necessário ou se o processo basta. Não há justificativa observada para migrar de Windows Forms.
+- **Dependências:** equipe do Agent; não depende de mudança no Frontend. Uma política sobre exibir título de janela deve seguir os requisitos de privacidade do produto.
+- **Critérios de aceite:** formulário de associação mostra o valor real de usuários de teste distintos; usuário consegue concluir os controles por teclado com foco visível; telas permanecem legíveis a 100%, 150% e 200% de escala e com usuário/estação longos; conexão, associação, pausa e erro são distinguíveis sem depender somente de cor; a informação de janela respeita a decisão de privacidade.
+- **Testes recomendados:** teste de apresentação do texto com nomes de usuários distintos; inspeção manual em Windows Forms nas escalas indicadas e com textos longos; verificação de ordem de Tab, foco, estados de conexão/associação/pausa e título de janela; build e testes da solução do Agent após a correção.
 
 <a id="pendencias-frontend"></a>
 

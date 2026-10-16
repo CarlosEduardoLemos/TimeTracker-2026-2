@@ -77,6 +77,45 @@ test('abre o painel sem login, filtra data e usuário e navega até a rota 404',
   await expect(page.getByRole('heading', { name: 'Página não encontrada' })).toBeVisible();
 });
 
+test('filtra aplicativos somente na última atividade e combina com usuário', async ({ page }) => {
+  await page.route('http://localhost:8000/activities/realtime', (route) =>
+    route.fulfill({
+      json: [
+        {
+          username: 'ana',
+          status: 'online',
+          seconds_since_last_activity: 5,
+          process_name: 'Editor',
+        },
+        {
+          username: 'bia',
+          status: 'online',
+          seconds_since_last_activity: 8,
+          process_name: 'Chrome',
+        },
+      ],
+    }),
+  );
+  await page.goto('/#/painel');
+
+  const activity = page.getByLabel('Tabela de última atividade com rolagem horizontal');
+  const metrics = page.getByLabel('Indicadores disponíveis');
+  await expect(activity).toContainText('Ana Silva');
+  await expect(activity).toContainText('Bia Lima');
+  await expect(metrics).toContainText('2h 00min');
+
+  await page.getByLabel('Aplicativo na última atividade').selectOption('Chrome');
+  await expect(activity).toContainText('Bia Lima');
+  await expect(activity).not.toContainText('Ana Silva');
+  await expect(metrics).toContainText('2h 00min');
+
+  await page.getByRole('combobox', { name: 'Usuário' }).selectOption('ana');
+  await expect(page.getByText('Nenhum usuário corresponde aos filtros aplicados.')).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('0 de 1 usuários nesta lista');
+  await page.getByRole('button', { name: 'Limpar aplicativo' }).click();
+  await expect(activity).toContainText('Ana Silva');
+});
+
 test('mostra falha da API e recupera a lista ao tentar novamente', async ({ page }) => {
   let attempts = 0;
   await page.route('http://localhost:8000/users/', async (route) => {

@@ -1,6 +1,17 @@
 # Testes e validação do frontend
 
-Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026** e **13/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
+Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026**, **13/10/2026** e **16/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
+
+## Filtro realtime e demonstração de Tasks — 16/10/2026
+
+- **Linha de base antes das alterações:** `npm.cmd run check` passou com lint, formatação, typecheck, build e bundle; Vitest: **216 testes em 51 arquivos**, cobertura de 94,68% statements, 91,74% branches, 95,95% functions e 96,82% lines. E2E: **27 passaram e 2 foram ignorados** por exigirem API real.
+- **Resultado final:** `npm.cmd run check:full` passou. Incluiu ESLint, `format:check`, typecheck, cobertura, build, 4 testes do verificador de bundle e E2E.
+- **Vitest/cobertura:** **226 testes em 53 arquivos passaram**; 94,85% statements, 91,20% branches, 95,58% functions e 96,86% lines.
+- **E2E:** **28 passaram, 0 falharam e 2 foram ignorados**. O cenário novo combina os filtros de usuário e aplicativo, confirma que o filtro de aplicativo não muda o resumo e limpa a seleção. axe-core não detectou violações no Dashboard coberto.
+- A seleção/consulta de Tasks foi verificada nos testes de componente e função no modo de desenvolvimento simulado; a suíte E2E de produção confirma que a tela continua sem criação quando os mocks não estão ativos.
+- Os dois testes de API real foram ignorados porque `RUN_REAL_API` e um ambiente Backend autorizado não estavam configurados. A interface desktop do Agent não foi executada; a análise foi somente de código, conforme o escopo.
+- `npm.cmd audit --json --cache node_modules/.cache/npm-audit` não obteve resultado: a requisição para `https://registry.npmjs.org/-/npm/v1/security/advisories/bulk` falhou por restrição de rede. A auditoria de dependências disponível continua sendo o snapshot de 13/10 registrado em [Pendências](PENDENCIAS.md), sem verificação upstream nesta execução.
+- O verificador do build confirmou que handlers, worker e rotas mock não foram incluídos em `dist/`. Não foram adicionadas dependências.
 
 ## Revisão de robustez dos mocks — 13/10/2026
 

@@ -2,6 +2,14 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
+## 16/10/2026 — Filtro realtime e pesquisa de Tasks
+
+- **Dashboard:** adicionados seleção e contagem de aplicativos derivados do `process_name` realtime, combináveis com o usuário. O filtro atua somente na lista de última atividade; resumo diário e indicadores permanecem sem filtro de aplicativo. Nomes são formatados para leitura, mas o valor original continua sendo usado na filtragem.
+- **Tasks:** a lista demonstrativa de desenvolvimento recebeu pesquisa por descrição com ação explícita para limpar, contagem que identifica a pesquisa ativa, ordenação por data/descrição e seleção local para consultar detalhes. A lista continua em memória mock; nenhum endpoint foi criado, e a seleção não inicia monitoramento.
+- **Envios:** `useTasks` agora ignora novas chamadas de criação enquanto uma já está em andamento, evitando a criação duplicada por acionamentos rápidos.
+- **Agent:** `PENDENCIAS.md` registra em A-01 o placeholder literal de usuário em `agent/UI/AssociationForm.cs:42` e recomenda correção e revisão visual pela equipe do Agent. Nenhum arquivo fora de `FrontEnd/` foi escrito.
+- **Validação:** baseline e resultados finais constam em [Testes](TESTES.md). `npm.cmd run check:full` passou; nenhum contrato ou dependência de produção foi alterado.
+
 ## 13/10/2026 — Robustez dos mocks e jornada diária
 
 - **Inicialização e isolamento:** MSW e cliente simulado só são importados em desenvolvimento quando `VITE_USE_MOCKS=true`. A aplicação aguarda o worker; falha apresenta alerta e não usa a API real. Rotas da API sem handler retornam `501`, e requests não tratados na origem da API são bloqueados pelo MSW. Ao desativar mocks em desenvolvimento, registros antigos do worker são removidos sem atingir outros Service Workers.
