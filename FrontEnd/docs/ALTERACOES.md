@@ -2,7 +2,7 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
-## 16/10/2026 — Atividade realtime, filtros e pesquisa no frontend
+## 16/10/2026 — Atividade em tempo real, filtros do painel e busca de tarefas
 
 - **Visualização:** a lista agora mostra o estado de atividade retornado pela API, o aplicativo mais recente e o tempo desde a captura. Essa idade não é apresentada como conexão ou sincronização confirmada.
 - **Filtros:** adicionadas pesquisa por nome/usuário/departamento, filtros combináveis de estado e aplicativo, ordenação por nome/idade da captura, contagem de resultados e limpeza.
@@ -16,9 +16,6 @@ Histórico de alterações por data, em ordem da mais recente para a mais antiga
 - **Envios:** `useTasks` agora ignora novas chamadas de criação enquanto uma já está em andamento, evitando a criação duplicada por acionamentos rápidos.
 - **Agent:** `PENDENCIAS.md` registra em A-01 o placeholder literal de usuário em `agent/UI/AssociationForm.cs:42` e recomenda correção e revisão visual pela equipe do Agent. Nenhum arquivo fora de `FrontEnd/` foi escrito.
 - **Validação:** baseline e resultados finais constam em [Testes](TESTES.md). `npm.cmd run check:full` passou; nenhum contrato ou dependência de produção foi alterado.
-
-## 16/10/2026 — Revisão complementar dos filtros, nomes e temporalidade
-
 - **Integração:** routers e schemas usados pelo frontend foram comparados em leitura. Os endpoints, métodos, parâmetros e payloads correspondem aos contratos atuais; não há ambiente real habilitado para uma chamada E2E autorizada. Validadores passaram a rejeitar tipos incorretos em `is_idle`, `CategorySummary.color` e `SystemSettingsOut.updated_at` quando presentes.
 - **Colaboradores:** “Limpar filtros” restaura pesquisa, estado, aplicativo e ordenação por nome; alterar somente a ordenação também habilita a ação.
 - **Aplicativos:** identificadores `process_name` seguem exatos para filtros. Espaços são normalizados só nos rótulos, e rótulos que colidem após a apresentação mostram o valor original para continuar distinguíveis; não foi encontrado catálogo confiável que justifique mapear processos a produtos.
