@@ -5,6 +5,16 @@ import { handlers, resetMockData } from './handlers';
 const server = setupServer(...handlers);
 const baseUrl = 'http://localhost:8000';
 
+async function demoAuthorization() {
+  const response = await fetch(`${baseUrl}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'gestor@demo.local', password: 'senha-demonstrativa' }),
+  });
+  const token = await response.json();
+  return { Authorization: `Bearer ${token.access_token}` };
+}
+
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
@@ -49,11 +59,15 @@ describe('handlers das propostas de contrato', () => {
   });
 
   it('lista colaboradores de demonstração e executa CRUD de Tasks em memória', async () => {
-    const listResponse = await fetch(`${baseUrl}/tasks`);
+    const authorization = await demoAuthorization();
+    expect((await fetch(`${baseUrl}/tasks/`)).status).toBe(401);
+    expect((await fetch(`${baseUrl}/users/`)).status).toBe(401);
+
+    const listResponse = await fetch(`${baseUrl}/tasks/`, { headers: authorization });
     expect(listResponse.status).toBe(200);
     expect(await listResponse.json()).toEqual([]);
 
-    const collaboratorsResponse = await fetch(`${baseUrl}/users/`);
+    const collaboratorsResponse = await fetch(`${baseUrl}/users/`, { headers: authorization });
     expect(collaboratorsResponse.status).toBe(200);
     const collaborators = await collaboratorsResponse.json();
     expect(collaborators.map(({ username }) => username)).toEqual(['ana', 'bruno']);
@@ -64,9 +78,9 @@ describe('handlers das propostas de contrato', () => {
       collaborator_ids: [collaborators[0].id, collaborators[1].id],
     };
 
-    const createResponse = await fetch(`${baseUrl}/tasks`, {
+    const createResponse = await fetch(`${baseUrl}/tasks/`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...authorization, 'Content-Type': 'application/json' },
       body: JSON.stringify(taskPayload),
     });
     expect(createResponse.status).toBe(201);
@@ -80,7 +94,7 @@ describe('handlers das propostas de contrato', () => {
 
     const updateResponse = await fetch(`${baseUrl}/tasks/${created.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...authorization, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...taskPayload,
         title: 'Relatório publicado',
@@ -96,23 +110,27 @@ describe('handlers das propostas de contrato', () => {
     });
     expect(Date.parse(updated.updated_at)).toBeGreaterThanOrEqual(Date.parse(created.updated_at));
 
-    const deleteResponse = await fetch(`${baseUrl}/tasks/${created.id}`, { method: 'DELETE' });
+    const deleteResponse = await fetch(`${baseUrl}/tasks/${created.id}`, {
+      method: 'DELETE',
+      headers: authorization,
+    });
     expect(deleteResponse.status).toBe(200);
     expect(await deleteResponse.json()).toMatchObject({ id: created.id });
-    expect(await (await fetch(`${baseUrl}/tasks`)).json()).toEqual([]);
+    expect(await (await fetch(`${baseUrl}/tasks/`, { headers: authorization })).json()).toEqual([]);
   });
 
   it('distingue payload inválido e Task inexistente', async () => {
-    const invalid = await fetch(`${baseUrl}/tasks`, {
+    const authorization = await demoAuthorization();
+    const invalid = await fetch(`${baseUrl}/tasks/`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...authorization, 'Content-Type': 'application/json' },
       body: JSON.stringify({ title: '  ', description: '  ', collaborator_ids: [] }),
     });
     expect(invalid.status).toBe(422);
 
     const missing = await fetch(`${baseUrl}/tasks/00000000-0000-4000-8000-000000000099`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...authorization, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: 'Atualizar',
         description: 'Task',
@@ -122,12 +140,16 @@ describe('handlers das propostas de contrato', () => {
     expect(missing.status).toBe(404);
     const missingDelete = await fetch(`${baseUrl}/tasks/00000000-0000-4000-8000-000000000099`, {
       method: 'DELETE',
+      headers: authorization,
     });
     expect(missingDelete.status).toBe(404);
   });
 
   it('responde à jornada com fuso e nulos para colaborador sem registro', async () => {
-    const response = await fetch(`${baseUrl}/dashboard/attendance?date=2026-10-13`);
+    const authorization = await demoAuthorization();
+    const response = await fetch(`${baseUrl}/dashboard/attendance?date=2026-10-13`, {
+      headers: authorization,
+    });
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({
       date: '2026-10-13',
@@ -145,7 +167,10 @@ describe('handlers das propostas de contrato', () => {
   });
 
   it('applies date and collaborator filters to business-day records', async () => {
-    const response = await fetch(`${baseUrl}/dashboard/attendance?date=2026-10-14&username=ana`);
+    const authorization = await demoAuthorization();
+    const response = await fetch(`${baseUrl}/dashboard/attendance?date=2026-10-14&username=ana`, {
+      headers: authorization,
+    });
     const body = await response.json();
     expect(body.date).toBe('2026-10-14');
     expect(body.users.map(({ username }) => username)).toEqual(['ana']);
@@ -161,7 +186,12 @@ describe('handlers das propostas de contrato', () => {
     expect(format(first, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })).toBe('08:15');
     expect(format(last, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })).toBe('17:42');
 
-    const missing = await fetch(`${baseUrl}/dashboard/attendance?date=2026-10-14&username=unknown`);
+    const missing = await fetch(
+      `${baseUrl}/dashboard/attendance?date=2026-10-14&username=unknown`,
+      {
+        headers: authorization,
+      },
+    );
     expect((await missing.json()).users).toEqual([]);
   });
 
@@ -174,11 +204,15 @@ describe('handlers das propostas de contrato', () => {
     });
   });
   it('valida data, oferece agregação sem ranking e status separado de inatividade', async () => {
-    const invalidDate = await fetch(`${baseUrl}/dashboard/attendance?date=2026-02-31`);
+    const authorization = await demoAuthorization();
+    const invalidDate = await fetch(`${baseUrl}/dashboard/attendance?date=2026-02-31`, {
+      headers: authorization,
+    });
     expect(invalidDate.status).toBe(422);
 
     const hours = await fetch(
       `${baseUrl}/dashboard/task-hours?start_date=2026-10-01&end_date=2026-10-13`,
+      { headers: authorization },
     );
     expect(await hours.json()).toEqual({
       start_date: '2026-10-01',
@@ -189,6 +223,7 @@ describe('handlers das propostas de contrato', () => {
 
     const taskSummary = await fetch(
       `${baseUrl}/dashboard/tasks-summary?date=2026-10-13&task_id=6e7b94da-5651-46a0-bf28-fcb8f4f14c04`,
+      { headers: authorization },
     );
     expect(await taskSummary.json()).toEqual({
       date: '2026-10-13',
@@ -196,7 +231,7 @@ describe('handlers das propostas de contrato', () => {
       tasks: [],
     });
 
-    const agents = await fetch(`${baseUrl}/agents/status`);
+    const agents = await fetch(`${baseUrl}/agents/status`, { headers: authorization });
     const body = await agents.json();
     expect(
       body.agents.map(({ username, connection_status }) => [username, connection_status]),
@@ -205,10 +240,14 @@ describe('handlers das propostas de contrato', () => {
       ['bruno', 'unknown'],
     ]);
     expect(body.agents[0]).not.toHaveProperty('is_idle');
-    const filtered = await fetch(`${baseUrl}/agents/status?username=ana`);
+    const filtered = await fetch(`${baseUrl}/agents/status?username=ana`, {
+      headers: authorization,
+    });
     expect((await filtered.json()).agents.map(({ username }) => username)).toEqual(['ana']);
 
-    const noMatch = await fetch(`${baseUrl}/agents/status?username=unknown`);
+    const noMatch = await fetch(`${baseUrl}/agents/status?username=unknown`, {
+      headers: authorization,
+    });
     expect((await noMatch.json()).agents).toEqual([]);
   });
 });

@@ -68,14 +68,12 @@ export function DashboardFilters({
                   ? 'Nenhuma Task disponível'
                   : 'Todas as Tasks'}
           </option>
-          {taskId && !tasks.some((task) => task.id === taskId) && (
-            <option value={taskId}>Task selecionada</option>
-          )}
-          {tasks.map((task) => (
-            <option key={task.id} value={task.id}>
-              {task.title}
-            </option>
-          ))}
+          {tasksAvailable &&
+            tasks.map((task) => (
+              <option key={task.id} value={task.id}>
+                {task.title}
+              </option>
+            ))}
         </select>
         <span id="task-filter-help" className="mt-1 block text-xs font-normal muted">
           Não altera os indicadores gerais, que não têm identificação de Task.

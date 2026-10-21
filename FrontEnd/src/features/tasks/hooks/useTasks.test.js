@@ -165,6 +165,34 @@ describe('useTasks', () => {
     expect(result.current.tasks).toEqual([]);
   });
 
+  it('não deixa uma consulta iniciada antes da mutação sobrescrever seu resultado', async () => {
+    let finishRefresh;
+    taskService.tasks.mockResolvedValueOnce([demoTask]).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishRefresh = resolve;
+        }),
+    );
+    taskService.updateTask.mockResolvedValue({ ...demoTask, title: 'Atualização mais recente' });
+    const { result } = renderHook(() => useTasks(taskService));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    let pendingRefresh;
+    act(() => {
+      pendingRefresh = result.current.load();
+    });
+    await waitFor(() => expect(finishRefresh).toBeDefined());
+    await act(async () => {
+      await expect(result.current.updateTask(demoTask.id, {})).resolves.toBe(true);
+    });
+    await act(async () => {
+      finishRefresh([demoTask]);
+      await pendingRefresh;
+    });
+
+    expect(result.current.tasks[0].title).toBe('Atualização mais recente');
+  });
+
   it('cancela uma criação pendente ao desmontar o hook', async () => {
     let finish;
     let signal;

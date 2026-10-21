@@ -124,10 +124,10 @@ Quando `import.meta.env.DEV` e `VITE_USE_MOCKS=true`, os handlers MSW oferecem a
 | --------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | `POST /auth/register`, `POST /auth/login`, `GET /auth/me` | Identidade local de demonstração para navegar pelas rotas protegidas.          |
 | `GET /users/`                                             | Catálogo fixo de colaboradores demonstrativos.                                 |
-| `GET/POST /tasks`, `PUT/DELETE /tasks/{task_id}`          | CRUD volátil de Tasks para lista, formulário, edição e exclusão.               |
+| `GET/POST /tasks/`, `PUT/DELETE /tasks/{task_id}`         | CRUD volátil de Tasks para lista, formulário, edição e exclusão.               |
 | `GET /dashboard/tasks-summary?date&username&task_id`      | Valida filtros e responde `{ date, timezone, tasks: [] }`, sem criar métricas. |
 
-O payload demonstrativo de Task usa `title`, `description` e `collaborator_ids` na gravação; a resposta contém `id`, `title`, `description`, objetos de `collaborators` e timestamps. Os formatos são candidatos de interface, não schemas aceitos por um servidor. A interface de produção mostra prévia desabilitada e não chama essas rotas. A proposta atual de CRUD e resumo por Task está centralizada em [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao).
+O payload demonstrativo de Task usa `title`, `description` e `collaborator_ids` na gravação; a resposta contém `id`, `title`, `description`, objetos de `collaborators` e timestamps. O mock exige o Bearer da sessão demonstrativa e limita os IDs ao catálogo fixo local. Ele usa uma única identidade simulada, não modela isolamento entre gestores nem respostas `403`; isso não equivale à autorização exigida por #137. Os formatos são candidatos de interface, não schemas aceitos por um servidor. A rota simulada `/tasks/` segue o caminho escrito na issue #133. Não há contrato real confirmado: a interface de produção permanece desabilitada e não chama essas rotas. A proposta atual de CRUD e resumo por Task está centralizada em [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao).
 
 O resumo por Task é independente dos indicadores gerais e do resumo por categoria. A interface não deriva tempo de categoria, janela ativa ou status realtime. Para implementar a rota real, Backend e Agent ainda precisam definir TaskId persistido, escopo/autorização, fuso e semântica da duração.
 

@@ -94,11 +94,14 @@ describe('AuthPage', () => {
     await user.click(screen.getByRole('button', { name: 'Entrar' }));
 
     await waitFor(() => expect(window.location.hash).toBe('#/painel'));
-    expect(client.loginManager).toHaveBeenCalledWith({
-      email: 'gestor@empresa.com',
-      password: 'SenhaSegura123!',
-    });
-    expect(client.getCurrentManager).toHaveBeenCalledWith(token);
+    expect(client.loginManager).toHaveBeenCalledWith(
+      {
+        email: 'gestor@empresa.com',
+        password: 'SenhaSegura123!',
+      },
+      expect.any(AbortSignal),
+    );
+    expect(client.getCurrentManager).toHaveBeenCalledWith(token, expect.any(AbortSignal));
     expect(sessionStorage.getItem(MANAGER_ACCESS_TOKEN_KEY)).toBe(token);
     expect(sessionStorage.getItem(MANAGER_ACCESS_TOKEN_KEY)).not.toContain('SenhaSegura123!');
   });

@@ -226,6 +226,55 @@ describe('DashboardPage', () => {
     expect(await screen.findByText('0h 30min')).toBeInTheDocument();
   });
 
+  it('limpa uma Task removida no refresh e atualiza o resumo sem alterar métricas gerais', async () => {
+    const task = {
+      id: '6e7b94da-5651-46a0-bf28-fcb8f4f14c04',
+      title: 'Relatório mensal',
+      description: 'Revisar relatório',
+      collaborators: [],
+      created_at: '2026-10-13T14:20:00Z',
+      updated_at: '2026-10-13T14:20:00Z',
+    };
+    const devApi = {
+      tasks: vi.fn().mockResolvedValueOnce([task]).mockResolvedValue([]),
+      taskSummary: vi.fn((_date, _username, taskId) =>
+        Promise.resolve({
+          date: todayIso(),
+          timezone: 'America/Sao_Paulo',
+          tasks: taskId
+            ? [{ task_id: task.id, title: task.title, total_seconds: 1800, collaborators: [] }]
+            : [],
+        }),
+      ),
+    };
+    useDashboardData.mockReturnValue({
+      data: fullData,
+      loading: false,
+      refreshing: false,
+      refresh: vi.fn(),
+    });
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} devApi={devApi} />);
+
+    const taskFilter = await screen.findByLabelText(/Task \(somente resumo por Task\)/);
+    await waitFor(() => expect(taskFilter).toBeEnabled());
+    fireEvent.change(taskFilter, { target: { value: task.id } });
+    await screen.findByText('0h 30min');
+    expect(screen.getByText('Tempo registrado').closest('article')).toHaveTextContent('1h 00min');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar' }));
+    await waitFor(() => expect(taskFilter).toHaveValue(''));
+    await waitFor(() => {
+      expect(devApi.taskSummary).toHaveBeenLastCalledWith(
+        todayIso(),
+        '',
+        '',
+        expect.any(AbortSignal),
+      );
+    });
+    expect(screen.queryByText('0h 30min')).not.toBeInTheDocument();
+    expect(screen.getByText('Tempo registrado').closest('article')).toHaveTextContent('1h 00min');
+  });
+
   it('mantém a contagem de usuários cadastrados quando realtime falha', () => {
     useDashboardData.mockReturnValue({
       data: {

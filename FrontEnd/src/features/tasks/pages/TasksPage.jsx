@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { IntegrationNotice } from '../../../shared/components/IntegrationNotice';
 import { PageHeader } from '../../../shared/components/PageHeader';
 import { TaskForm } from '../components/TaskForm';
@@ -8,7 +8,7 @@ import { useTasks } from '../hooks/useTasks';
 export function TasksPage({ devApi = null }) {
   const mockMode = import.meta.env.DEV && !!devApi;
   const service = mockMode ? devApi : null;
-  const [editingTask, setEditingTask] = useState(null);
+  const [editingTaskId, setEditingTaskId] = useState(null);
   const [selectedTaskId, setSelectedTaskId] = useState('');
   const {
     tasks,
@@ -27,20 +27,42 @@ export function TasksPage({ devApi = null }) {
     updateTask,
     deleteTask,
   } = useTasks(service);
+  const editingTask = tasks.find((task) => task.id === editingTaskId) || null;
+  const editTrigger = useRef(null);
+
+  useEffect(() => {
+    if (loading || error) return;
+    if (selectedTaskId && !tasks.some((task) => task.id === selectedTaskId)) {
+      setSelectedTaskId('');
+    }
+    if (editingTaskId && !tasks.some((task) => task.id === editingTaskId)) {
+      setEditingTaskId(null);
+    }
+  }, [editingTaskId, error, loading, selectedTaskId, tasks]);
 
   async function saveTask(payload) {
     const saved = editingTask
       ? await updateTask(editingTask.id, payload)
       : await createTask(payload);
-    if (saved) setEditingTask(null);
+    if (saved) {
+      const wasEditing = Boolean(editingTask);
+      setEditingTaskId(null);
+      if (wasEditing) {
+        requestAnimationFrame(() => {
+          if (editTrigger.current?.isConnected) editTrigger.current.focus();
+        });
+      }
+    }
+    return saved;
   }
 
   async function removeTask(task) {
     const removed = await deleteTask(task.id);
     if (removed) {
       if (selectedTaskId === task.id) setSelectedTaskId('');
-      if (editingTask?.id === task.id) setEditingTask(null);
+      if (editingTaskId === task.id) setEditingTaskId(null);
     }
+    return removed;
   }
 
   return (
@@ -80,7 +102,12 @@ export function TasksPage({ devApi = null }) {
         collaboratorsError={collaboratorsError}
         onRetryCollaborators={retryCollaborators}
         onSubmit={saveTask}
-        onCancel={() => setEditingTask(null)}
+        onCancel={() => {
+          setEditingTaskId(null);
+          requestAnimationFrame(() => {
+            if (editTrigger.current?.isConnected) editTrigger.current.focus();
+          });
+        }}
         saving={mutationBusy}
         disabled={!mockMode}
         error={mutationError}
@@ -99,7 +126,10 @@ export function TasksPage({ devApi = null }) {
         onRetry={load}
         selectedTaskId={selectedTaskId}
         onSelectTask={setSelectedTaskId}
-        onEditTask={(task) => setEditingTask(task)}
+        onEditTask={(task, event) => {
+          editTrigger.current = event.currentTarget;
+          setEditingTaskId(task.id);
+        }}
         onDeleteTask={removeTask}
         mutationBusy={mutationBusy}
         disabled={!mockMode}

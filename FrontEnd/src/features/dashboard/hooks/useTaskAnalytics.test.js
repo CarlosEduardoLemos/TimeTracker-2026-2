@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useTaskAnalytics } from './useTaskAnalytics';
 
 const task = {
@@ -11,6 +11,8 @@ const task = {
   updated_at: '2026-10-13T14:20:00Z',
 };
 const summary = { date: '2026-10-13', timezone: 'America/Sao_Paulo', tasks: [] };
+
+afterEach(() => vi.useRealTimers());
 
 describe('useTaskAnalytics', () => {
   it('carrega opções e resumo usando filtros de data, colaborador e Task', async () => {
@@ -98,5 +100,55 @@ describe('useTaskAnalytics', () => {
     expect(result.current.tasksAvailable).toBe(false);
     expect(result.current.tasks).toEqual([]);
     expect(result.current.summary).toBeNull();
+  });
+
+  it('ignora a resposta anterior do catálogo mesmo se o serviço não respeitar o cancelamento', async () => {
+    let finishFirst;
+    const devApi = {
+      tasks: vi
+        .fn()
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              finishFirst = resolve;
+            }),
+        )
+        .mockResolvedValue([task]),
+      taskSummary: vi.fn().mockResolvedValue(summary),
+    };
+    const { result } = renderHook(() => useTaskAnalytics(devApi, summary.date, '', ''));
+    await waitFor(() => expect(finishFirst).toBeDefined());
+
+    await act(async () => result.current.retryTasks());
+    expect(result.current.tasks).toEqual([task]);
+    await act(async () => finishFirst([]));
+    expect(result.current.tasks).toEqual([task]);
+  });
+
+  it('recusa um resumo cuja data não corresponde ao filtro atual', async () => {
+    const devApi = {
+      tasks: vi.fn().mockResolvedValue([task]),
+      taskSummary: vi.fn().mockResolvedValue({ ...summary, date: '2026-10-12' }),
+    };
+    const { result } = renderHook(() => useTaskAnalytics(devApi, summary.date, '', ''));
+    await waitFor(() => expect(result.current.summaryError).toContain('não corresponde'));
+    expect(result.current.summary).toBeNull();
+  });
+
+  it('atualiza catálogo e resumo no intervalo comum do Dashboard', async () => {
+    vi.useFakeTimers();
+    const devApi = {
+      tasks: vi.fn().mockResolvedValue([task]),
+      taskSummary: vi.fn().mockResolvedValue(summary),
+    };
+    const { unmount } = renderHook(() => useTaskAnalytics(devApi, summary.date, '', ''));
+    await act(async () => {});
+    expect(devApi.tasks).toHaveBeenCalledTimes(1);
+    expect(devApi.taskSummary).toHaveBeenCalledTimes(1);
+
+    await act(async () => vi.advanceTimersByTimeAsync(30_000));
+    expect(devApi.tasks).toHaveBeenCalledTimes(2);
+    expect(devApi.taskSummary).toHaveBeenCalledTimes(2);
+    unmount();
   });
 });

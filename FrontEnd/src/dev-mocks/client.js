@@ -22,6 +22,7 @@ function jsonOptions(method, body, signal) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
     signal,
+    authenticated: true,
   };
 }
 
@@ -45,8 +46,8 @@ function taskQuery(date, username) {
 }
 
 export const devApi = {
-  tasks: (signal) => request('/tasks', validTasks, { signal }),
-  collaborators: (signal) => request('/users/', validUsers, { signal }),
+  tasks: (signal) => request('/tasks/', validTasks, { signal, authenticated: true }),
+  collaborators: (signal) => request('/users/', validUsers, { signal, authenticated: true }),
   createTask(task, signal) {
     if (!taskBodyIsValid(task))
       throw new Error('Informe título, descrição e colaboradores válidos.');
@@ -60,7 +61,11 @@ export const devApi = {
   },
   deleteTask(taskId, signal) {
     if (!UUID_PATTERN.test(taskId)) throw new Error('ID de Task inválido');
-    return request(`/tasks/${taskId}`, validTask, { method: 'DELETE', signal });
+    return request(`/tasks/${taskId}`, validTask, {
+      method: 'DELETE',
+      signal,
+      authenticated: true,
+    });
   },
   taskSummary(date, username = '', taskId = '', signal) {
     if (!isIsoDate(date)) throw new Error('Selecione uma data válida');
@@ -68,11 +73,15 @@ export const devApi = {
     const query = new URLSearchParams({ date });
     if (username) query.set('username', username);
     if (taskId) query.set('task_id', taskId);
-    return request(`/dashboard/tasks-summary?${query}`, validTaskSummary, { signal });
+    return request(`/dashboard/tasks-summary?${query}`, validTaskSummary, {
+      signal,
+      authenticated: true,
+    });
   },
   attendance(date, username = '', signal) {
     return request(`/dashboard/attendance?${taskQuery(date, username)}`, validAttendance, {
       signal,
+      authenticated: true,
     });
   },
   taskHours(startDate, endDate, username = '', taskId = '', signal) {
@@ -83,12 +92,18 @@ export const devApi = {
     const query = new URLSearchParams({ start_date: startDate, end_date: endDate });
     if (username) query.set('username', username);
     if (taskId) query.set('task_id', taskId);
-    return request(`/dashboard/task-hours?${query}`, validTaskHours, { signal });
+    return request(`/dashboard/task-hours?${query}`, validTaskHours, {
+      signal,
+      authenticated: true,
+    });
   },
   agentStatuses(username = '', signal) {
     const query = new URLSearchParams();
     if (username) query.set('username', username);
     const suffix = query.size ? `?${query}` : '';
-    return request(`/agents/status${suffix}`, validAgentStatuses, { signal });
+    return request(`/agents/status${suffix}`, validAgentStatuses, {
+      signal,
+      authenticated: true,
+    });
   },
 };

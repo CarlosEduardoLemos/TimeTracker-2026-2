@@ -79,6 +79,10 @@ describe('TasksPage', () => {
       },
       expect.any(AbortSignal),
     );
+    expect(screen.getByLabelText('Título')).toHaveValue('');
+    expect(screen.getByLabelText('Descrição')).toHaveValue('');
+    expect(screen.getByLabelText(/Ana Souza/)).not.toBeChecked();
+    expect(screen.getByLabelText(/Bruno Lima/)).not.toBeChecked();
   });
 
   it('mostra carregamento e impede envio sem colaborador', async () => {
@@ -103,6 +107,39 @@ describe('TasksPage', () => {
     );
     expect(screen.getByRole('alert')).toHaveTextContent('Selecione pelo menos um colaborador');
     expect(service.createTask).not.toHaveBeenCalled();
+  });
+
+  it('impede submissão enquanto os colaboradores estão sendo atualizados', async () => {
+    let finish;
+    const service = mockService({
+      collaborators: vi
+        .fn()
+        .mockRejectedValueOnce(new Error('Equipe indisponível'))
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              finish = resolve;
+            }),
+        ),
+    });
+    const user = userEvent.setup();
+    render(<TasksPage devApi={service} />);
+
+    fireEvent.change(screen.getByLabelText('Título'), { target: { value: 'Task válida' } });
+    fireEvent.change(screen.getByLabelText('Descrição'), { target: { value: 'Descrição válida' } });
+    await user.click(
+      await screen.findByRole('button', { name: 'Tentar carregar colaboradores novamente' }),
+    );
+    expect(screen.getByText('Carregando colaboradores…')).toHaveAttribute('role', 'status');
+    expect(screen.getByRole('button', { name: 'Criar Task' })).toBeDisabled();
+    fireEvent.submit(
+      screen.getByRole('heading', { name: 'Criar Task' }).closest('section').querySelector('form'),
+    );
+    expect(screen.getByRole('alert')).toHaveTextContent('Aguarde o carregamento');
+    expect(service.createTask).not.toHaveBeenCalled();
+
+    await act(async () => finish([ana, bruno]));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Criar Task' })).toBeEnabled());
   });
 
   it('pesquisa por título/descrição, ordena, seleciona detalhes e edita atribuições', async () => {
@@ -214,10 +251,106 @@ describe('TasksPage', () => {
     await user.click(
       await screen.findByRole('button', { name: 'Editar Task: Relatório trimestral' }),
     );
+    await user.clear(screen.getByLabelText('Título'));
+    await user.type(screen.getByLabelText('Título'), 'Rascunho local');
+    await user.click(screen.getByLabelText(/Bruno Lima/));
     await user.click(screen.getByRole('button', { name: 'Salvar alterações' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Task em execução');
+    expect(screen.getByLabelText('Título')).toHaveValue('Rascunho local');
+    expect(screen.getByLabelText(/Ana Souza/)).toBeChecked();
+    expect(screen.getByLabelText(/Bruno Lima/)).toBeChecked();
     expect(
       screen.getByRole('button', { name: 'Editar Task: Relatório trimestral' }),
     ).toBeInTheDocument();
+  });
+
+  it('sincroniza dados externos da mesma Task somente enquanto o formulário está limpo', async () => {
+    const user = userEvent.setup();
+    const service = mockService({ tasks: vi.fn().mockResolvedValue([task]) });
+    const { rerender } = render(<TasksPage devApi={service} />);
+    await user.click(
+      await screen.findByRole('button', { name: 'Editar Task: Relatório trimestral' }),
+    );
+
+    const remotelyUpdated = { ...task, title: 'Título atualizado em outra tela' };
+    const refreshedService = mockService({ tasks: vi.fn().mockResolvedValue([remotelyUpdated]) });
+    rerender(<TasksPage devApi={refreshedService} />);
+    await waitFor(() =>
+      expect(screen.getByLabelText('Título')).toHaveValue('Título atualizado em outra tela'),
+    );
+
+    await user.clear(screen.getByLabelText('Título'));
+    await user.type(screen.getByLabelText('Título'), 'Rascunho digitado');
+    const laterUpdate = { ...remotelyUpdated, title: 'Outra atualização externa' };
+    const laterService = mockService({ tasks: vi.fn().mockResolvedValue([laterUpdate]) });
+    rerender(<TasksPage devApi={laterService} />);
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Editar Task: Outra atualização externa' }),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.getByLabelText('Título')).toHaveValue('Rascunho digitado');
+  });
+
+  it('remove do formulário uma atribuição desconhecida e não a envia como válida', async () => {
+    const user = userEvent.setup();
+    const service = mockService({
+      tasks: vi.fn().mockResolvedValue([task]),
+      collaborators: vi.fn().mockResolvedValue([bruno]),
+    });
+    render(<TasksPage devApi={service} />);
+    await user.click(
+      await screen.findByRole('button', { name: 'Editar Task: Relatório trimestral' }),
+    );
+
+    expect(
+      screen.getByText(new RegExp(`Colaborador indisponível · ID ${ana.id}`)),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('atribuições de colaboradores');
+    expect(service.updateTask).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Remover atribuição' }));
+    await user.click(screen.getByLabelText(/Bruno Lima/));
+    await user.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+    expect(await screen.findByText('Task atualizada nos dados simulados.')).toBeInTheDocument();
+    expect(service.updateTask).toHaveBeenCalledWith(
+      task.id,
+      { title: task.title, description: task.description, collaborator_ids: [bruno.id] },
+      expect.any(AbortSignal),
+    );
+  });
+
+  it('cancela e reabre a edição com os valores atuais da Task', async () => {
+    const user = userEvent.setup();
+    const service = mockService({ tasks: vi.fn().mockResolvedValue([task]) });
+    render(<TasksPage devApi={service} />);
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Editar Task: Relatório trimestral' }),
+    );
+    await user.clear(screen.getByLabelText('Título'));
+    await user.type(screen.getByLabelText('Título'), 'Alteração descartada');
+    await user.click(screen.getByRole('button', { name: 'Cancelar edição' }));
+    await user.click(screen.getByRole('button', { name: 'Editar Task: Relatório trimestral' }));
+    expect(screen.getByLabelText('Título')).toHaveValue(task.title);
+  });
+
+  it('limpa seleção e edição quando uma atualização do catálogo remove a Task', async () => {
+    const user = userEvent.setup();
+    const service = mockService({ tasks: vi.fn().mockResolvedValue([task]) });
+    const { rerender } = render(<TasksPage devApi={service} />);
+    await user.click(
+      await screen.findByRole('button', { name: 'Ver detalhes da Task: Relatório trimestral' }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Editar Task: Relatório trimestral' }));
+
+    const refreshedService = mockService({ tasks: vi.fn().mockResolvedValue([]) });
+    rerender(<TasksPage devApi={refreshedService} />);
+    expect(await screen.findByText(/Nenhuma Task foi criada/)).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Editar Task' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Task selecionada para consulta' }),
+    ).not.toBeInTheDocument();
   });
 });

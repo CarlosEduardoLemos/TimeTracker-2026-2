@@ -66,7 +66,7 @@ export function AuthPage({ mode = 'login' }) {
         window.location.hash = '#/painel';
       }
     } catch (cause) {
-      setError(messageForAuthError(cause, registerMode));
+      if (cause?.type !== 'canceled') setError(messageForAuthError(cause, registerMode));
     } finally {
       submittingRef.current = false;
       setSubmitting(false);

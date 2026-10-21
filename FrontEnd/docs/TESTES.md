@@ -2,6 +2,18 @@
 
 Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026**, **13/10/2026** e **16/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
+## Auditoria do formulário, Dashboard e sessão — 21/10/2026
+
+- `npm.cmd run lint`: passou.
+- `npm.cmd run format:check`: passou.
+- `npm.cmd run typecheck`: passou; verifica os contratos JavaScript/TypeScript configurados, não todo JSX.
+- `npm.cmd run test:coverage`: **295 testes em 58 arquivos passaram**. Cobertura V8: **93,24% statements, 89,48% branches, 95,06% functions e 95,49% lines**; todos os limites globais e críticos passaram.
+- `npm.cmd run build`: passou com Vite 6.4.4; o verificador confirmou exclusão de MSW, worker e rotas demonstrativas do bundle de produção.
+- `npm.cmd run check`: passou, incluindo lint, formatação, typecheck, cobertura, build e 4 verificações do bundle.
+- `npm.cmd run check:full`: passou; repetiu `check` e executou **32 cenários Playwright: 30 passaram, 0 falharam e 2 testes de API real foram ignorados** porque não havia API/credenciais autorizadas configuradas.
+- Vitest agrega testes unitários, de hooks, serviços e componentes; não há uma contagem separada por categoria. Playwright usou o ambiente de teste com mocks. Os dois testes reais e qualquer gravação em serviço real não foram executados.
+- Nenhum teste de Backend ou compilação/execução do Agent foi executado. As métricas do resumo Tasks continuam simuladas e vazias; nenhuma validação de integração/homologação real foi declarada.
+
 ## Conclusão da interface Tasks e validação completa — 21/10/2026
 
 - `npm.cmd run lint`, `npm.cmd run format:check` e `npm.cmd run typecheck`: passaram.

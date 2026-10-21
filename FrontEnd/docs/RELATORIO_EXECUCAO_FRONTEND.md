@@ -70,3 +70,94 @@ Esta continuação partiu do checkout limpo `main` em `6358a219536a0afa537b890a0
 - `npm.cmd audit --json --cache node_modules/.cache/npm-audit` ficou inconclusivo porque o endpoint do registry npm não respondeu.
 
 A interface de demonstração não comprova CRUD persistido, autorização ou métricas reais. O Backend inspecionado continua sem modelo/rotas de Tasks e sem agregação por Task; o Agent não envia `task_id`. Nenhuma chamada de API real, commit, push, alteração remota ou execução de Agent foi feita.
+
+## Auditoria aprofundada — formulário, Dashboard e segurança — 21/10/2026
+
+### 1. Diagnóstico inicial
+
+- Branch local `main`, HEAD `e14d831b973f9160c2ff3434b9c53578f90bc156`; o checkout estava limpo. A referência oficial consultada no GitHub era `230fc7fac1374941dcb26b1d507494aa6450234f`, sete commits atrás; o compare oficial confirmou `ahead_by=7` e `behind_by=0`. Não foi feito fetch porque atualizaria `.git`, fora do diretório permitido.
+- A PR #128 seguia aberta, sem merge. O único comentário recente era do bot de revisão, que não conseguiu revisar por limite de quota do Copilot.
+- As issues oficiais #129, #133, #134, #98, #140, #137 e #138 estavam abertas; #112 estava fechada; #105, #113, #114 e #115 abertas. As issues #129–#141 e os requisitos locais foram conferidos; o último commit local que alterou `requisitos/` é de 22/09/2026.
+- Causas reproduzidas no Frontend: submissão bem-sucedida não limpava o rascunho de criação; um fieldset desabilitado por erro também bloqueava seu botão de retry; a lista atrasada podia sobrescrever uma mutação; dados atualizados mantendo o ID não sincronizavam formulário limpo; e a sessão não cancelava um login em andamento ao sair. O seletor do Dashboard mantinha opção de Task removida. O resumo precisava do rótulo exato para atividade sem vínculo.
+- A inspeção somente de leitura não encontrou modelo, schema ou rota de Tasks/associação/agregação no Backend; o Agent inspecionado ainda não envia `task_id`. A issue #133 especifica `/tasks/`, enquanto a simulação anterior chamava `/tasks`.
+
+### 2. Alterações implementadas
+
+- `TaskForm`: trava envio durante carga/erro de colaboradores, valida IDs contra o catálogo, expõe e permite remover atribuições inexistentes, associa erros aos campos, foca o primeiro campo inválido, impede submissão duplicada e limpa dados depois de criação concluída. Falha conserva o rascunho.
+- `TasksPage`/`TaskList`: edição deriva o item atual pelo ID; a forma sincroniza atualização externa se o rascunho estiver limpo; cancelar, atualizar ou remover item não deixa seleção antiga; foco retorna ao botão de edição/lista após cancelar, salvar ou excluir.
+- `useTasks`: versão de catálogo impede que leitura iniciada antes de mutação concluída substitua o estado atualizado; IDs de resposta incompatíveis são tratados como falha.
+- `useTaskAnalytics`/Dashboard: aborta catálogo e resumo concorrentes; rejeita resumo de data diferente; usa atualização de 30 s e atualização ao voltar à aba, apenas com `devApi`; refresh manual atualiza os dois; Task removida limpa o filtro e não altera métricas gerais.
+- `TaskSummaryCard`: atividade nula/excluída recebe “Sem Task / Atividades Gerais”; durações inválidas não aparecem como zero; barras têm nome, escala acessível e valores proporcionais.
+- `ManagerSession`/`AuthPage`: token JWT malformado é removido sem consulta; login e validação de identidade usam cancelamento por sequência/`AbortSignal`; logout aborta login pendente, que não pode restaurar sessão depois de sair. Os fluxos de 401/403 permanecem diferenciados.
+- MSW exige Bearer demonstrativo nos recursos de dados e CRUD usa `/tasks/`. O build segue excluindo mocks. A simulação representa uma identidade fixa e declara que não oferece isolamento multi-gestor nem simula 403 entre equipes.
+
+### 3. Issues impactadas
+
+| Issue                  | Estado oficial antes/depois | Estado técnico depois                 | Evidência                                                                                                             |
+| ---------------------- | --------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| #129                   | Aberta / aberta             | Bloqueada                             | CRUD demonstrativo; produção desabilitada até Backend/Agent.                                                          |
+| #133                   | Aberta / aberta             | Dependência externa                   | Backend não tem CRUD; issue pede `/tasks/`, alinhado só no mock local.                                                |
+| #134                   | Aberta / aberta             | Parcial                               | Vitest de form/list/hook cobre edição, exclusão, erro, retry, IDs, atualização concorrente; API real ausente.         |
+| #98                    | Aberta / aberta             | Parcial                               | Filtros e seleção removida testados; `task_id` real não existe nas atividades.                                        |
+| #140                   | Aberta / aberta             | UI demonstrativa parcial              | Cancelamento, ordem, data, atualização e rótulo sem Task testados; falta agregação real no Backend.                   |
+| #137                   | Aberta / aberta             | Bloqueada por Backend                 | Bearer React não protege rotas que o Backend ainda não valida/escopa.                                                 |
+| #138                   | Aberta / aberta             | Parcial                               | Token malformado e logout durante login pendente adicionados aos testes; falta homologar API real e autorização #137. |
+| #112                   | Fechada / fechada           | Frontend implementado; não homologado | API real não foi exercitada.                                                                                          |
+| #105, #113, #114, #115 | Abertas / abertas           | Bloqueadas por contrato/Backend       | Nenhum código ou endpoint fictício foi conectado.                                                                     |
+
+Nenhum estado oficial de issue ou PR foi modificado. A [Matriz](MATRIZ_ISSUES_FRONTEND.md) e [Pendências](PENDENCIAS.md) guardam detalhes de critério/dependência por issue.
+
+### 4. Correções de bugs
+
+- O callback da página não devolvia o resultado da mutação; com isso a limpeza pós-criação não podia ser acionada. Agora devolve sucesso explicitamente e o formulário limpa apenas nesse caso.
+- Erro de colaboradores desabilitava nativamente todos os controles do fieldset, incluindo “Tentar carregar novamente”. O botão de retry está acessível; controles de seleção seguem desativados durante carga/falha.
+- Listagens iniciadas antes de create/update/delete podiam chegar depois e restaurar dado antigo. A versão de mutação é capturada no início da carga e respostas anteriores são ignoradas.
+- Alterações de Task com mesmo ID podiam deixar título/descrição antigos. A página resolve a Task atual do catálogo e o formulário sincroniza somente quando não há alterações locais.
+- Login pendente podia terminar depois do logout. A sequência/token de cancelamento impede armazenar token ou restaurar sessão depois da saída.
+- O filtro mantinha um item inexistente no catálogo e o card não padronizava o grupo sem vínculo. Agora a seleção é invalidada e a interface explicita o agrupamento previsto pela issue #140.
+
+### 5. Melhorias de arquitetura realizadas
+
+- Controle de versão de leitura versus mutação em `useTasks` sem biblioteca de estado global.
+- Atualização de Task por ID e rascunho local com proteção contra sobrescrita de digitação.
+- Requisições de catálogo/resumo com cancelamento, validação de data e ciclo compartilhado de atualização só na demonstração.
+- Rotas simuladas exigem sessão demonstrativa e correspondem ao caminho `/tasks/` registrado na issue. Não habilitam endpoints reais.
+
+### 6. Testes e validação
+
+- `npm.cmd run lint`, `npm.cmd run format:check`, `npm.cmd run typecheck`, `npm.cmd run test:coverage`, `npm.cmd run build`, `npm.cmd run check` e `npm.cmd run check:full`: todos passaram.
+- Vitest: **295 testes em 58 arquivos passaram**; cobertura de **93,24% statements, 89,48% branches, 95,06% functions e 95,49% lines**. Os testes de unit, hooks, serviços e componentes são agregados pelo Vitest, não contabilizados separadamente.
+- Verificador do bundle: **4 testes passaram**; build Vite 6.4.4 confirmou ausência de handlers, worker e rotas demonstrativas.
+- Playwright: **30 passaram, 0 falharam e 2 testes de API real foram ignorados** por falta de ambiente/credenciais autorizadas. E2E usou mocks. Não houve chamada de escrita a serviço real.
+- Nenhum teste de Backend ou execução/compilação do Agent foi realizado.
+
+### 7. Pendências externas
+
+- **Backend — #133/#137:** CRUD `/tasks/` autenticado, checagem `manager_id`, validação de colaboradores da equipe, erros 401/403/404/422, isolamento entre dois gestores e decisão de remoção/arquivamento.
+- **Agent + Backend — #136/#140:** persistir/enviar `task_id`, definir a duração agregada e validar soma diária por equipe; nulos e Tasks removidas devem retornar em “Sem Task / Atividades Gerais”.
+- **Backend/Agent — #105/#113–#115:** geração/consulta segura do código, expiração, associação e respostas válidas/inválidas.
+- **Homologação:** testar integração em ambiente autorizado; Bearer, login React e MSW não provam assinatura real, autorização nem privacidade no servidor.
+
+### 8. Arquivos modificados
+
+Lista exata dos 28 arquivos com diff ao final da execução:
+
+- `FrontEnd/docs/CONTRATOS_API.md`, `FrontEnd/docs/MATRIZ_ISSUES_FRONTEND.md`, `FrontEnd/docs/PENDENCIAS.md`, `FrontEnd/docs/PLANO_EXECUCAO_FRONTEND.md`, `FrontEnd/docs/RELATORIO_EXECUCAO_FRONTEND.md`, `FrontEnd/docs/TESTES.md`.
+- `FrontEnd/src/dev-mocks/client.js`, `FrontEnd/src/dev-mocks/client.test.js`, `FrontEnd/src/dev-mocks/handlers.js`, `FrontEnd/src/dev-mocks/handlers.test.js`.
+- `FrontEnd/src/features/auth/pages/AuthPage.jsx`, `FrontEnd/src/features/auth/pages/AuthPage.test.jsx`.
+- `FrontEnd/src/features/dashboard/components/DashboardFilters.jsx`, `FrontEnd/src/features/dashboard/components/DashboardFilters.test.jsx`, `FrontEnd/src/features/dashboard/components/TaskSummaryCard.jsx`, `FrontEnd/src/features/dashboard/components/TaskSummaryCard.test.jsx`, `FrontEnd/src/features/dashboard/hooks/useTaskAnalytics.js`, `FrontEnd/src/features/dashboard/hooks/useTaskAnalytics.test.js`, `FrontEnd/src/features/dashboard/pages/DashboardPage.jsx`, `FrontEnd/src/features/dashboard/pages/DashboardPage.test.jsx`.
+- `FrontEnd/src/features/tasks/components/TaskForm.jsx`, `FrontEnd/src/features/tasks/components/TaskList.jsx`, `FrontEnd/src/features/tasks/hooks/useTasks.js`, `FrontEnd/src/features/tasks/hooks/useTasks.test.js`, `FrontEnd/src/features/tasks/pages/TasksPage.jsx`, `FrontEnd/src/features/tasks/pages/TasksPage.test.jsx`.
+- `FrontEnd/src/shared/auth/ManagerSession.jsx`, `FrontEnd/src/shared/auth/ManagerSession.test.jsx`.
+
+### 9. Confirmação de permissões
+
+As alterações de código/documentação persistentes foram restritas a `FrontEnd/`. `backend/`, `agent/`, `requisitos/`, `.github/`, `testes/` externo, raiz, issues, PRs e remotos não foram modificados. Sem commit, push, merge, deploy ou alteração remota.
+
+### 10. Próximas ações
+
+1. Aguardar CRUD autenticado e isolamento entre gestores no Backend; manter a tela real desabilitada até contrato e homologação.
+2. Coordenar `task_id` e agregação com Agent/Backend e provar valores reais, inclusive vínculos ausentes/excluídos.
+3. Definir associação de gestor/colaborador e só então integrar o card/endpoints.
+4. Rodar E2E real em ambiente explicitamente autorizado; os dois cenários reais continuaram ignorados nesta execução.
+
+**Escopo observado:** nenhum segredo real foi usado. O único mock de autenticação usa token fixo de demonstração e não está presente no bundle de produção.

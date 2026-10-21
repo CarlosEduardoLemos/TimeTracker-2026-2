@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useAutoRefresh } from './useAutoRefresh';
 
 export function useTaskAnalytics(devApi, date, username, taskId) {
   const [tasks, setTasks] = useState([]);
@@ -23,6 +24,7 @@ export function useTaskAnalytics(devApi, date, username, taskId) {
     const controller = new AbortController();
     tasksRequest.current = controller;
     setTasksLoading(true);
+    setTasks([]);
     setTasksError(null);
     try {
       const response = await devApi.tasks(controller.signal);
@@ -53,6 +55,9 @@ export function useTaskAnalytics(devApi, date, username, taskId) {
     setSummaryError(null);
     try {
       const response = await devApi.taskSummary(date, username, taskId, controller.signal);
+      if (response?.date !== date) {
+        throw new Error('A resposta do resumo não corresponde à data selecionada.');
+      }
       if (!controller.signal.aborted && sequence === summarySequence.current) setSummary(response);
     } catch (cause) {
       if (!controller.signal.aborted && sequence === summarySequence.current) {
@@ -75,10 +80,16 @@ export function useTaskAnalytics(devApi, date, username, taskId) {
     return () => summaryRequest.current?.abort();
   }, [loadSummary]);
 
+  const refresh = useCallback(
+    () => Promise.all([loadTasks(), loadSummary()]),
+    [loadSummary, loadTasks],
+  );
+
+  useAutoRefresh(refresh, Boolean(devApi));
+
   const retry = useCallback(() => {
-    void loadTasks();
-    void loadSummary();
-  }, [loadSummary, loadTasks]);
+    void refresh();
+  }, [refresh]);
 
   return {
     tasks,

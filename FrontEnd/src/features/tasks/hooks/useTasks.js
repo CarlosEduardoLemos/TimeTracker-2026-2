@@ -14,6 +14,7 @@ export function useTasks(taskService) {
   const activeMutation = useRef(null);
   const mutationInProgress = useRef(false);
   const loadSequence = useRef(0);
+  const taskVersion = useRef(0);
 
   const load = useCallback(async () => {
     activeLoad.current?.abort();
@@ -26,6 +27,7 @@ export function useTasks(taskService) {
     const controller = new AbortController();
     activeLoad.current = controller;
     const sequence = ++loadSequence.current;
+    const version = taskVersion.current;
     setLoading(true);
     setCollaboratorsLoading(true);
     setError(null);
@@ -37,8 +39,9 @@ export function useTasks(taskService) {
     ]);
     if (controller.signal.aborted || sequence !== loadSequence.current) return;
 
-    if (taskResult.status === 'fulfilled') setTasks(taskResult.value);
-    else setError(taskResult.reason?.message || 'Não foi possível carregar as Tasks.');
+    if (taskResult.status === 'fulfilled') {
+      if (version === taskVersion.current) setTasks(taskResult.value);
+    } else setError(taskResult.reason?.message || 'Não foi possível carregar as Tasks.');
 
     if (collaboratorResult.status === 'fulfilled') setCollaborators(collaboratorResult.value);
     else {
@@ -80,6 +83,14 @@ export function useTasks(taskService) {
           result = await taskService.deleteTask(taskId, controller.signal);
         if (controller.signal.aborted) return false;
 
+        if (operation === 'update' && result?.id !== taskId) {
+          throw new Error('A API retornou um ID diferente para a Task atualizada.');
+        }
+        if (operation === 'create' && tasks.some((task) => task.id === result?.id)) {
+          throw new Error('A API retornou um ID de Task que já está em uso.');
+        }
+
+        taskVersion.current += 1;
         if (operation === 'create') setTasks((current) => [...current, result]);
         if (operation === 'update')
           setTasks((current) => current.map((task) => (task.id === taskId ? result : task)));
@@ -106,7 +117,7 @@ export function useTasks(taskService) {
         }
       }
     },
-    [taskService],
+    [taskService, tasks],
   );
 
   const createTask = useCallback((payload) => mutate('create', null, payload), [mutate]);

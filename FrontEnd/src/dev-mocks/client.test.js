@@ -1,9 +1,17 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { devApi } from './client';
+import { MANAGER_ACCESS_TOKEN_KEY } from '../shared/auth/sessionStorage';
+
+const token = `eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYW5hZ2VyIn0.${'A'.repeat(43)}`;
+
+beforeEach(() => {
+  sessionStorage.setItem(MANAGER_ACCESS_TOKEN_KEY, token);
+});
 
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  sessionStorage.removeItem(MANAGER_ACCESS_TOKEN_KEY);
 });
 
 describe('cliente isolado dos mocks de desenvolvimento', () => {
@@ -12,7 +20,8 @@ describe('cliente isolado dos mocks de desenvolvimento', () => {
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => response }));
     vi.stubGlobal('fetch', fetchMock);
     await expect(devApi.tasks()).resolves.toEqual(response);
-    expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/tasks');
+    expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/tasks/');
+    expect(fetchMock.mock.calls[0][1].headers.get('Authorization')).toBe(`Bearer ${token}`);
   });
 
   it('cria Task com título, descrição e colaboradores validados', async () => {

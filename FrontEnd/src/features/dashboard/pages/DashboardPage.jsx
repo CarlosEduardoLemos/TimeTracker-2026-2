@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { DashboardFilters } from '../components/DashboardFilters';
 import { DashboardMetrics } from '../components/DashboardMetrics';
@@ -25,6 +25,15 @@ export function DashboardPage({ dark, toggleTheme, devApi = null }) {
   const [taskId, setTaskId] = useState('');
   const { data, loading, refreshing, error, updatedAt, refresh } = useDashboardData(date, username);
   const taskAnalytics = useTaskAnalytics(devApi, date, username, taskId);
+  useEffect(() => {
+    if (
+      taskAnalytics.tasksAvailable &&
+      taskId &&
+      !taskAnalytics.tasks.some((task) => task.id === taskId)
+    ) {
+      setTaskId('');
+    }
+  }, [taskAnalytics.tasks, taskAnalytics.tasksAvailable, taskId]);
   const availability = data?.availability || {};
   const users = data?.users || [];
   const teamMembers =
@@ -43,7 +52,14 @@ export function DashboardPage({ dark, toggleTheme, devApi = null }) {
             <button className="secondary-button" onClick={toggleTheme}>
               {dark ? 'Tema claro' : 'Tema escuro'}
             </button>
-            <button className="secondary-button" onClick={refresh} disabled={loading || refreshing}>
+            <button
+              className="secondary-button"
+              onClick={() => {
+                refresh();
+                taskAnalytics.retry();
+              }}
+              disabled={loading || refreshing}
+            >
               {refreshing ? 'Atualizando…' : 'Atualizar'}
             </button>
           </div>
@@ -103,11 +119,11 @@ export function DashboardPage({ dark, toggleTheme, devApi = null }) {
           summary={taskAnalytics.summary}
           loading={taskAnalytics.summaryLoading}
           error={taskAnalytics.summaryError}
-          onRetry={taskAnalytics.retrySummary}
+          onRetry={taskAnalytics.retry}
         />
       </section>
       {taskAnalytics.tasksError && devApi && (
-        <ErrorNotice className="mt-5" onRetry={taskAnalytics.retryTasks}>
+        <ErrorNotice className="mt-5" onRetry={taskAnalytics.retry}>
           Lista demonstrativa de Tasks indisponível. {taskAnalytics.tasksError}
         </ErrorNotice>
       )}

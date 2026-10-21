@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { EmptyState, ErrorNotice, LoadingSkeleton } from '../../../shared/components/AsyncFeedback';
 import { filterAndSortTasks } from '../lib/taskList';
 
@@ -16,12 +16,26 @@ export function TaskList({
 }) {
   const [search, setSearch] = useState('');
   const [sortOrder, setSortOrder] = useState('recent');
+  const heading = useRef(null);
   const visibleTasks = filterAndSortTasks(tasks, search, sortOrder);
   const taskSelected = tasks.find((task) => task.id === selectedTaskId);
 
+  async function confirmDelete(task) {
+    if (
+      !window.confirm(
+        `Excluir a Task “${task.title}”? Esta ação não pode ser desfeita nos dados demonstrativos.`,
+      )
+    ) {
+      return;
+    }
+    if (await onDeleteTask(task)) {
+      requestAnimationFrame(() => heading.current?.focus());
+    }
+  }
+
   return (
     <section className="card mt-5 max-w-3xl" aria-labelledby="tasks-list-title">
-      <h2 id="tasks-list-title" className="text-lg font-bold">
+      <h2 ref={heading} id="tasks-list-title" className="text-lg font-bold" tabIndex={-1}>
         Tasks cadastradas
       </h2>
       {error && (
@@ -148,7 +162,7 @@ export function TaskList({
                         <button
                           type="button"
                           className="secondary-button"
-                          onClick={() => onEditTask(task)}
+                          onClick={(event) => onEditTask(task, event)}
                           disabled={disabled || mutationBusy}
                           aria-label={`Editar Task: ${task.title}`}
                         >
@@ -157,15 +171,7 @@ export function TaskList({
                         <button
                           type="button"
                           className="secondary-button"
-                          onClick={() => {
-                            if (
-                              window.confirm(
-                                `Excluir a Task “${task.title}”? Esta ação não pode ser desfeita nos dados demonstrativos.`,
-                              )
-                            ) {
-                              void onDeleteTask(task);
-                            }
-                          }}
+                          onClick={() => void confirmDelete(task)}
                           disabled={disabled || mutationBusy}
                           aria-label={`Excluir Task: ${task.title}`}
                         >

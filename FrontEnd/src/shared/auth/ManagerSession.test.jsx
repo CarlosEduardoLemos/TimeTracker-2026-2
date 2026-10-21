@@ -11,10 +11,18 @@ const manager = {
 };
 
 function SessionControls() {
-  const { status, logout } = useManagerSession();
+  const { status, login, logout } = useManagerSession();
   return (
     <>
       <p role="status">{status}</p>
+      <button
+        type="button"
+        onClick={() =>
+          void login({ email: 'gestor@empresa.com', password: 'senha' }).catch(() => {})
+        }
+      >
+        Entrar
+      </button>
       <button type="button" onClick={logout}>
         Sair
       </button>
@@ -57,5 +65,49 @@ it('removes a token rejected by the identity endpoint', async () => {
   );
 
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('anonymous'));
+  expect(sessionStorage.getItem(MANAGER_ACCESS_TOKEN_KEY)).toBeNull();
+});
+
+it('clears a malformed stored token without calling the identity endpoint', async () => {
+  sessionStorage.setItem(MANAGER_ACCESS_TOKEN_KEY, 'not-a-jwt');
+  const client = { getCurrentManager: vi.fn() };
+  render(
+    <ManagerSessionProvider client={client}>
+      <SessionControls />
+    </ManagerSessionProvider>,
+  );
+
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('anonymous'));
+  expect(client.getCurrentManager).not.toHaveBeenCalled();
+  expect(sessionStorage.getItem(MANAGER_ACCESS_TOKEN_KEY)).toBeNull();
+});
+
+it('cancels a pending login when the manager logs out', async () => {
+  let resolveLogin;
+  const client = {
+    loginManager: vi.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }),
+    ),
+    getCurrentManager: vi.fn().mockResolvedValue(manager),
+  };
+  render(
+    <ManagerSessionProvider client={client}>
+      <SessionControls />
+    </ManagerSessionProvider>,
+  );
+
+  fireEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+  await waitFor(() => expect(client.loginManager).toHaveBeenCalledOnce());
+  const signal = client.loginManager.mock.calls[0][1];
+  fireEvent.click(screen.getByRole('button', { name: 'Sair' }));
+  expect(signal).toBeInstanceOf(AbortSignal);
+  expect(signal.aborted).toBe(true);
+
+  resolveLogin({ access_token: token, token_type: 'bearer', expires_in: 3600 });
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('anonymous'));
+  expect(client.getCurrentManager).not.toHaveBeenCalled();
   expect(sessionStorage.getItem(MANAGER_ACCESS_TOKEN_KEY)).toBeNull();
 });

@@ -20,7 +20,7 @@ const summary = {
     },
     {
       task_id: null,
-      title: 'Sem Task / Atividades gerais',
+      title: 'Sem Task / Atividades Gerais',
       total_seconds: 1800,
       collaborators: [],
     },
@@ -48,9 +48,12 @@ describe('TaskSummaryCard', () => {
     expect(screen.getByText(/Resumo simulado.*não representa atividade real/)).toBeInTheDocument();
     expect(screen.getByRole('list', { name: 'Horas simuladas por Task' })).toBeInTheDocument();
     expect(screen.getByText('Relatório mensal')).toBeInTheDocument();
-    expect(screen.getByText('Sem Task / Atividades gerais')).toBeInTheDocument();
+    expect(screen.getByText('Sem Task / Atividades Gerais')).toBeInTheDocument();
     expect(screen.getByText('1h 00min')).toBeInTheDocument();
     expect(screen.getByText('0h 30min')).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('progressbar').map((bar) => bar.getAttribute('aria-valuenow')),
+    ).toEqual(['100', '50']);
     expect(screen.getByText(/Colaboradores: Ana Souza/)).toBeInTheDocument();
     expect(screen.getByText(/Atividade geral sem Task/)).toBeInTheDocument();
     expect(screen.getByText(/Nenhum ranking é calculado/)).toBeInTheDocument();

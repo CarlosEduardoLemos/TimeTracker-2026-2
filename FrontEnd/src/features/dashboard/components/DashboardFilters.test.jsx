@@ -89,3 +89,21 @@ it('combina seleção de Task com filtros sem oferecê-la quando a lista está i
   expect(onTaskChange).toHaveBeenLastCalledWith('');
   expect(screen.getByText(/Não altera os indicadores gerais/)).toBeInTheDocument();
 });
+
+it('não mantém uma Task removida como opção enquanto o catálogo está indisponível', () => {
+  render(
+    <DashboardFilters
+      {...base}
+      tasks={[]}
+      tasksAvailable={false}
+      tasksError="Catálogo indisponível"
+      taskId="6e7b94da-5651-46a0-bf28-fcb8f4f14c04"
+      onTaskChange={vi.fn()}
+      onDateChange={vi.fn()}
+      onUsernameChange={vi.fn()}
+    />,
+  );
+
+  expect(screen.getByRole('option', { name: 'Lista de Tasks indisponível' })).toBeInTheDocument();
+  expect(screen.queryByRole('option', { name: 'Task selecionada' })).not.toBeInTheDocument();
+});

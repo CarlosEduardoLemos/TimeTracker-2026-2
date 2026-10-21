@@ -28,7 +28,10 @@ export function TaskSummaryCard({
   }
 
   const entries = summary?.tasks || [];
-  const longest = Math.max(0, ...entries.map((entry) => entry.total_seconds));
+  const validDurations = entries
+    .map((entry) => entry.total_seconds)
+    .filter((value) => Number.isSafeInteger(value) && value >= 0);
+  const longest = Math.max(0, ...validDurations);
 
   return (
     <section className="card" aria-labelledby="task-summary-title" aria-busy={loading}>
@@ -59,20 +62,28 @@ export function TaskSummaryCard({
       ) : (
         <ul className="mt-4 space-y-4" aria-label="Horas simuladas por Task">
           {entries.map((entry) => {
-            const width = longest ? (entry.total_seconds / longest) * 100 : 0;
+            const validDuration =
+              Number.isSafeInteger(entry.total_seconds) && entry.total_seconds >= 0;
+            const width = longest && validDuration ? (entry.total_seconds / longest) * 100 : 0;
             const collaborators = entry.collaborators
               .map((person) => person.full_name || person.username)
               .join(', ');
             return (
               <li key={entry.task_id || 'unassigned'}>
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 className="font-semibold">{entry.title}</h3>
+                  <h3 className="font-semibold">
+                    {entry.task_id ? entry.title : 'Sem Task / Atividades Gerais'}
+                  </h3>
                   <span className="font-mono text-sm font-semibold">
-                    {fmtDuration(entry.total_seconds)}
+                    {validDuration ? fmtDuration(entry.total_seconds) : '—'}
                   </span>
                 </div>
                 <div
-                  aria-hidden="true"
+                  role="progressbar"
+                  aria-label={`Proporção de ${entry.task_id ? entry.title : 'Sem Task / Atividades Gerais'} em relação à maior duração`}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(width)}
                   className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
                 >
                   <div className="h-full rounded-full bg-brand" style={{ width: `${width}%` }} />
