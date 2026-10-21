@@ -326,16 +326,22 @@ test('menu móvel oculta cadastro e mantém o último link acessível em orienta
   await expect(page.getByRole('main')).toBeFocused();
 });
 
-test('navega para Tasks e informa que persistência depende do backend', async ({ page }) => {
+test('navega para a prévia desativada de Tasks sem habilitar gravação fictícia', async ({
+  page,
+}) => {
   await page.goto('/#/painel');
   await page
     .getByRole('navigation', { name: 'Menu principal' })
     .getByRole('link', { name: 'Tasks' })
     .click();
   await expect(page.getByRole('heading', { name: 'Tasks', exact: true })).toBeVisible();
-  await expect(page.getByText(/backend ainda não oferece consulta ou persistência/i)).toBeVisible();
-  await expect(page.getByText(/não inicia nem controla o monitoramento pelo Agent/i)).toBeVisible();
-  await expect(page.getByRole('button', { name: /criar task/i })).toHaveCount(0);
+  await expect(page.getByText('Gestão de Tasks indisponível')).toBeVisible();
+  await expect(
+    page.getByText(/prévia desativada; nenhuma chamada ou gravação será feita/i),
+  ).toBeVisible();
+  await expect(page.getByLabel('Título')).toBeDisabled();
+  await expect(page.getByLabel('Descrição')).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Criar Task' })).toBeDisabled();
 });
 
 test('menu móvel aceita teclado e tema escuro', async ({ page }) => {

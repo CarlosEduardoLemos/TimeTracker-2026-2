@@ -65,6 +65,25 @@ export function validTaskDescription(value) {
   return description.length > 0 && Array.from(description).length <= TASK_DESCRIPTION_MAX_LENGTH;
 }
 
+/** @param {unknown} value */
+export function validTaskTitle(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function validTaskCollaborator(value) {
+  return Boolean(
+    value &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    Object.keys(value).every((field) => ['id', 'username', 'full_name'].includes(field)) &&
+    typeof value.id === 'string' &&
+    UUID_PATTERN.test(value.id) &&
+    typeof value.username === 'string' &&
+    value.username.trim().length > 0 &&
+    optionalText(value.full_name),
+  );
+}
+
 /** @param {any} value @returns {value is import('./contracts').Task} */
 export function validTask(value) {
   return Boolean(
@@ -72,11 +91,16 @@ export function validTask(value) {
     typeof value === 'object' &&
     !Array.isArray(value) &&
     Object.keys(value).every((field) =>
-      ['id', 'description', 'created_at', 'updated_at'].includes(field),
+      ['id', 'title', 'description', 'collaborators', 'created_at', 'updated_at'].includes(field),
     ) &&
     typeof value.id === 'string' &&
     UUID_PATTERN.test(value.id) &&
+    validTaskTitle(value.title) &&
     validTaskDescription(value.description) &&
+    Array.isArray(value.collaborators) &&
+    value.collaborators.length > 0 &&
+    value.collaborators.every(validTaskCollaborator) &&
+    uniqueBy(value.collaborators, (collaborator) => collaborator.id) &&
     validTimestamp(value.created_at) &&
     validTimestamp(value.updated_at),
   );
@@ -136,6 +160,37 @@ export function validTaskHours(value) {
         task.total_seconds >= 0,
     ) &&
     uniqueBy(value.tasks, (task) => task.task_id),
+  );
+}
+
+/** @param {any} value @returns {value is import('./contracts').TaskSummary} */
+export function validTaskSummary(value) {
+  return Boolean(
+    value &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    Object.keys(value).every((field) => ['date', 'timezone', 'tasks'].includes(field)) &&
+    isIsoDate(value.date) &&
+    value.timezone === 'America/Sao_Paulo' &&
+    Array.isArray(value.tasks) &&
+    value.tasks.every(
+      (task) =>
+        task &&
+        typeof task === 'object' &&
+        !Array.isArray(task) &&
+        Object.keys(task).every((field) =>
+          ['task_id', 'title', 'total_seconds', 'collaborators'].includes(field),
+        ) &&
+        (task.task_id === null ||
+          (typeof task.task_id === 'string' && UUID_PATTERN.test(task.task_id))) &&
+        validTaskTitle(task.title) &&
+        Number.isSafeInteger(task.total_seconds) &&
+        task.total_seconds >= 0 &&
+        Array.isArray(task.collaborators) &&
+        task.collaborators.every(validTaskCollaborator) &&
+        uniqueBy(task.collaborators, (collaborator) => collaborator.id),
+    ) &&
+    uniqueBy(value.tasks, (task) => task.task_id ?? 'unassigned'),
   );
 }
 

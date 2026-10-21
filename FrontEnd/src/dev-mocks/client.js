@@ -5,7 +5,10 @@ import {
   validTask,
   validTaskDescription,
   validTaskHours,
+  validTaskSummary,
+  validTaskTitle,
   validTasks,
+  validUsers,
 } from '../shared/api/validators';
 import { isIsoDate } from '../shared/lib/date';
 
@@ -22,6 +25,18 @@ function jsonOptions(method, body, signal) {
   };
 }
 
+function taskBodyIsValid(task) {
+  return Boolean(
+    task &&
+    validTaskTitle(task.title) &&
+    validTaskDescription(task.description) &&
+    Array.isArray(task.collaborator_ids) &&
+    task.collaborator_ids.length > 0 &&
+    new Set(task.collaborator_ids).size === task.collaborator_ids.length &&
+    task.collaborator_ids.every((id) => UUID_PATTERN.test(id)),
+  );
+}
+
 function taskQuery(date, username) {
   if (!isIsoDate(date)) throw new Error('Selecione uma data válida');
   const query = new URLSearchParams({ date });
@@ -31,24 +46,29 @@ function taskQuery(date, username) {
 
 export const devApi = {
   tasks: (signal) => request('/tasks', validTasks, { signal }),
-  createTask(description, signal) {
-    if (!validTaskDescription(description))
-      throw new Error('Informe uma descrição de até 200 caracteres.');
-    return request(
-      '/tasks',
-      validTask,
-      jsonOptions('POST', { description: description.trim() }, signal),
-    );
+  collaborators: (signal) => request('/users/', validUsers, { signal }),
+  createTask(task, signal) {
+    if (!taskBodyIsValid(task))
+      throw new Error('Informe título, descrição e colaboradores válidos.');
+    return request('/tasks', validTask, jsonOptions('POST', task, signal));
   },
-  patchTask(taskId, description, signal) {
+  updateTask(taskId, task, signal) {
     if (!UUID_PATTERN.test(taskId)) throw new Error('ID de Task inválido');
-    if (!validTaskDescription(description))
-      throw new Error('Informe uma descrição de até 200 caracteres.');
-    return request(
-      `/tasks/${taskId}`,
-      validTask,
-      jsonOptions('PATCH', { description: description.trim() }, signal),
-    );
+    if (!taskBodyIsValid(task))
+      throw new Error('Informe título, descrição e colaboradores válidos.');
+    return request(`/tasks/${taskId}`, validTask, jsonOptions('PUT', task, signal));
+  },
+  deleteTask(taskId, signal) {
+    if (!UUID_PATTERN.test(taskId)) throw new Error('ID de Task inválido');
+    return request(`/tasks/${taskId}`, validTask, { method: 'DELETE', signal });
+  },
+  taskSummary(date, username = '', taskId = '', signal) {
+    if (!isIsoDate(date)) throw new Error('Selecione uma data válida');
+    if (taskId && !UUID_PATTERN.test(taskId)) throw new Error('ID de Task inválido');
+    const query = new URLSearchParams({ date });
+    if (username) query.set('username', username);
+    if (taskId) query.set('task_id', taskId);
+    return request(`/dashboard/tasks-summary?${query}`, validTaskSummary, { signal });
   },
   attendance(date, username = '', signal) {
     return request(`/dashboard/attendance?${taskQuery(date, username)}`, validAttendance, {

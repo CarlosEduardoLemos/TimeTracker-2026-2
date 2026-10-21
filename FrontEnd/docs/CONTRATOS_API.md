@@ -114,7 +114,24 @@ Assim, qualquer cliente que alcance a API pode consultar os dados expostos e alt
 
 ## Tasks e jornada diária
 
-Não foi localizado modelo/schema/endpoint de consulta ou gravação persistente de Tasks nem dados confiáveis de primeiro/último registro diário. O `realtime` descreve a última atividade e não substitui a jornada. O Agent não envia `task_id`. O cliente HTTP de produção não chama rotas presumidas nem infere esses dados. A demonstração local usa rotas candidatas somente com mocks de desenvolvimento explicitamente habilitados; ela não representa integração real. Veja I-03 e I-04–I-07 em [Pendências](PENDENCIAS.md).
+Não foi localizado modelo/schema/endpoint de consulta ou gravação persistente de Tasks nem dados confiáveis de primeiro/último registro diário. O `realtime` descreve a última atividade e não substitui a jornada. O Agent não envia `task_id`. O cliente HTTP de produção não chama rotas presumidas nem infere esses dados.
+
+### Rotas de demonstração local — MSW, não contratos do Backend
+
+Quando `import.meta.env.DEV` e `VITE_USE_MOCKS=true`, os handlers MSW oferecem as rotas abaixo para testar a interface. Elas não estão no Backend, não persistem e não devem ser usadas como evidência de integração real:
+
+| Método/rota                                               | Uso somente na demonstração local                                              |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `POST /auth/register`, `POST /auth/login`, `GET /auth/me` | Identidade local de demonstração para navegar pelas rotas protegidas.          |
+| `GET /users/`                                             | Catálogo fixo de colaboradores demonstrativos.                                 |
+| `GET/POST /tasks`, `PUT/DELETE /tasks/{task_id}`          | CRUD volátil de Tasks para lista, formulário, edição e exclusão.               |
+| `GET /dashboard/tasks-summary?date&username&task_id`      | Valida filtros e responde `{ date, timezone, tasks: [] }`, sem criar métricas. |
+
+O payload demonstrativo de Task usa `title`, `description` e `collaborator_ids` na gravação; a resposta contém `id`, `title`, `description`, objetos de `collaborators` e timestamps. Os formatos são candidatos de interface, não schemas aceitos por um servidor. A interface de produção mostra prévia desabilitada e não chama essas rotas. A proposta atual de CRUD e resumo por Task está centralizada em [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao).
+
+O resumo por Task é independente dos indicadores gerais e do resumo por categoria. A interface não deriva tempo de categoria, janela ativa ou status realtime. Para implementar a rota real, Backend e Agent ainda precisam definir TaskId persistido, escopo/autorização, fuso e semântica da duração.
+
+Veja I-03 e I-04–I-07 em [Pendências](PENDENCIAS.md).
 
 ## Erros, validação e cancelamento
 

@@ -34,7 +34,12 @@
  * @typedef {{ date: string, users: UserDailySummary[] }} DailySummary
  */
 
-/** @typedef {{ id: string, description: string, created_at: string, updated_at: string }} Task */
+/** @typedef {{ id: string, username: string, full_name?: string | null }} TaskCollaborator */
+
+/**
+ * Candidate Task shape used only by development mocks and UI tests. The backend has no Task API.
+ * @typedef {{ id: string, title: string, description: string, collaborators: TaskCollaborator[], created_at: string, updated_at: string }} Task
+ */
 
 /**
  * @typedef {{
@@ -56,6 +61,14 @@
  *   tasks: TaskHoursEntry[]
  * }} TaskHours
  */
+
+/**
+ * Candidate shape for GET /dashboard/tasks-summary; not an implemented backend contract.
+ * A null task_id represents general activity without a linked Task.
+ * @typedef {{ task_id: string | null, title: string, total_seconds: number, collaborators: TaskCollaborator[] }} TaskSummaryEntry
+ */
+
+/** @typedef {{ date: string, timezone: 'America/Sao_Paulo', tasks: TaskSummaryEntry[] }} TaskSummary */
 
 /**
  * @typedef {{

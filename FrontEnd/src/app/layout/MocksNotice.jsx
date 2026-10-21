@@ -7,8 +7,8 @@ export function MocksNotice({ enabled }) {
       aria-label="Aviso de dados simulados"
       className="border-b border-amber-300 bg-amber-100 px-4 py-2 text-center text-sm font-semibold text-amber-950 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100"
     >
-      DADOS SIMULADOS — respostas de Tasks e jornada são fictícias e existem apenas neste modo de
-      desenvolvimento.
+      DADOS SIMULADOS — autenticação, colaboradores, Tasks e jornada são demonstrações locais e não
+      acessam nem gravam dados reais.
     </aside>
   );
 }

@@ -2,6 +2,14 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
+## 21/10/2026 — conclusão da interface de Tasks e prévia analítica
+
+- **Tasks (#134):** adicionados formulário e lista com título, descrição e seleção múltipla de colaboradores; CRUD da demonstração em memória, busca por título/descrição, ordenação por título/data, detalhes, confirmação antes da exclusão e estados acessíveis. Em produção, a prévia permanece desabilitada enquanto a API não oferece contrato.
+- **Dashboard (#98/#140):** adicionado filtro e card de resumo por Task usando apenas `devApi` nos mocks de desenvolvimento. A rota demonstrativa responde com lista vazia; o filtro não altera os indicadores gerais ou categorias e não inventa tempo de trabalho.
+- **Mocks e regressão de sessão:** adicionados handlers locais de cadastro/login/identidade e colaboradores demonstrativos para navegar pelas rotas protegidas em desenvolvimento. O aviso de mocks deixa explícito que auth, colaboradores, Tasks e jornada são dados simulados.
+- **Contratos e rastreabilidade:** validadores e tipos da camada de demonstração foram adicionados; contratos candidatos estão centralizados em [Pendências](PENDENCIAS.md). Matriz e funcionalidades distinguem interface parcial de persistência/integração backend.
+- **Validação:** resultados desta revisão estão em [Testes](TESTES.md) e no [Relatório](RELATORIO_EXECUCAO_FRONTEND.md).
+
 ## 21/10/2026 — Autenticação real do gestor e proteção das páginas
 
 - **Issues:** avanço de #112 e #138, em resposta à issue #138 aberta em 21/10. O checkout inicial estava limpo em `main` no commit `eb099637`; a PR #128 com cinco commits e alterações apenas em `FrontEnd/` permanecia aberta e não integrada a `upstream/main`.

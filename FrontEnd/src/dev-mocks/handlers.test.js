@@ -11,50 +11,119 @@ afterAll(() => server.close());
 beforeEach(() => resetMockData());
 
 describe('handlers das propostas de contrato', () => {
-  it('lista Tasks, cria com 201 e atualiza descrição com PATCH', async () => {
+  it('simula cadastro e login locais sem aceitar isso como autenticação real', async () => {
+    const invalid = await fetch(`${baseUrl}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'gestor@demo.local', password: 'curta' }),
+    });
+    expect(invalid.status).toBe(422);
+
+    const registerResponse = await fetch(`${baseUrl}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'gestor@demo.local', password: 'SenhaDemo123' }),
+    });
+    expect(registerResponse.status).toBe(201);
+    const manager = await registerResponse.json();
+    expect(manager).toMatchObject({ email: 'gestor@demo.local' });
+    expect(manager).not.toHaveProperty('access_token');
+    expect(manager).not.toHaveProperty('password');
+
+    const loginResponse = await fetch(`${baseUrl}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'gestor@demo.local', password: 'qualquer-senha-demo' }),
+    });
+    const token = await loginResponse.json();
+    expect(loginResponse.status).toBe(200);
+    expect(token).toMatchObject({ token_type: 'bearer', expires_in: 3600 });
+
+    const meResponse = await fetch(`${baseUrl}/auth/me`, {
+      headers: { Authorization: `Bearer ${token.access_token}` },
+    });
+    expect(await meResponse.json()).toEqual(manager);
+
+    const unauthorized = await fetch(`${baseUrl}/auth/me`);
+    expect(unauthorized.status).toBe(401);
+  });
+
+  it('lista colaboradores de demonstração e executa CRUD de Tasks em memória', async () => {
     const listResponse = await fetch(`${baseUrl}/tasks`);
     expect(listResponse.status).toBe(200);
     expect(await listResponse.json()).toEqual([]);
 
+    const collaboratorsResponse = await fetch(`${baseUrl}/users/`);
+    expect(collaboratorsResponse.status).toBe(200);
+    const collaborators = await collaboratorsResponse.json();
+    expect(collaborators.map(({ username }) => username)).toEqual(['ana', 'bruno']);
+
+    const taskPayload = {
+      title: 'Fechar relatório',
+      description: 'Revisar e publicar o relatório mensal',
+      collaborator_ids: [collaborators[0].id, collaborators[1].id],
+    };
+
     const createResponse = await fetch(`${baseUrl}/tasks`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description: 'Revisar o relatório mensal' }),
+      body: JSON.stringify(taskPayload),
     });
     expect(createResponse.status).toBe(201);
     const created = await createResponse.json();
     expect(created).toMatchObject({
       id: expect.any(String),
-      description: 'Revisar o relatório mensal',
+      title: 'Fechar relatório',
+      collaborators: [{ id: collaborators[0].id }, { id: collaborators[1].id }],
     });
     expect(created.created_at).toBe(created.updated_at);
 
-    const patchResponse = await fetch(`${baseUrl}/tasks/${created.id}`, {
-      method: 'PATCH',
+    const updateResponse = await fetch(`${baseUrl}/tasks/${created.id}`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description: 'Publicar o relatório mensal' }),
+      body: JSON.stringify({
+        ...taskPayload,
+        title: 'Relatório publicado',
+        collaborator_ids: [collaborators[0].id],
+      }),
     });
-    expect(patchResponse.status).toBe(200);
-    expect(await patchResponse.json()).toMatchObject({
+    expect(updateResponse.status).toBe(200);
+    const updated = await updateResponse.json();
+    expect(updated).toMatchObject({
       id: created.id,
-      description: 'Publicar o relatório mensal',
+      title: 'Relatório publicado',
+      collaborators: [{ id: collaborators[0].id }],
     });
+    expect(Date.parse(updated.updated_at)).toBeGreaterThanOrEqual(Date.parse(created.updated_at));
+
+    const deleteResponse = await fetch(`${baseUrl}/tasks/${created.id}`, { method: 'DELETE' });
+    expect(deleteResponse.status).toBe(200);
+    expect(await deleteResponse.json()).toMatchObject({ id: created.id });
+    expect(await (await fetch(`${baseUrl}/tasks`)).json()).toEqual([]);
   });
 
   it('distingue payload inválido e Task inexistente', async () => {
     const invalid = await fetch(`${baseUrl}/tasks`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description: '  ' }),
+      body: JSON.stringify({ title: '  ', description: '  ', collaborator_ids: [] }),
     });
     expect(invalid.status).toBe(422);
 
     const missing = await fetch(`${baseUrl}/tasks/00000000-0000-4000-8000-000000000099`, {
-      method: 'PATCH',
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description: 'Atualizar Task' }),
+      body: JSON.stringify({
+        title: 'Atualizar',
+        description: 'Task',
+        collaborator_ids: ['d94a4d6c-8542-4c3e-889b-89db302ef4cc'],
+      }),
     });
     expect(missing.status).toBe(404);
+    const missingDelete = await fetch(`${baseUrl}/tasks/00000000-0000-4000-8000-000000000099`, {
+      method: 'DELETE',
+    });
+    expect(missingDelete.status).toBe(404);
   });
 
   it('responde à jornada com fuso e nulos para colaborador sem registro', async () => {
@@ -114,6 +183,15 @@ describe('handlers das propostas de contrato', () => {
     expect(await hours.json()).toEqual({
       start_date: '2026-10-01',
       end_date: '2026-10-13',
+      timezone: 'America/Sao_Paulo',
+      tasks: [],
+    });
+
+    const taskSummary = await fetch(
+      `${baseUrl}/dashboard/tasks-summary?date=2026-10-13&task_id=6e7b94da-5651-46a0-bf28-fcb8f4f14c04`,
+    );
+    expect(await taskSummary.json()).toEqual({
+      date: '2026-10-13',
       timezone: 'America/Sao_Paulo',
       tasks: [],
     });

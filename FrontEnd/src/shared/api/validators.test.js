@@ -11,6 +11,8 @@ import {
   validTask,
   validTaskDescription,
   validTaskHours,
+  validTaskSummary,
+  validTaskTitle,
   validTasks,
   validUsers,
 } from './validators';
@@ -129,12 +131,22 @@ describe('contratos da API', () => {
   });
 
   it('valida Task, descrição obrigatória, UUID e instantes com fuso', () => {
+    const collaborator = {
+      id: 'd94a4d6c-8542-4c3e-889b-89db302ef4cc',
+      username: 'ana',
+      full_name: 'Ana Souza',
+    };
     const task = {
       id: '6e7b94da-5651-46a0-bf28-fcb8f4f14c04',
+      title: 'Relatório mensal',
       description: 'Revisar relatório',
+      collaborators: [collaborator],
       created_at: '2026-10-13T14:20:00Z',
       updated_at: '2026-10-13T14:20:00Z',
     };
+    expect(validTaskTitle('  Relatório  ')).toBe(true);
+    expect(validTaskTitle(' ')).toBe(false);
+    expect(validTaskTitle(null)).toBe(false);
     expect(validTaskDescription('  Revisar relatório  ')).toBe(true);
     expect(validTaskDescription(' ')).toBe(false);
     expect(validTaskDescription('x'.repeat(201))).toBe(false);
@@ -144,8 +156,50 @@ describe('contratos da API', () => {
     expect(validTasks([task, task])).toBe(false);
     expect(validTask({ ...task, id: 'inválido' })).toBe(false);
     expect(validTask({ ...task, updated_at: '2026-10-13T14:20:00' })).toBe(false);
+    expect(validTask({ ...task, collaborators: [] })).toBe(false);
+    expect(validTask({ ...task, collaborators: [collaborator, collaborator] })).toBe(false);
     expect(validTask({ ...task, unexpected: true })).toBe(false);
     expect(validTasks(null)).toBe(false);
+  });
+
+  it('valida resumo candidato de horas por Task e atividade geral sem task_id', () => {
+    const summary = {
+      date: '2026-10-13',
+      timezone: 'America/Sao_Paulo',
+      tasks: [
+        {
+          task_id: '6e7b94da-5651-46a0-bf28-fcb8f4f14c04',
+          title: 'Relatório mensal',
+          total_seconds: 3600,
+          collaborators: [
+            {
+              id: 'd94a4d6c-8542-4c3e-889b-89db302ef4cc',
+              username: 'ana',
+              full_name: 'Ana Souza',
+            },
+          ],
+        },
+        {
+          task_id: null,
+          title: 'Sem Task / Atividades gerais',
+          total_seconds: 120,
+          collaborators: [],
+        },
+      ],
+    };
+    expect(validTaskSummary(summary)).toBe(true);
+    expect(validTaskSummary({ ...summary, date: '2026-02-31' })).toBe(false);
+    expect(
+      validTaskSummary({
+        ...summary,
+        tasks: [{ ...summary.tasks[0], task_id: 'inválido' }],
+      }),
+    ).toBe(false);
+    expect(
+      validTaskSummary({ ...summary, tasks: [{ ...summary.tasks[0], total_seconds: -1 }] }),
+    ).toBe(false);
+    expect(validTaskSummary({ ...summary, timezone: 'UTC' })).toBe(false);
+    expect(validTaskSummary(null)).toBe(false);
   });
 
   it('valida jornada com America/Sao_Paulo, horários nulos ou instantes explícitos', () => {

@@ -4,6 +4,8 @@
 
 Revisão: **13/10/2026**. Este recorte trata de Tasks, jornada diária, horas por Task e conexão do Agent. Consulte também [Contratos existentes](CONTRATOS_API.md), [propostas de integração](PENDENCIAS.md#propostas-de-contratos-de-integracao) e [Pendências](PENDENCIAS.md).
 
+> Este documento registra o recorte histórico de propostas de 13/10/2026. Para evitar contratos divergentes e conteúdo duplicado, consulte [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao) como fonte canônica atualizada para CRUD de Tasks, resumo por Task e demais propostas. Nenhuma das rotas candidatas nesta página foi implementada no Backend.
+
 ## Situação observada
 
 - O backend deste checkout não declara modelo, schema ou router de Tasks. `ActivityLogCreate` e `ActivityLog` não possuem `task_id`.

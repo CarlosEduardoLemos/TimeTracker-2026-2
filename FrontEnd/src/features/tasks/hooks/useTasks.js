@@ -1,75 +1,134 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { validTaskDescription } from '../../../shared/api/validators';
 
-export function useTasks(devApi) {
+export function useTasks(taskService) {
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [collaborators, setCollaborators] = useState([]);
+  const [loading, setLoading] = useState(Boolean(taskService));
+  const [collaboratorsLoading, setCollaboratorsLoading] = useState(Boolean(taskService));
   const [error, setError] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState(null);
-  const [created, setCreated] = useState(false);
-  const active = useRef(null);
-  const activeSave = useRef(null);
-  const savingRef = useRef(false);
+  const [collaboratorsError, setCollaboratorsError] = useState(null);
+  const [mutation, setMutation] = useState(null);
+  const [mutationError, setMutationError] = useState(null);
+  const [mutationSuccess, setMutationSuccess] = useState(null);
+  const activeLoad = useRef(null);
+  const activeMutation = useRef(null);
+  const mutationInProgress = useRef(false);
+  const loadSequence = useRef(0);
 
   const load = useCallback(async () => {
-    active.current?.abort();
-    const controller = new AbortController();
-    active.current = controller;
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await devApi.tasks(controller.signal);
-      if (!controller.signal.aborted) setTasks(response);
-    } catch (cause) {
-      if (!controller.signal.aborted)
-        setError(cause.message || 'Não foi possível carregar as Tasks.');
-    } finally {
-      if (!controller.signal.aborted) setLoading(false);
+    activeLoad.current?.abort();
+    if (!taskService) {
+      setLoading(false);
+      setCollaboratorsLoading(false);
+      return;
     }
-  }, [devApi]);
+
+    const controller = new AbortController();
+    activeLoad.current = controller;
+    const sequence = ++loadSequence.current;
+    setLoading(true);
+    setCollaboratorsLoading(true);
+    setError(null);
+    setCollaboratorsError(null);
+
+    const [taskResult, collaboratorResult] = await Promise.allSettled([
+      taskService.tasks(controller.signal),
+      taskService.collaborators(controller.signal),
+    ]);
+    if (controller.signal.aborted || sequence !== loadSequence.current) return;
+
+    if (taskResult.status === 'fulfilled') setTasks(taskResult.value);
+    else setError(taskResult.reason?.message || 'Não foi possível carregar as Tasks.');
+
+    if (collaboratorResult.status === 'fulfilled') setCollaborators(collaboratorResult.value);
+    else {
+      setCollaboratorsError(
+        collaboratorResult.reason?.message || 'Não foi possível carregar os colaboradores.',
+      );
+    }
+    setCollaboratorsLoading(false);
+    setLoading(false);
+  }, [taskService]);
 
   useEffect(() => {
-    load();
+    void load();
     return () => {
-      active.current?.abort();
-      activeSave.current?.abort();
+      activeLoad.current?.abort();
+      activeMutation.current?.controller.abort();
     };
   }, [load]);
 
-  const createTask = useCallback(
-    async (description) => {
-      if (savingRef.current) return false;
-      setSaveError(null);
-      setCreated(false);
-      if (!validTaskDescription(description)) {
-        setSaveError('Informe uma descrição de até 200 caracteres.');
-        return false;
-      }
+  const mutate = useCallback(
+    async (operation, taskId, payload) => {
+      if (!taskService || mutationInProgress.current) return false;
+
       const controller = new AbortController();
-      activeSave.current = controller;
-      savingRef.current = true;
-      setSaving(true);
+      const operationState = { controller, type: operation };
+      activeMutation.current = operationState;
+      mutationInProgress.current = true;
+      setMutation(operation);
+      setMutationError(null);
+      setMutationSuccess(null);
+
       try {
-        const task = await devApi.createTask(description, controller.signal);
+        let result;
+        if (operation === 'create')
+          result = await taskService.createTask(payload, controller.signal);
+        if (operation === 'update')
+          result = await taskService.updateTask(taskId, payload, controller.signal);
+        if (operation === 'delete')
+          result = await taskService.deleteTask(taskId, controller.signal);
         if (controller.signal.aborted) return false;
-        setTasks((current) => [...current, task]);
-        setCreated(true);
+
+        if (operation === 'create') setTasks((current) => [...current, result]);
+        if (operation === 'update')
+          setTasks((current) => current.map((task) => (task.id === taskId ? result : task)));
+        if (operation === 'delete')
+          setTasks((current) => current.filter((task) => task.id !== taskId));
+
+        const messages = {
+          create: 'Task criada nos dados simulados.',
+          update: 'Task atualizada nos dados simulados.',
+          delete: 'Task excluída dos dados simulados.',
+        };
+        setMutationSuccess(messages[operation]);
         return true;
       } catch (cause) {
-        if (!controller.signal.aborted)
-          setSaveError(cause.message || 'Não foi possível criar a Task.');
+        if (!controller.signal.aborted) {
+          setMutationError(cause?.message || 'Não foi possível concluir a operação da Task.');
+        }
         return false;
       } finally {
-        if (activeSave.current === controller) {
-          activeSave.current = null;
-          savingRef.current = false;
-          if (!controller.signal.aborted) setSaving(false);
+        if (activeMutation.current === operationState) {
+          activeMutation.current = null;
+          mutationInProgress.current = false;
+          if (!controller.signal.aborted) setMutation(null);
         }
       }
     },
-    [devApi],
+    [taskService],
   );
 
-  return { tasks, loading, error, saving, saveError, created, load, createTask };
+  const createTask = useCallback((payload) => mutate('create', null, payload), [mutate]);
+  const updateTask = useCallback((taskId, payload) => mutate('update', taskId, payload), [mutate]);
+  const deleteTask = useCallback((taskId) => mutate('delete', taskId), [mutate]);
+  const retryCollaborators = useCallback(() => void load(), [load]);
+
+  return {
+    tasks,
+    collaborators,
+    loading,
+    collaboratorsLoading,
+    error,
+    collaboratorsError,
+    mutation,
+    mutationBusy: Boolean(mutation),
+    mutationError,
+    mutationSuccess,
+    load,
+    retryCollaborators,
+    createTask,
+    updateTask,
+    deleteTask,
+  };
 }

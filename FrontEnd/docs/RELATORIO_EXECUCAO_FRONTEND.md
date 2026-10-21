@@ -11,7 +11,7 @@ Esta entrega conclui a integração de sessão na camada de frontend. Não concl
 ## Estado inicial e rastreabilidade
 
 - Branch inicial `main`, limpa em `eb099637c0c8b878386d79fffa780ef41843d02c`, igual a `origin/main` e cinco commits à frente de `upstream/main` (`230fc7fac1374941dcb26b1d507494aa6450234f`). A diferença corresponde à PR #128, que segue aberta e contém somente alterações de FrontEnd; ela não foi incorporada nem alterada nesta execução.
-- Revisadas 38 issues oficiais: 35 abertas e 3 fechadas. A classificação técnica está em [Matriz de issues](MATRIZ_ISSUES_FRONTEND.md): 10 concluídas no escopo original, 12 parciais, 3 aguardando validação real e 13 pendentes/bloqueadas. Status técnico e estado oficial do GitHub permanecem separados.
+- Na revisão de autenticação foram conferidas 38 issues oficiais: 35 abertas e 3 fechadas. A classificação técnica daquele momento era 10 concluídas no escopo original, 12 parciais, 3 aguardando validação real e 13 pendentes/bloqueadas. Após a continuação de Tasks, a classificação atualizada está na [Matriz de issues](MATRIZ_ISSUES_FRONTEND.md): 10 concluídas, 13 parciais, 3 aguardando validação real e 12 pendentes/bloqueadas. Status técnico e estado oficial do GitHub permanecem separados.
 - Consultados requisitos, documentação da API, backend e Agent em leitura. Não foram encontrados contratos/persistência para Tasks, código de associação, vínculo gestor-colaborador ou agregação de horas por Task. As rotas e as condições para desbloquear essas entregas estão em [Pendências](PENDENCIAS.md).
 - O escopo histórico de apresentação aprovado em 13/10 previa acesso sem login. A issue #138 de 21/10 e o pedido desta execução orientaram a integração atual. A alteração do frontend não muda a política de autorização do backend.
 
@@ -51,3 +51,22 @@ O E2E usa serviços simulados. Não valida JWT assinado nem autorização no bac
 ## Limite de escopo
 
 As alterações persistentes desta execução estão em `FrontEnd/`. Backend, Agent, requisitos, raiz do repositório e remotos não foram editados. Não foram criados commits, enviados pushes, alterados issues/PRs, feitos merges ou deploys. Nenhum segredo ou token real foi usado.
+
+## Continuação — interface de Tasks e resumo por Task — 21/10/2026
+
+Esta continuação partiu do checkout limpo `main` em `6358a219536a0afa537b890a091b26a15360fbc5`, igual a `origin/main` e cinco commits à frente de `upstream/main` (`230fc7fac1374941dcb26b1d507494aa6450234f`). A PR #128 continuou aberta. As alterações desta continuação estão restritas a `FrontEnd/`.
+
+- Implementados componentes de formulário e lista Tasks com título, descrição, seleção múltipla de colaboradores, busca, ordenação, detalhes, confirmação de exclusão e estados de loading/erro/vazio. O hook aceita serviço injetado e controla create/update/delete, erros e cancelamento. Em produção, a tela permanece prévia desabilitada sem chamadas fictícias.
+- Adicionado filtro e card de resumo por Task no Dashboard, usando somente serviço de demonstração. O MSW devolve lista vazia, sem gerar horas fictícias; o filtro não altera as métricas gerais ou o resumo por categoria.
+- Adicionados handlers MSW de autenticação demonstrativa e catálogo de colaboradores para cobrir navegação autenticada local. O aviso deixa explícito que autenticação, colaboradores, Tasks e jornada são dados demonstrativos.
+- Atualizados contratos/validadores candidatos, testes e documentação. A matriz passa a classificar #98, #134 e #140 como parciais; o total atual é 10 concluídas no escopo original, 13 parciais, 3 aguardando validação real e 12 pendentes/bloqueadas. #114 continua bloqueada por contrato; #138 segue coberta pelos testes de sessão.
+
+**Validação final desta continuação:**
+
+- Lint, `format:check` e typecheck passaram.
+- Vitest: **282 testes em 58 arquivos passaram**; cobertura de **93,83% statements, 89,47% branches, 94,13% functions e 95,93% lines**.
+- Build de produção passou com Vite 6.4.4; 4 verificações do bundle passaram e confirmaram que os mocks não foram incluídos.
+- `npm.cmd run check` e `npm.cmd run check:full` passaram. Playwright teve **30 aprovados, 0 falhas e 2 testes reais ignorados** por não haver API configurada.
+- `npm.cmd audit --json --cache node_modules/.cache/npm-audit` ficou inconclusivo porque o endpoint do registry npm não respondeu.
+
+A interface de demonstração não comprova CRUD persistido, autorização ou métricas reais. O Backend inspecionado continua sem modelo/rotas de Tasks e sem agregação por Task; o Agent não envia `task_id`. Nenhuma chamada de API real, commit, push, alteração remota ou execução de Agent foi feita.

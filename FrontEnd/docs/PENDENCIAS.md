@@ -42,21 +42,22 @@ O resultado atual do `npm audit` não listou Vite, embora advisories oficiais do
 
 <a id="estado-do-mvp"></a>
 
-## Estado do MVP — revisão de 16/10/2026
+## Estado do MVP — revisão de 21/10/2026
 
 | Funcionalidade                           | Prioridade              | Estado                                 | Área/frontend afetado                         | Contrato/dependência e impacto                                                                                                                                                                                                                                                                                                                                |
 | ---------------------------------------- | ----------------------- | -------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Entrada e saída/últimos registros do dia | Alta                    | **BLOQUEADO POR BACKEND**              | `DashboardPage`; filtros por data e usuário   | Não ha endpoint de jornada, agregação diária nem campos confiáveis de primeiro/último registro. `GET /activities/realtime` representa a última leitura atual e não serve como entrada/saída. O backend precisa fornecer registros extremos por dia e agrupar segundo `America/Sao_Paulo`; até lá o painel não exibe horários inventados. Detalhes: I-06/I-07. |
-| Criar e consultar Tasks persistidas      | Alta                    | **BLOQUEADO POR BACKEND**              | `TasksPage`; futuramente Dashboard/relatórios | Não ha modelo/schema ou `GET`/`POST /tasks` equivalente. Por padrão, a tela é informativa e não oferece persistência. Somente com mocks de desenvolvimento habilitados é possível criar tasks em memória; esses dados não persistem e não representam Tasks do Backend. Sem persistência real, o MVP não pode afirmar que criou Tasks. Detalhes: I-03.        |
+| Gerenciar Tasks persistidas              | Alta                    | **UI PARCIAL; INTEGRAÇÃO BLOQUEADA**   | `TasksPage`; resumo do Dashboard              | A UI de lista/formulário/edição/exclusão e o resumo por Task funcionam somente com serviço demonstrativo em desenvolvimento. Os mocks são voláteis; produção não chama rotas não confirmadas. Backend não oferece CRUD, atribuições ou agregação persistente (#133/#140). Detalhes: I-03 e proposta candidata.                                                |
 | Relacionar Task ao Agent/atividade       | Alta para monitoramento | **BLOQUEADO POR BACKEND/AGENT**        | `TasksPage`; integração futura                | Payload do Agent e atividade não tem `task_id`; não ha comando/seleção/início/fim de Task. Criar uma Task no futuro não poderá ser anunciado como início de monitoramento sem esse contrato separado. Detalhes: I-03.                                                                                                                                         |
 | Sessão e páginas do gestor               | Alta                    | **FRONTEND IMPLEMENTADO; B-01 ABERTO** | `ManagerSessionProvider`, `App`, rotas e menu | #138 integrou cadastro/login, validação `/auth/me`, `sessionStorage` e guardas. B-01 permanece aberto: API de dados sem JWT obrigatório nem isolamento por gestor. O status de MVP aberto em 13/10 é histórico e foi atualizado pela issue #138 de 21/10.                                                                                                     |
 
 Os bloqueios funcionais impedem concluir o recorte anunciado como utilizável somente com o frontend atual. A apresentação de status realtime e o resumo por categoria continuam sendo fontes distintas; nenhuma delas é convertida em jornada ou Task.
 
-### Entregas frontend desta revisão — 16/10/2026
+### Entregas frontend desta revisão — 21/10/2026
 
 - O filtro de aplicativo deriva opções dos `process_name` recebidos no realtime e filtra somente a tabela atual de última atividade. Pode ser combinado com o usuário selecionado; não altera os indicadores ou o resumo diário e não responde a perguntas históricas de uso.
-- A demonstração de Tasks em desenvolvimento agora permite pesquisar descrições, ordenar a lista e selecionar uma Task para consultar detalhes. Criação e seleção continuam em dados simulados; a seleção não inicia monitoramento nem representa persistência.
+- A demonstração de Tasks em desenvolvimento oferece lista, criação, edição e exclusão em memória, título/descrição, seleção múltipla de colaboradores, busca e ordenação. Produção apresenta a prévia desabilitada enquanto o CRUD backend não existe.
+- O Dashboard tem filtro e card de resumo por Task isolados dos indicadores gerais. O mock de `/dashboard/tasks-summary` responde vazio, sem fabricar métricas. A autenticação demonstrativa também é local ao MSW e não altera as chamadas de produção.
 
 <a id="resumo-das-pendencias"></a>
 
@@ -280,16 +281,16 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 
 ### I-03 — Tasks, atribuição, escopo e monitoramento consentido — Alta
 
-- **Status:** BLOQUEADO.
+- **Status:** UI frontend parcialmente implementada; persistência, integração real e monitoramento seguem BLOQUEADOS.
 - **Prioridade para o MVP de 13/10:** alta. Sem consulta e criação persistentes, a tela Tasks não pode ser apresentada como funcional.
 - **Problema/requisito:** [RF-06](../../requisitos/requisitos/rn_rf.md#rf-06--criar-e-editar-tasks) a [RF-13](../../requisitos/requisitos/rn_rf.md#rf-13--registrar-períodos-de-utilização), [RF-17](../../requisitos/requisitos/rn_rf.md#rf-17--encerrar-ou-trocar-task), [RN-18](../../requisitos/requisitos/rn_rf.md#rn-18--finalidade-e-minimização) e [CA-02](../../requisitos/requisitos/ca.md#ca-02--tasks-e-início-do-monitoramento)/[CA-03](../../requisitos/requisitos/ca.md#ca-03--monitoramento-da-atividade)/[CA-04](../../requisitos/requisitos/ca.md#ca-04--estado-e-execução-da-task).
 - **Frontend afetado:** `TasksPage`, painel e relatórios.
 - **Backend relacionado:** modelos/schemas/routers não contêm task; atividades não contêm vínculo, início/fim ou classificação de escopo.
 - **Agent relacionado:** `agent/Dtos/ApiDtos.cs`, `agent/Services/QueueSenderService.cs` e payload de atividade não têm `task_id` nem comandos de seleção/início/encerramento.
-- **Atual/impacto:** não há Task model/schema nem `GET /tasks`, `POST /tasks` ou contrato equivalente. Sem mocks de desenvolvimento, a tela é informativa; com `VITE_USE_MOCKS=true`, demonstra criação em memória, pesquisa por descrição, ordenação e seleção local para consultar detalhes. Esses dados não persistem e não representam o Backend. Categorias não equivalem às aplicações de uma task. A criação persistida pelo Dashboard, quando houver contrato, será distinta do controle de monitoramento pelo Agent.
+- **Atual/impacto:** não há Task model/schema nem endpoints de produção. A tela de produção exibe uma prévia desabilitada sem fazer chamadas presumidas. Com `VITE_USE_MOCKS=true`, a UI de demonstração lista, cria, edita e exclui Tasks em memória; solicita título, descrição e ao menos um colaborador; oferece busca por título/descrição, ordenação por título/data, detalhes e estados de erro/carregamento/vazio. Os dados simulados são voláteis e não representam o Backend. O Dashboard possui filtro e card de resumo separados das métricas gerais; o mock de `/dashboard/tasks-summary` responde vazio, sem fabricar horas.
 - **Alinhamento da liderança para Sprint 2:** será solicitado a Danyyel que crie uma task padrão. A solicitação ainda não equivale a task disponível na API nem define se ela será criada como seed, configuração ou registro operacional.
-- **Contrato necessário:** para o recorte mínimo de Tasks, consulta e criação persistentes com schema e validações reais; para RF-06 completo, também edição, descrição, colaboradores atribuídos, aplicações do escopo e autorização. A integração Agent exige ainda listagem/seleção/início/encerramento, `task_id` nos registros e confirmação de ciência.
-- **Limite do frontend:** a demonstração não é workaround de produção. Não usar `localStorage`, CRUD fictício em produção ou categorias como substituto da integração real.
+- **Contrato necessário:** para o recorte implementado de #134, o Backend precisa definir consulta/criação/edição/exclusão persistentes, título/descrição, atribuições e escopo de gestor. A forma de exclusão (arquivamento ou remoção física) requer decisão de retenção. Para RF-06 completo, também são necessários aplicações do escopo e autorização. A integração Agent exige ainda listagem/seleção/início/encerramento, `task_id` nos registros e confirmação de ciência.
+- **Limite do frontend:** a UI de demonstração não é workaround de produção. Não usar `localStorage`, CRUD fictício em produção ou categorias como substituto da integração real. O formulário não chama `api.js`; só recebe `devApi` em desenvolvimento com mocks ativos.
 - **Motivo do bloqueio:** depende do modelo central de monitoramento e de implementação backend/agente.
 - **Propostas detalhadas:** [gerenciamento de Tasks](#proposta-tasks-crud) e [atribuição de colaboradores](#proposta-task-collaborators).
 
@@ -457,35 +458,40 @@ Estado dos contratos observado no checkout em 21/10/2026. A tabela resume a audi
 
 <a id="proposta-tasks-crud"></a>
 
-#### PROPOSTA — NÃO IMPLEMENTADO: criar, consultar e gerenciar Tasks
+#### PROPOSTA — NÃO IMPLEMENTADO: contrato persistente para o CRUD de Tasks
 
 **Necessidade e referências:** RF-06 e RF-11, RN-03 e RN-04, CA-02 a CA-04 e pendência I-03. O RF-06 pede criação/edição pelo Dashboard, descrição, colaboradores e aplicações no escopo. Consultar Tasks persistidas também é necessário para TasksPage. Criar ou editar uma Task não inicia monitoramento; início, encerramento, ciência do colaborador e envio de task_id dependem de contratos próprios do Agent.
 
-| Método | Endpoint candidato     | Uso proposto                                         |
-| ------ | ---------------------- | ---------------------------------------------------- |
-| GET    | /tasks                 | Listar Tasks do gestor autenticado.                  |
-| POST   | /tasks                 | Criar uma Task persistente.                          |
-| GET    | /tasks/{task_id}       | Consultar uma Task do gestor autenticado.            |
-| PATCH  | /tasks/{task_id}       | Editar campos da Task; não inicia monitoramento.     |
-| PUT    | /tasks/{task_id}/scope | Substituir a lista completa de aplicações do escopo. |
+| Método | Endpoint candidato     | Uso proposto                                                            |
+| ------ | ---------------------- | ----------------------------------------------------------------------- |
+| GET    | /tasks                 | Listar Tasks do gestor autenticado.                                     |
+| POST   | /tasks                 | Criar Task com título, descrição e colaboradores.                       |
+| GET    | /tasks/{task_id}       | Consultar uma Task do gestor autenticado.                               |
+| PUT    | /tasks/{task_id}       | Substituir título, descrição e colaboradores; não inicia monitoramento. |
+| DELETE | /tasks/{task_id}       | Remover ou arquivar após decisão de retenção do histórico.              |
+| PUT    | /tasks/{task_id}/scope | Substituir a lista completa de aplicações do escopo.                    |
 
-Não se propõe exclusão física. Retenção de registros e arquivamento devem ser decididos antes de expor exclusão ou estados de ciclo de vida.
+Os métodos do CRUD acima são uma proposta alinhada à interface já demonstrada, não contrato do Backend. A exclusão da interface só existe nos mocks; retenção de registros e arquivamento devem ser decididos antes de implementar o `DELETE` real.
 
-**Parâmetros e schemas candidatos:** task_id é UUID no caminho. GET /tasks não exige filtro nesta proposta; paginação, ordenação e filtros por estado ainda precisam ser definidos. POST recebe description. PATCH aceita description e exige ao menos um campo alterável. PUT /tasks/{task_id}/scope substitui o conjunto integral do escopo, não é incremental.
+**Parâmetros e schemas candidatos:** task_id é UUID no caminho. GET /tasks não exige filtro nesta proposta; paginação, ordenação e filtros por estado ainda precisam ser definidos. POST recebe `title`, `description` e `collaborator_ids`. PUT substitui esses mesmos campos integralmente. A UI atual exige título e descrição não vazios, descrição de até 200 caracteres e pelo menos um colaborador; os limites e regras definitivos precisam ser acordados no Backend/produto. PUT /tasks/{task_id}/scope substitui o conjunto integral do escopo, não é incremental.
 
 Requisição de criação:
 
 ```json
 {
-  "description": "Revisar o relatório mensal"
+  "title": "Relatório mensal",
+  "description": "Revisar o relatório mensal",
+  "collaborator_ids": ["d94a4d6c-8542-4c3e-889b-89db302ef4cc"]
 }
 ```
 
-Requisição de edição:
+Requisição candidata de edição integral:
 
 ```json
 {
-  "description": "Revisar e publicar o relatório mensal"
+  "title": "Relatório mensal",
+  "description": "Revisar e publicar o relatório mensal",
+  "collaborator_ids": ["d94a4d6c-8542-4c3e-889b-89db302ef4cc"]
 }
 ```
 
@@ -502,24 +508,32 @@ Resposta candidata, usada em GET /tasks/{task_id} e nos itens da listagem:
 ```json
 {
   "id": "6e7b94da-5651-46a0-bf28-fcb8f4f14c04",
+  "title": "Relatório mensal",
   "description": "Revisar o relatório mensal",
+  "collaborators": [
+    {
+      "id": "d94a4d6c-8542-4c3e-889b-89db302ef4cc",
+      "username": "ana",
+      "full_name": "Ana Souza"
+    }
+  ],
   "applications": [{ "process_name": "EXCEL.EXE" }, { "process_name": "POWERPNT.EXE" }],
   "created_at": "2026-10-13T14:20:00Z",
   "updated_at": "2026-10-13T14:20:00Z"
 }
 ```
 
-A listagem responde com um array desses objetos. Os campos e schemas são candidatos, não implementados.
+A listagem responde com um array desses objetos. Os campos e schemas são candidatos, não implementados. O mock de desenvolvimento aceita os mesmos campos básicos sem `applications`; o contrato do escopo de aplicações continua separado.
 
 **Validação, autorização e respostas:**
 
-- description não pode ficar vazia depois de remover espaços. O limite máximo deve ser definido e aplicado pelo Backend; nenhum limite numérico de negócio foi confirmado. O mock de desenvolvimento atual limita a 200 caracteres, mas esse comportamento local não confirma o limite do contrato ou da regra de negócio.
+- title e description não podem ficar vazios depois de remover espaços. O mock limita description a 200 caracteres; esse valor local não confirma o limite do contrato ou da regra de negócio.
 - Cada aplicação do escopo precisa de identificador estável. Rejeitar duplicatas e entradas vazias. A escolha entre nome de processo, executável, padrão ou outra chave permanece pendente.
 - task_id deve ser UUID e o servidor deve confirmar que a Task pertence ao gestor autenticado.
-- Todas as rotas exigem JWT de gestor e limitam leitura/escrita às Tasks desse gestor. IDs enviados pelo browser não concedem acesso.
-- POST responde 201; consultas e edição respondem 200; 401 sem autenticação; 404 se inexistente ou fora do escopo; 409 para conflito de estado, por exemplo alteração incompatível com execução ativa, depois que a regra for acordada; 422 para payload inválido; 5xx para indisponibilidade.
+- Todas as rotas exigem JWT de gestor e limitam leitura/escrita às Tasks desse gestor e aos colaboradores da equipe. IDs enviados pelo browser não concedem acesso.
+- POST responde 201; consultas/edição respondem 200; exclusão deve definir 200 ou 204 após decidir entre arquivar e remover; 401 sem autenticação; 404 se inexistente ou fora do escopo; 409 para conflito de estado após definição de regra; 422 para payload inválido; 5xx para indisponibilidade.
 
-**Impacto e dependências:** TasksPage só poderá passar de informativa para CRUD depois da implementação e publicação do contrato. O frontend deverá validar schemas, exibir erros e distinguir carregamento, lista vazia e falha; esta proposta não adiciona chamadas. Backend precisa de modelo/migração, schemas, router, relação com gestor, persistência do escopo e regras transacionais/histórico. O Agent precisa receber lista/escopo e só registrar atividade durante execução consentida. A liderança define identidade e correspondência de aplicações, campos obrigatórios, limite de description, arquivamento/exclusão e efeito de alterar escopo durante Task ativa.
+**Impacto e dependências:** a prévia de produção só poderá se tornar CRUD integrado depois da implementação e publicação do contrato. A camada visual e seus testes de serviço simulado já existem; a API de produção ainda precisa validar schemas, autorizar gestor, persistir escopo/histórico e decidir semântica de exclusão. O Agent precisa receber lista/escopo e só registrar atividade durante execução consentida. A liderança define identidade e correspondência de aplicações, campos obrigatórios, limites, arquivamento/exclusão e efeito de alterar escopo durante Task ativa.
 
 <a id="proposta-task-collaborators"></a>
 
@@ -531,6 +545,8 @@ A listagem responde com um array desses objetos. Os campos e schemas são candid
 | ------ | ------------------------------ | ----------------------------------------------------------- |
 | GET    | /tasks/{task_id}/collaborators | Consultar colaboradores atribuídos a uma Task do gestor.    |
 | PUT    | /tasks/{task_id}/collaborators | Substituir o conjunto completo de colaboradores atribuídos. |
+
+Estas rotas são uma alternativa de desenho caso o Backend queira separar atribuições do recurso Task. A proposta principal de CRUD acima já inclui `collaborator_ids` em POST/PUT; a implementação deve escolher um único formato, sem manter dois contratos concorrentes.
 
 Requisição candidata:
 
@@ -704,32 +720,38 @@ Os campos date, timezone, users, username, first_activity_at e last_activity_at 
 
 **Necessidade e referências:** RN-19, RF-24, RF-27 e I-06. A direção aprovada pela liderança é apresentar horas gastas por Task, sem rankings, notas ou comparações de desempenho. O resumo atual agrupa por categoria e não pode ser usado como tempo por Task.
 
-**Endpoint candidato:** GET /dashboard/task-hours com start_date e end_date obrigatórios e username/task_id opcionais.
+**Endpoint candidato alinhado à issue #140 e à interface de demonstração:** GET /dashboard/tasks-summary com `date` obrigatório e `username`/`task_id` opcionais. A agregação por período de múltiplos dias segue em aberto e não deve ser presumida pela rota diária.
 
 ```json
 {
-  "start_date": "2026-10-01",
-  "end_date": "2026-10-13",
+  "date": "2026-10-13",
   "timezone": "America/Sao_Paulo",
   "tasks": [
     {
       "task_id": "6e7b94da-5651-46a0-bf28-fcb8f4f14c04",
-      "description": "Revisar o relatório mensal",
-      "total_seconds": 28800
+      "title": "Relatório mensal",
+      "total_seconds": 28800,
+      "collaborators": [
+        {
+          "id": "d94a4d6c-8542-4c3e-889b-89db302ef4cc",
+          "username": "ana",
+          "full_name": "Ana Souza"
+        }
+      ]
     }
   ]
 }
 ```
 
-O endpoint, os parâmetros e todos os campos de resposta são candidatos, não implementados. total_seconds é um nome proposto para duração agregada de atividade vinculada à Task. Inclusão de períodos inativos ou fora do escopo ainda requer aprovação.
+O endpoint, os parâmetros e todos os campos de resposta são candidatos, não implementados. A resposta inclui `date`, `timezone` e `tasks`; cada item identifica Task/título, `total_seconds` e colaboradores. `task_id: null` pode representar registros sem Task apenas se a regra de negócio aprovar essa categoria. O mock local retorna sempre `tasks: []` e serve para validar estados da interface, não a agregação nem dados de produção. `total_seconds` é duração agregada de atividade vinculada à Task; inclusão de períodos inativos ou fora do escopo ainda requer aprovação.
 
-- start_date e end_date são datas válidas, obrigatórias, inclusivas e interpretadas no timezone declarado.
+- `date` é uma data válida no fuso declarado; filtros por período e seus limites ainda precisam de definição para análises de vários dias.
 - username e task_id são filtros opcionais limitados ao gestor autenticado; task_id é UUID.
-- end_date não pode anteceder start_date. O Backend deve definir período máximo para limitar custo da consulta.
+- O Backend deve definir período máximo para limitar custo de uma futura consulta por período.
 - Agregar somente registros com vínculo persistido com Task. Não deduzir task_id por categoria, aplicação, janela ativa ou estado realtime.
-- Ordenação estável por descrição/identificador; nunca ordenar por duração para formar ranking. Não incluir pontuação nem comparar desempenho entre colaboradores.
-- Consulta válida sem registros responde 200 com tasks: []. Respostas de erro propostas: 401 sem autenticação; 404 para filtro fora do escopo; 422 para período/UUID inválido; 5xx para indisponibilidade.
-- O Dashboard só mostra horas reais por Task depois que cada registro estiver ligado à Task correta e a regra de duração aprovada. A visualização respeita período, colaborador e Task.
+- Ordenação estável por título/identificador; nunca ordenar por duração para formar ranking. Não incluir pontuação nem comparar desempenho entre colaboradores.
+- Consulta válida sem registros responde 200 com `tasks: []`. Respostas de erro propostas: 401 sem autenticação; 404 para filtro fora do escopo; 422 para data/UUID inválido; 5xx para indisponibilidade.
+- O filtro desta interface afeta apenas o card de resumo por Task; não altera métricas gerais ou categorias. O Dashboard só pode mostrar horas reais por Task depois que cada registro estiver ligado à Task correta e a regra de duração aprovada.
 - Backend precisa persistir vínculo entre Task e registros/períodos, implementar agregação autorizada e idempotência (B-06). Agent precisa enviar task_id correto após seleção, início/fim e ciência do colaborador. A liderança decide se horas incluem inatividade, aplicações fora do escopo e períodos sem atividade, e se Tasks sem registro entram com zero ou são omitidas.
 
 ### I-07 — Datas e fusos horários

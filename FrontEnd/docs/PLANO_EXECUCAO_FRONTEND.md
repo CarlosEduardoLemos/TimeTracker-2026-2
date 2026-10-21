@@ -72,4 +72,13 @@ Os detalhes e contratos ainda propostos estão preservados em [Pendências](PEND
 
 ## Estado da execução
 
-A autenticação está implementada no frontend e os testes focados, lint, formatação e typecheck passaram durante a rodada; o relatório final registra os comandos integrais e seus resultados após a última mudança. O principal bloqueio externo permanece B-01/#137; Tasks reais, associação, jornada, atividade por Task e deploy dependem de Backend, Agent ou DevOps.
+A autenticação do gestor está implementada no frontend. Nesta continuação, a interface de CRUD de Tasks e o card de horas por Task foram concluídos como demonstrações explicitamente isoladas; a versão de produção segue desabilitada até haver contrato. O principal bloqueio externo permanece B-01/#137; Tasks reais, associação, jornada, atividade por Task e deploy dependem de Backend, Agent ou DevOps. Resultados integrais das validações ficam no [Relatório](RELATORIO_EXECUCAO_FRONTEND.md).
+
+## Continuação — conclusão da interface de Tasks, 21/10/2026
+
+- **Linha de base desta continuação:** checkout `main` em `6358a219536a0afa537b890a091b26a15360fbc5`, limpo no início e igual a `origin/main`; cinco commits à frente de `upstream/main` (`230fc7fac1374941dcb26b1d507494aa6450234f`). PR #128 permanece aberta. As alterações desta continuação estão limitadas a `FrontEnd/`.
+- **Tasks (#134):** formulário e lista com título, descrição e seleção múltipla de colaboradores; criar/editar/excluir somente no serviço de desenvolvimento, busca, ordenação, estados de erro/carregamento/vazio e prévia desabilitada em produção.
+- **Dashboard (#98/#140):** filtro e card de resumo por Task usam serviço de demonstração isolado e resposta vazia; não afetam indicadores gerais/categorias nem fabricam horas. A API real ainda não tem CRUD nem agregação por Task.
+- **Regressão de autenticação (#138):** handlers locais de register/login/me permitem exercitar páginas protegidas no modo mock. O aviso global identifica que autenticação, colaboradores, Tasks e jornada dessa execução são dados de demonstração.
+- **Classificação técnica atualizada:** issue #134 permanece parcial até existir integração real. #98 e #140 também permanecem parciais; o filtro e card são interface pronta, mas sem dados de API. #114 permanece bloqueada por falta de contrato de código.
+- **Contratos candidatos:** centralizados em [Pendências](PENDENCIAS.md), com métodos de CRUD, `title`, `description`, `collaborator_ids` e proposta de `/dashboard/tasks-summary`. A documentação separa as rotas MSW de endpoints reais.

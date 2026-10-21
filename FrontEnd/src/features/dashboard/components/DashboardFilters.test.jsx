@@ -41,3 +41,51 @@ it('mantém usuário selecionado visível quando a lista fica indisponível', ()
   expect(screen.getByLabelText('Usuário')).toBeDisabled();
   expect(screen.getByRole('option', { name: 'ana (selecionado)' })).toBeInTheDocument();
 });
+
+it('combina seleção de Task com filtros sem oferecê-la quando a lista está indisponível', () => {
+  const taskId = '6e7b94da-5651-46a0-bf28-fcb8f4f14c04';
+  const onTaskChange = vi.fn();
+  const { rerender } = render(
+    <DashboardFilters
+      {...base}
+      tasks={[]}
+      tasksAvailable={false}
+      taskId=""
+      onTaskChange={onTaskChange}
+      onDateChange={vi.fn()}
+      onUsernameChange={vi.fn()}
+    />,
+  );
+  expect(screen.getByLabelText(/Task \(somente resumo por Task\)/)).toBeDisabled();
+  expect(screen.getByRole('option', { name: 'Nenhuma Task disponível' })).toBeInTheDocument();
+
+  rerender(
+    <DashboardFilters
+      {...base}
+      tasks={[{ id: taskId, title: 'Relatório mensal' }]}
+      tasksAvailable
+      taskId=""
+      onTaskChange={onTaskChange}
+      onDateChange={vi.fn()}
+      onUsernameChange={vi.fn()}
+    />,
+  );
+  fireEvent.change(screen.getByLabelText(/Task \(somente resumo por Task\)/), {
+    target: { value: taskId },
+  });
+  expect(onTaskChange).toHaveBeenCalledWith(taskId);
+  rerender(
+    <DashboardFilters
+      {...base}
+      tasks={[{ id: taskId, title: 'Relatório mensal' }]}
+      tasksAvailable
+      taskId={taskId}
+      onTaskChange={onTaskChange}
+      onDateChange={vi.fn()}
+      onUsernameChange={vi.fn()}
+    />,
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Limpar Task' }));
+  expect(onTaskChange).toHaveBeenLastCalledWith('');
+  expect(screen.getByText(/Não altera os indicadores gerais/)).toBeInTheDocument();
+});

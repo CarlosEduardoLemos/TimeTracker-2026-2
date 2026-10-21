@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DashboardPage } from './DashboardPage';
 import { useDashboardData } from '../hooks/useDashboardData';
+import { todayIso } from '../../../shared/lib/date';
 
 vi.mock('../hooks/useDashboardData', () => ({ useDashboardData: vi.fn() }));
 
@@ -173,6 +174,56 @@ describe('DashboardPage', () => {
       screen.getByText('Nenhum usuário corresponde aos filtros aplicados.'),
     ).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('0 de 1 usuários nesta lista');
+  });
+
+  it('aplica Task somente ao resumo por Task e deixa os indicadores gerais intactos', async () => {
+    const task = {
+      id: '6e7b94da-5651-46a0-bf28-fcb8f4f14c04',
+      title: 'Relatório mensal',
+      description: 'Revisar relatório',
+      collaborators: [],
+      created_at: '2026-10-13T14:20:00Z',
+      updated_at: '2026-10-13T14:20:00Z',
+    };
+    const devApi = {
+      tasks: vi.fn().mockResolvedValue([task]),
+      taskSummary: vi.fn().mockResolvedValue({
+        date: todayIso(),
+        timezone: 'America/Sao_Paulo',
+        tasks: [
+          {
+            task_id: task.id,
+            title: task.title,
+            total_seconds: 1800,
+            collaborators: [],
+          },
+        ],
+      }),
+    };
+    useDashboardData.mockReturnValue({
+      data: fullData,
+      loading: false,
+      refreshing: false,
+      refresh: vi.fn(),
+    });
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} devApi={devApi} />);
+
+    const taskFilter = await screen.findByLabelText(/Task \(somente resumo por Task\)/);
+    await waitFor(() => expect(taskFilter).toBeEnabled());
+    const date = screen.getByLabelText('Data do resumo').value;
+    const user = screen.getByLabelText('Usuário').value;
+    const originalQuery = useDashboardData.mock.calls.at(-1).slice(0, 2);
+    fireEvent.change(taskFilter, { target: { value: task.id } });
+
+    expect(devApi.taskSummary).toHaveBeenLastCalledWith(
+      date,
+      user,
+      task.id,
+      expect.any(AbortSignal),
+    );
+    expect(useDashboardData.mock.calls.at(-1).slice(0, 2)).toEqual(originalQuery);
+    expect(screen.getByText('Tempo registrado').closest('article')).toHaveTextContent('1h 00min');
+    expect(await screen.findByText('0h 30min')).toBeInTheDocument();
   });
 
   it('mantém a contagem de usuários cadastrados quando realtime falha', () => {
