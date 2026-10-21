@@ -102,6 +102,15 @@ describe('Sidebar', () => {
     expect(screen.queryByRole('link', { name: 'Criar conta' })).not.toBeInTheDocument();
   });
 
+  it('shows the signed-in manager and logs out accessibly', () => {
+    const onLogout = vi.fn();
+    render(<Sidebar route="painel" user={{ email: 'gestor@empresa.com' }} onLogout={onLogout} />);
+
+    expect(screen.getByText('gestor@empresa.com')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Sair' }));
+    expect(onLogout).toHaveBeenCalledOnce();
+  });
+
   it('opens and closes the mobile menu with Escape', () => {
     render(<Sidebar route="painel" />);
     const openButton = screen.getByRole('button', { name: 'Abrir menu' });

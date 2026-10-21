@@ -2,6 +2,17 @@
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 
+## 21/10/2026 — Autenticação real do gestor e proteção das páginas
+
+- **Issues:** avanço de #112 e #138, em resposta à issue #138 aberta em 21/10. O checkout inicial estava limpo em `main` no commit `eb099637`; a PR #128 com cinco commits e alterações apenas em `FrontEnd/` permanecia aberta e não integrada a `upstream/main`.
+- **Formulários:** `AuthPage` passou a enviar cadastro/login aos contratos existentes. Valida e-mail, mínimo de 8 caracteres e máximo de 72 bytes UTF-8 no cadastro; trata credencial inválida, e-mail já usado, 422, timeout/rede e prevenção de envio duplicado. Cadastro retorna confirmação e exige ação separada para entrar; não autentica automaticamente.
+- **Sessão:** criado `ManagerSessionProvider` com armazenamento do token somente em `sessionStorage`, validação do token e identidade via `GET /auth/me`, restauração após refresh, logout e proteção das cinco páginas do gestor. Nenhum token ou senha é registrado.
+- **Cliente HTTP:** chamadas a usuários, realtime, resumo, exportações e configurações enviam Bearer da sessão. HTTP 401 coordena limpeza da sessão e redirecionamento; HTTP 403 preserva a identidade. Cadastro/login permanecem públicos; o Bearer de `/auth/me` usa o token recebido explicitamente.
+- **Navegação/testes:** Sidebar mostra e-mail validado e botão de saída. Foram adicionados testes de auth, API, sessão, guarda de rotas e E2E mockado. O fluxo real do servidor não foi executado.
+- **Dependência crítica:** `/auth/me` é protegido no backend, mas rotas de dados atuais ainda não exigem token nem filtram por gestor. A guarda React e o envio de Bearer não oferecem autorização; ver B-01/#137 em [Pendências](PENDENCIAS.md). O card de associação continua oculto porque falta contrato de código (#113).
+- **Validação:** resultados de `check`, `check:full`, Playwright e auditoria npm estão em [Testes](TESTES.md) e no [Relatório](RELATORIO_EXECUCAO_FRONTEND.md). A auditoria npm atual não obteve conexão ao registry.
+- **Escopo:** alterações persistentes nesta execução restritas a `FrontEnd/`. Nenhum commit, push, merge, issue, PR, deploy ou chamada à API real foi feito.
+
 ## 16/10/2026 — Atividade em tempo real, filtros do painel e busca de tarefas
 
 - **Visualização:** a lista agora mostra o estado de atividade retornado pela API, o aplicativo mais recente e o tempo desde a captura. Essa idade não é apresentada como conexão ou sincronização confirmada.

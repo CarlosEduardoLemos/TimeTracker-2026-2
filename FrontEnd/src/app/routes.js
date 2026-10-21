@@ -5,6 +5,7 @@ export const routes = {
     label: 'Painel',
     title: 'Painel',
     menu: true,
+    protected: true,
     component: lazy(() =>
       import('../features/dashboard/pages/DashboardPage').then((module) => ({
         default: module.DashboardPage,
@@ -15,6 +16,7 @@ export const routes = {
     label: 'Colaboradores',
     title: 'Colaboradores',
     menu: true,
+    protected: true,
     component: lazy(() =>
       import('../features/collaborators/pages/CollaboratorsPage').then((module) => ({
         default: module.CollaboratorsPage,
@@ -25,6 +27,7 @@ export const routes = {
     label: 'Tasks',
     title: 'Tasks',
     menu: true,
+    protected: true,
     component: lazy(() =>
       import('../features/tasks/pages/TasksPage').then((module) => ({ default: module.TasksPage })),
     ),
@@ -33,6 +36,7 @@ export const routes = {
     label: 'Relatórios',
     title: 'Relatórios',
     menu: true,
+    protected: true,
     component: lazy(() =>
       import('../features/reports/pages/ReportsPage').then((module) => ({
         default: module.ReportsPage,
@@ -43,6 +47,7 @@ export const routes = {
     label: 'Configurações',
     title: 'Configurações',
     menu: true,
+    protected: true,
     component: lazy(() =>
       import('../features/settings/pages/SettingsPage').then((module) => ({
         default: module.SettingsPage,

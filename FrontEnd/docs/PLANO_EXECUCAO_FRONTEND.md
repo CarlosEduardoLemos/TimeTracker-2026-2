@@ -1,0 +1,75 @@
+# Plano de execução do Frontend
+
+Revisão iniciada em **21/10/2026**. Este documento registra o diagnóstico antes das mudanças e o trabalho executado nesta rodada. Todas as escritas desta revisão permanecem em `FrontEnd/`.
+
+## Escopo e fontes
+
+- Checkout local: `C:/Users/User/Documents/TimeTracker-2026-2`.
+- Branch inicial: `main`; commit inicial: `eb099637c0c8b878386d79fffa780ef41843d02c`.
+- `origin` aponta para `CarlosEduardoLemos/TimeTracker-2026-2`; `upstream` aponta para `fabrica-bayarea/TimeTracker-2026-2`.
+- A árvore estava limpa antes da revisão. O commit local correspondia a `origin/main` e estava cinco commits à frente de `upstream/main` (`230fc7fac1374941dcb26b1d507494aa6450234f`). Essa diferença é a PR #128, aberta, com cinco commits e alterações somente em `FrontEnd/`; não foi incorporada ao repositório oficial durante esta execução.
+- Issues oficiais consultadas: 38 (35 abertas, 3 fechadas), incluindo descrições, labels, responsáveis e comentários existentes. PRs recentes consultadas: 15, incluindo #128 aberta e #125/#124/#121/#120/#119 integradas.
+- Requisitos consultados: visão, sitemap, RBAC, critérios de aceite, regras funcionais/não funcionais, épicos, sprints e telas.
+- Backend e Agent foram examinados somente para leitura. Não há routers de Tasks ou associação no Backend atual. `GET /auth/me` exige JWT; as rotas de dados de usuários, realtime, resumo/exportação e configuração não exigem JWT nem filtram por gestor.
+
+## Diagnóstico inicial
+
+O frontend é React 18/Vite, com rotas por hash, lazy loading, cliente HTTP compartilhado, validadores de resposta, hooks de dados e cobertura unitária/E2E. `FrontEnd/package.json` disponibiliza `lint`, `format:check`, `typecheck`, `test`, `test:coverage`, `build`, `test:bundle`, `test:e2e`, `test:e2e:real`, `check` e `check:full`.
+
+As páginas de Painel, Colaboradores, Tasks, Relatórios e Configurações já estavam estruturadas. Painel/Colaboradores usam `/users/`, `/activities/realtime` e `/dashboard/summary`; relatórios/exportações refletem somente o resumo diário disponível. A página de Tasks é informativa em produção, com demonstração isolada de desenvolvimento. A PR #128 já trazia busca/ordenação local de Tasks, filtro por aplicativo, acompanhamento de leituras realtime, documentação e testes, mas ainda estava aberta e ausente de `upstream/main`.
+
+O backend tinha contratos verificáveis para registro, login e identidade do gestor (`POST /auth/register`, `POST /auth/login`, `GET /auth/me`). Antes desta rodada, os métodos HTTP de auth existiam, mas `AuthPage` era informativa, não havia sessão, logout nem guardas. A issue #138, aberta em 21/10/2026, e o texto de execução autorizam essa integração, embora um alinhamento anterior tenha adiado login para o MVP de 13/10. A decisão mais recente foi implementar no frontend e preservar no relatório a limitação do servidor.
+
+## Matriz de issues
+
+A [Matriz de issues](MATRIZ_ISSUES_FRONTEND.md) classifica cada uma das 38 issues por status oficial, classificação técnica, área, evidência, contribuição do frontend, dependência, teste e aceite. A contagem não duplica issues entre as quatro classificações principais:
+
+| Classificação técnica                                  | Quantidade |
+| ------------------------------------------------------ | ---------: |
+| Concluída no escopo original, com evidência registrada |         10 |
+| Parcial                                                |         12 |
+| Implementada, aguardando validação real                |          3 |
+| Pendente ou bloqueada por outra área                   |         13 |
+
+O estado oficial continua independente: **35 abertas e 3 fechadas**. Issues fechadas #112 e #118 não foram automaticamente tratadas como tecnicamente completas; a #118 descreve recebimento autenticado, mas a rota local atual não exige credencial.
+
+## Dependências principais
+
+| Área/issue                    | Evidência no checkout                                                                                                            | Efeito no frontend                                                                     | Condição de desbloqueio                                                                      |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Backend #137 / B-01           | Só `/auth/me` usa `get_current_manager`; rotas de usuários, atividade, resumo, exportação e configuração não filtram por gestor. | O frontend valida a sessão e envia Bearer, mas os dados continuam sem isolamento real. | Proteger cada rota, filtrar pelo gestor autenticado e testar isolamento entre gestores.      |
+| Backend #113/#115; Agent #116 | Não existe rota/schema de código, associação ou vínculo gestor–colaborador no backend.                                           | Código permanece oculto; a integração do Agent não pode ser validada de ponta a ponta. | Definir contrato de geração/consulta, associação, validade, erros e persistência do vínculo. |
+| Backend #133; Agent #135/#136 | Sem modelo/router/schema de Tasks no backend; DTOs/rotinas do Agent não carregam task ativa/TaskId.                              | Gestão persistida, atribuição e início do monitoramento não podem ser afirmados.       | CRUD autorizado, atribuições e protocolo de início/troca/fim com TaskId.                     |
+| Backend #140                  | Não existe agregação de tempo por Task nem campo de Task nos registros.                                                          | Sem indicadores reais de tempo por Task.                                               | Persistir TaskId no registro e disponibilizar agregação filtrada por período/equipe.         |
+| Infra #141                    | Docker Compose local existe, mas não configura túnel HTTPS ou homologação distribuída.                                           | E2E real e comportamento de produção não foram exercitados.                            | Ambiente HTTPS autorizado, conta/dados de teste e roteiro em redes distintas.                |
+
+Os detalhes e contratos ainda propostos estão preservados em [Pendências](PENDENCIAS.md). Nenhuma rota de Tasks, associação, jornada, conexão do Agent ou agregação foi inventada.
+
+## Ordem de execução e arquivos
+
+1. **Segurança do frontend (#112/#138):** formulário real, validação conforme schemas, sessão em `sessionStorage`, restauração por `/auth/me`, proteção das páginas, logout e handling distinto de `401`/`403`. Arquivos: `src/shared/auth/`, `src/shared/api/api.js`, `src/app/App.jsx`, `src/app/routes.js`, `src/app/layout/Sidebar.jsx`, `src/features/auth/pages/AuthPage.jsx`.
+2. **Regressão e qualidade:** testes de API, formulário, guarda, navegação e menu; E2E mockado com `/auth/me`; teste real somente com serviço e conta configurados. Arquivos de teste em `src/` e `e2e/`.
+3. **Rastreabilidade:** atualizar contratos, funcionalidades, arquitetura, pendências e testes; criar matriz e relatório final.
+4. **Revisão final:** validar comandos disponíveis, revisar diff, untracked, segredo e escopo restrito a `FrontEnd/`.
+
+## Riscos técnicos
+
+- `sessionStorage` é legível por JavaScript e suscetível a XSS; evita persistência além da aba, não elimina o risco. Não armazenamos senha ou imprimimos token.
+- Não há refresh/revogação de JWT. Logout remove a cópia local e o token segue válido no servidor até expirar.
+- Guardas React protegem a apresentação, não os dados. Até #137 ser entregue, a API continua acessível sem token e sem isolamento.
+- O card de associação fica oculto sem contrato real; a resposta `ManagerOut` não contém código.
+- A implementação nova muda o fluxo anterior sem login previsto para apresentação de 13/10. A issue #138 aberta e o pedido atual orientam o avanço, mas o status histórico do MVP foi preservado.
+- O checkout tem modificações pessoais prévias em PR #128. Essas alterações foram mantidas; nenhuma edição foi feita em Backend, Agent, requisitos, raiz do repositório ou Git remoto.
+
+## Critérios e estratégia de validação
+
+- `npm run lint`, `npm run format:check` e `npm run typecheck` verificam estilo, lint e contratos JS.
+- `npm run test:coverage` cobre cliente, fluxo de autenticação, `401`/`403`, sessão, validações e componentes.
+- `npm run build` mais `npm run test:bundle` verifica compilação e exclusão de mocks de produção.
+- `npm run test:e2e` verifica rotas protegidas e telas com mocks do navegador; `npm run test:e2e:real` exige API, `RUN_REAL_API=1` e credenciais de teste definidas fora dos arquivos.
+- `npm run check` reúne lint, formatação, typecheck, cobertura e build; `npm run check:full` inclui E2E.
+- Não executar chamada que escreva em API real sem ambiente e conta de teste autorizados. A validação real do backend e do Agent permanece condicionada ao ambiente.
+
+## Estado da execução
+
+A autenticação está implementada no frontend e os testes focados, lint, formatação e typecheck passaram durante a rodada; o relatório final registra os comandos integrais e seus resultados após a última mudança. O principal bloqueio externo permanece B-01/#137; Tasks reais, associação, jornada, atividade por Task e deploy dependem de Backend, Agent ou DevOps.

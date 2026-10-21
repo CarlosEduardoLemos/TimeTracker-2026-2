@@ -6,8 +6,11 @@ Use este índice para localizar informações sobre o estado atual, a arquitetur
 
 - [Funcionalidades](FUNCIONALIDADES.md): telas, comportamentos disponíveis e relação com os requisitos.
 - [Pendências](PENDENCIAS.md): bloqueios organizados por área, impacto, prioridade e workaround.
+- [Plano de execução](PLANO_EXECUCAO_FRONTEND.md): auditoria inicial, dependências, prioridades e validações desta revisão.
+- [Matriz de issues](MATRIZ_ISSUES_FRONTEND.md): inventário oficial e classificação técnica das 38 issues consultadas.
+- [Relatório da execução](RELATORIO_EXECUCAO_FRONTEND.md): mudanças, resultados reais dos testes, limites e próximos passos.
 
-O backend implementa cadastro/login JWT e `GET /auth/me`; métodos HTTP correspondentes estão preparados, mas o frontend não iniciou integração de sessão e o login continua adiado no MVP. A PR #122 do Agent foi integrada. O backend deste checkout ainda não apresenta geração/consulta de código, `POST /associate/` ou persistência do vínculo. O card visual permanece oculto e não representa integração ponta a ponta.
+O frontend integra cadastro/login JWT, restauração em `sessionStorage`, logout e guarda de páginas após validar `/auth/me`. As rotas de dados do backend ainda não exigem JWT nem isolam equipes; consulte B-01 e [Pendências](PENDENCIAS.md). A PR #128 do frontend permanece aberta nesta auditoria; as mudanças locais ainda não estão no `upstream/main`. A PR #122 do Agent foi integrada, mas o backend deste checkout ainda não apresenta geração/consulta de código, `POST /associate/` ou persistência do vínculo. O card visual permanece oculto.
 
 ## Arquitetura e contratos
 

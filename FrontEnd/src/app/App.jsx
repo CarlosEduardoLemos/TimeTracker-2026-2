@@ -5,10 +5,20 @@ import { useHashRoute } from './hooks/useHashRoute';
 import { PageErrorBoundary } from './PageErrorBoundary';
 import { routes } from './routes';
 import { MocksNotice } from './layout/MocksNotice';
+import { ManagerSessionProvider, useManagerSession } from '../shared/auth/ManagerSession';
 
-export default function App({ mocksEnabled = false, devApi = null }) {
+export default function App({ mocksEnabled = false, devApi = null, authClient }) {
+  return (
+    <ManagerSessionProvider client={authClient}>
+      <AppContent mocksEnabled={mocksEnabled} devApi={devApi} />
+    </ManagerSessionProvider>
+  );
+}
+
+function AppContent({ mocksEnabled, devApi }) {
   const route = useHashRoute();
   const [dark, toggleTheme] = useTheme();
+  const session = useManagerSession();
   const main = useRef(null);
   const previousRoute = useRef(route);
   const config = routes[route];
@@ -19,6 +29,14 @@ export default function App({ mocksEnabled = false, devApi = null }) {
     if (previousRoute.current !== route) main.current?.focus();
     previousRoute.current = route;
   }, [route, config]);
+
+  useEffect(() => {
+    if (config?.protected && session.status === 'anonymous') {
+      window.location.hash = '#/login';
+    } else if (config?.auth && session.status === 'authenticated') {
+      window.location.hash = '#/painel';
+    }
+  }, [config, session.status]);
 
   const content = Page ? (
     <PageErrorBoundary key={route}>
@@ -37,6 +55,45 @@ export default function App({ mocksEnabled = false, devApi = null }) {
       </a>
     </section>
   );
+
+  if (config?.protected && session.status !== 'authenticated') {
+    return (
+      <main
+        ref={main}
+        tabIndex="-1"
+        className="grid min-h-screen place-items-center bg-page p-4 dark:bg-slate-950 dark:text-white"
+      >
+        {session.status === 'checking' ? (
+          <p role="status">Validando a sessão do gestor…</p>
+        ) : session.status === 'unavailable' ? (
+          <section className="card w-full max-w-lg p-6" aria-labelledby="session-error-title">
+            <h1 id="session-error-title" className="text-xl font-bold">
+              Não foi possível validar a sessão
+            </h1>
+            <p className="mt-2 text-sm muted">
+              A API não respondeu. Tente novamente para continuar com segurança.
+            </p>
+            <button className="primary-button mt-5" onClick={() => void session.retrySession()}>
+              Tentar novamente
+            </button>
+            <a className="secondary-button ml-2 inline-block" href="#/login">
+              Ir para entrar
+            </a>
+          </section>
+        ) : (
+          <p role="status">Redirecionando para entrar…</p>
+        )}
+      </main>
+    );
+  }
+
+  if (config?.auth && session.status === 'authenticated') {
+    return (
+      <main ref={main} tabIndex="-1" className="grid min-h-screen place-items-center p-4">
+        <p role="status">Abrindo o painel…</p>
+      </main>
+    );
+  }
 
   if (config?.auth)
     return (
@@ -63,7 +120,7 @@ export default function App({ mocksEnabled = false, devApi = null }) {
         Pular para o conteúdo principal
       </a>
       <MocksNotice enabled={mocksEnabled} />
-      <Sidebar route={route} />
+      <Sidebar route={route} user={session.manager} onLogout={session.logout} />
       <main
         ref={main}
         id="conteudo"

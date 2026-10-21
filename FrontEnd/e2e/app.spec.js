@@ -7,10 +7,23 @@ const users = [
 const realtime = [
   { username: 'ana', status: 'offline', seconds_since_last_activity: 901, process_name: 'Editor' },
 ];
+const managerToken = `eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYW5hZ2VyIn0.${'A'.repeat(43)}`;
+const manager = {
+  id: 'b06e3df5-c23b-49ec-9a40-081a451620b3',
+  email: 'gestor@empresa.com',
+  created_at: '2026-10-21T12:00:00Z',
+};
 
 async function mockApi(page) {
   await page.route('http://localhost:8000/**', async (route) => {
     const url = new URL(route.request().url());
+    if (url.pathname === '/auth/me') return route.fulfill({ json: manager });
+    if (url.pathname === '/auth/login') {
+      return route.fulfill({
+        json: { access_token: managerToken, token_type: 'bearer', expires_in: 3600 },
+      });
+    }
+    if (url.pathname === '/auth/register') return route.fulfill({ status: 201, json: manager });
     if (url.pathname === '/users/') return route.fulfill({ json: users });
     if (url.pathname === '/activities/realtime') return route.fulfill({ json: realtime });
     if (url.pathname === '/dashboard/summary') {
@@ -54,10 +67,18 @@ async function mockApi(page) {
 }
 
 test.beforeEach(async ({ page }) => {
+  await page.addInitScript(
+    ({ key, token }) => {
+      if (location.hash !== '#/cadastro') sessionStorage.setItem(key, token);
+    },
+    { key: 'timetracker.manager.access-token', token: managerToken },
+  );
   await mockApi(page);
 });
 
-test('abre o painel sem login, filtra data e usuário e navega até a rota 404', async ({ page }) => {
+test('restaura a sessão do gestor, filtra data e usuário e navega até a rota 404', async ({
+  page,
+}) => {
   await page.goto('/#/painel');
   await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Criar conta' })).toHaveCount(0);
@@ -75,6 +96,26 @@ test('abre o painel sem login, filtra data e usuário e navega até a rota 404',
   await expect(page.getByRole('main')).toBeFocused();
   await page.goto('/#/inexistente');
   await expect(page.getByRole('heading', { name: 'Página não encontrada' })).toBeVisible();
+});
+
+test('integra login e confirma que cadastro não cria uma sessão automaticamente', async ({
+  page,
+}) => {
+  await page.goto('/#/cadastro');
+  await page.getByLabel('E-mail').fill('gestor@empresa.com');
+  await page.getByLabel('Senha').fill('SenhaSegura123!');
+  await page.getByRole('button', { name: 'Criar conta' }).click();
+  await expect(page.getByRole('status')).toContainText(/não inicia uma sessão automaticamente/i);
+  await expect(page.getByRole('link', { name: 'Ir para entrar', exact: true })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Ir para entrar', exact: true }).click();
+  await page.getByLabel('E-mail').fill('gestor@empresa.com');
+  await page.getByLabel('Senha').fill('SenhaSegura123!');
+  await page.getByRole('button', { name: 'Entrar' }).click();
+  await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
+  expect(
+    await page.evaluate(() => sessionStorage.getItem('timetracker.manager.access-token')),
+  ).toBe(managerToken);
 });
 
 test('filtra aplicativos somente na última atividade e combina com usuário', async ({ page }) => {

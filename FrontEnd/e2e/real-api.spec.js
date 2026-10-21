@@ -1,13 +1,25 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 
-test.skip(!process.env.RUN_REAL_API, 'Requer FastAPI em execução e RUN_REAL_API=1.');
+const configured =
+  process.env.RUN_REAL_API && process.env.REAL_API_EMAIL && process.env.REAL_API_PASSWORD;
+test.skip(
+  !configured,
+  'Requer FastAPI em execução, RUN_REAL_API=1 e credenciais de teste em REAL_API_EMAIL/REAL_API_PASSWORD.',
+);
+
+async function signIn(page) {
+  await page.goto('/#/login');
+  await page.getByLabel('E-mail').fill(process.env.REAL_API_EMAIL);
+  await page.getByLabel('Senha').fill(process.env.REAL_API_PASSWORD);
+  await page.getByRole('button', { name: 'Entrar' }).click();
+  await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
+}
 
 test('consulta a API real pelo navegador e confere os contratos disponíveis', async ({ page }) => {
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto('/#/painel');
-  await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
+  await signIn(page);
   await expect(page.getByText('Aguardando primeira atualização')).toHaveCount(0);
   await expect(page.getByRole('alert')).toHaveCount(0);
   await page
@@ -19,7 +31,11 @@ test('consulta a API real pelo navegador e confere os contratos disponíveis', a
 });
 
 test('baixa CSV e PDF reais com tipo e conteúdo básico válidos', async ({ page }) => {
-  await page.goto('/#/relatorios');
+  await signIn(page);
+  await page
+    .getByRole('navigation', { name: 'Menu principal' })
+    .getByRole('link', { name: 'Relatórios' })
+    .click();
   await expect(page.getByRole('combobox')).toBeEnabled();
 
   for (const [format, mime] of [

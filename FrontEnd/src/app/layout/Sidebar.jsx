@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { menuRoutes } from '../routes';
 
-function Navigation({ route, onNavigate }) {
+function Navigation({ route, onNavigate, user, onLogout }) {
   return (
     <>
       <a
@@ -26,11 +26,28 @@ function Navigation({ route, onNavigate }) {
           </a>
         ))}
       </nav>
+      {user && (
+        <div className="mt-auto border-t border-line pt-5 dark:border-slate-700">
+          <p className="break-all text-xs muted" aria-label="Gestor autenticado">
+            {user.email}
+          </p>
+          <button
+            type="button"
+            className="sidebar-link mt-2 w-full text-left"
+            onClick={() => {
+              onNavigate?.();
+              onLogout();
+            }}
+          >
+            Sair
+          </button>
+        </div>
+      )}
     </>
   );
 }
 
-export function Sidebar({ route }) {
+export function Sidebar({ route, user, onLogout }) {
   const [open, setOpen] = useState(false);
   const trigger = useRef(null);
   const panel = useRef(null);
@@ -101,7 +118,7 @@ export function Sidebar({ route }) {
         </svg>
       </button>
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col overflow-y-auto border-r border-line bg-white p-5 dark:border-slate-700 dark:bg-slate-900 lg:flex">
-        <Navigation route={route} />
+        <Navigation route={route} user={user} onLogout={onLogout} />
       </aside>
       {open && (
         <div
@@ -129,7 +146,7 @@ export function Sidebar({ route }) {
                 <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.8" />
               </svg>
             </button>
-            <Navigation route={route} onNavigate={close} />
+            <Navigation route={route} onNavigate={close} user={user} onLogout={onLogout} />
           </aside>
         </div>
       )}

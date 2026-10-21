@@ -1,22 +1,22 @@
 # Contratos da API do Frontend
 
-Revisado em **16/10/2026** com base nos arquivos locais de `backend/app/` e no código de `FrontEnd/src/shared/api/`. A PR #122 do Agent e a PR #123 de autenticação foram incorporadas à `main` da organização conforme os commits informados. A existência de um contrato no backend não significa que a interface web o consuma.
+Revisado em **21/10/2026** com base nos arquivos locais de `backend/app/`, `agent/` e no código de `FrontEnd/src/shared/api/`. A PR #122 do Agent e a PR #123 de autenticação foram incorporadas à `main` da organização. A PR #128 do frontend ainda está aberta na revisão deste checkout; a existência de um contrato não significa que o servidor já o proteja.
 
 ## Rotas usadas pelas telas do frontend
 
-`VITE_API_URL` define a origem da API; sem configuração, o cliente usa `http://localhost:8000`. As telas chamam as rotas abaixo sem token e sem cookie de sessão.
+`VITE_API_URL` define a origem da API; sem configuração, o cliente usa `http://localhost:8000`. A sessão do gestor envia Bearer nas rotas de dados abaixo; o Backend atual ainda não exige esses tokens.
 
-| Método e rota               | Parâmetros/corpo                                                                | Resposta                                                                                            | Consumidor                         |
-| --------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| `GET /users/`               | Nenhum                                                                          | Array de `UserOut`                                                                                  | Painel, Colaboradores e Relatórios |
-| `GET /activities/realtime`  | Nenhum                                                                          | Array de `RealtimeEntry`                                                                            | Painel e Colaboradores             |
-| `GET /dashboard/summary`    | `date` obrigatório (`AAAA-MM-DD`); `username` opcional                          | `{ date, users: [{ username, total_seconds, by_category: [{ category, color, total_seconds }] }] }` | Painel                             |
-| `GET /dashboard/export/csv` | Mesmos filtros do resumo                                                        | `text/csv`                                                                                          | Relatórios                         |
-| `GET /dashboard/export/pdf` | Mesmos filtros do resumo                                                        | `application/pdf`                                                                                   | Relatórios                         |
-| `GET /config/`              | Nenhum                                                                          | `{ capture_interval_seconds, idle_timeout_seconds, updated_at? }`                                   | Configurações                      |
-| `PUT /config/`              | JSON com `capture_interval_seconds` e `idle_timeout_seconds` inteiros positivos | Objeto de configuração                                                                              | Configurações                      |
+| Método e rota               | Parâmetros/corpo                                                                | Resposta                                                                                            | Bearer enviado pelo frontend | Consumidor                         |
+| --------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------- | ---------------------------------- |
+| `GET /users/`               | Nenhum                                                                          | Array de `UserOut`                                                                                  | Sim                          | Painel, Colaboradores e Relatórios |
+| `GET /activities/realtime`  | Nenhum                                                                          | Array de `RealtimeEntry`                                                                            | Sim                          | Painel e Colaboradores             |
+| `GET /dashboard/summary`    | `date` obrigatório (`AAAA-MM-DD`); `username` opcional                          | `{ date, users: [{ username, total_seconds, by_category: [{ category, color, total_seconds }] }] }` | Sim                          | Painel                             |
+| `GET /dashboard/export/csv` | Mesmos filtros do resumo                                                        | `text/csv`                                                                                          | Sim                          | Relatórios                         |
+| `GET /dashboard/export/pdf` | Mesmos filtros do resumo                                                        | `application/pdf`                                                                                   | Sim                          | Relatórios                         |
+| `GET /config/`              | Nenhum                                                                          | `{ capture_interval_seconds, idle_timeout_seconds, updated_at? }`                                   | Sim                          | Configurações                      |
+| `PUT /config/`              | JSON com `capture_interval_seconds` e `idle_timeout_seconds` inteiros positivos | Objeto de configuração                                                                              | Sim                          | Configurações                      |
 
-Essas chamadas continuam sem cabeçalho `Authorization`. O parâmetro `username` filtra uma consulta; não impõe autorização ou isolamento no servidor.
+O cliente envia `Authorization: Bearer <JWT>` nas chamadas de dados da tabela. **O backend inspecionado não exige esse header nessas rotas**; envio do token pelo frontend não equivale a autenticação/isolamento. O parâmetro `username` filtra uma consulta, mas não impõe autorização no servidor.
 
 ### Resposta realtime consumida pelo Dashboard e por Colaboradores
 
@@ -28,9 +28,9 @@ Na página de Colaboradores, o timestamp de atualização é local: marca quando
 
 Os validadores do frontend verificam o tipo de `is_idle`, `CategorySummary.color` e `SystemSettingsOut.updated_at` quando esses campos opcionais estão presentes; a ausência continua permitida onde o cliente não depende desses campos. As rotas, parâmetros e payloads consumidos não apresentaram divergência com os routers/schemas consultados. Isso não comprova comunicação com uma instância real; os cenários reais permanecem opt-in.
 
-## Autenticação de gestor implementada no backend
+## Autenticação de gestor no backend e frontend
 
-O backend implementa cadastro, login JWT e consulta do gestor. O cliente HTTP agora oferece métodos isolados para esses contratos, mas as telas `#/login` e `#/cadastro` continuam informativas: nenhuma chamada de autenticação é feita durante a navegação e as rotas do MVP não são protegidas.
+O backend implementa cadastro, login JWT e consulta do gestor; o frontend usa os contratos para iniciar e validar a sessão. As rotas do gestor aguardam uma identidade verificada antes de exibir conteúdo. A autorização das rotas de dados permanece uma dependência separada de backend descrita em B-01.
 
 ### `POST /auth/register`
 
@@ -69,13 +69,13 @@ Recebe o mesmo par `email` e `password`; e-mail inválido ou credenciais incorre
 
 Exige `Authorization: Bearer <JWT_DO_GESTOR>` e retorna `ManagerOut`. Token ausente, inválido, expirado ou associado a gestor inexistente resulta em `401`. A rota está implementada e retorna a identidade do gestor; o schema não inclui código de associação.
 
-### Métodos preparados na camada HTTP do frontend
+### Métodos de autenticação na camada HTTP do frontend
 
-`api.registerManager(credentials, signal)`, `api.loginManager(credentials, signal)` e `api.getCurrentManager(accessToken, signal)` chamam os contratos acima e validam as respostas. Antes do envio, cadastro/login exigem um objeto com e-mail e senha não vazios e enviam somente esses dois campos; a validade e as regras da senha continuam a cargo do backend. `/auth/me` exige a forma compacta de JWT com três segmentos base64url, rejeitando espaços e caracteres de controle antes de compor `Authorization`. Essa verificação é apenas sintática: assinatura, validade e autorização continuam sob responsabilidade do servidor.
+`api.registerManager(credentials, signal)`, `api.loginManager(credentials, signal)` e `api.getCurrentManager(accessToken, signal)` chamam os contratos acima e validam as respostas. Antes do envio, cadastro/login exigem um objeto com e-mail e senha não vazios e enviam somente esses dois campos. A tela também valida formato de e-mail, mínimo de 8 caracteres e limite de 72 bytes UTF-8 no cadastro. `/auth/me` exige a forma compacta de JWT com três segmentos base64url, rejeitando espaços e caracteres de controle antes de compor `Authorization`. Essa verificação é apenas sintática: assinatura, validade e autorização continuam sob responsabilidade do servidor.
 
 Os métodos reutilizam `ApiError`, timeout de 15 segundos e `AbortSignal`. Os erros dessas chamadas preservam status HTTP, inclusive `401`, `409` e `422`, mas omitem detalhes fornecidos pelo servidor para evitar refletir credenciais ou tokens em mensagens. Resposta incompatível é `invalid-response`. Os validadores aceitam somente os campos definidos pelos schemas atuais `ManagerOut` e `Token`; novas propriedades exigem atualização coordenada do contrato antes de serem consumidas.
 
-Os métodos não armazenam JWT, não renovam sessão, não adicionam Bearer automaticamente às rotas de dados e não implementam logout, estado de autenticação ou proteção de navegação. O token de login só fica sob controle do chamador.
+`ManagerSessionProvider` controla cadastro, login e validação de identidade. Cadastro retorna `ManagerOut` e apresenta um link para entrar; não cria sessão. Login consulta `/auth/me` antes de armazenar o JWT em `sessionStorage`. A sessão é restaurada por outra chamada a `/auth/me`; logout remove o item da aba. O cliente injeta Bearer nas consultas privadas e emite evento coordenado após `401`; `403` preserva a sessão. Não há refresh token nem revogação no backend.
 
 ## Outras rotas presentes no backend, sem uso pelas telas
 
@@ -110,7 +110,7 @@ O JWT do gestor e o token do Agent são credenciais distintas. O frontend não d
 
 `get_current_manager` é aplicado em `GET /auth/me`, mas não está aplicado aos routers de `/users/`, `/activities/realtime`, `/dashboard/summary`, exportações nem `/config/`. Essas rotas dependem apenas de `get_db`; `PUT /config/` também não verifica gestor. As consultas de usuários, atividades, resumos e arquivos são globais no código atual, sem vínculo com `Manager`.
 
-Assim, qualquer cliente que alcance a API pode consultar os dados expostos e alterar a configuração global, sujeito apenas à disponibilidade da API. Filtrar colaboradores na interface não é controle de acesso. A autenticação implementada não comprova isolamento por gestor nem protege automaticamente os endpoints existentes; essa limitação e o risco permanecem em B-01/I-02 de [Pendências](PENDENCIAS.md). O frontend não corrige isso localmente.
+Assim, qualquer cliente que alcance a API pode consultar os dados expostos e alterar a configuração global, sujeito apenas à disponibilidade da API. A guarda de rota evita mostrar páginas do gestor sem `/auth/me` válido e os cabeçalhos Bearer estão preparados, mas as rotas acima ignoram autenticação e não filtram por gestor. Filtrar colaboradores na interface não é controle de acesso. Essa limitação e o risco permanecem em B-01/#137 de [Pendências](PENDENCIAS.md); autorização real depende do backend.
 
 ## Tasks e jornada diária
 

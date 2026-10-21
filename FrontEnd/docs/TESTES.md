@@ -2,6 +2,18 @@
 
 Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026**, **13/10/2026** e **16/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
+## Autenticação real no frontend — 21/10/2026
+
+- `npm.cmd run check` passou com ESLint, Prettier, typecheck, cobertura Vitest, build de produção e teste do verificador do bundle.
+- `npm.cmd run check:full` passou na execução consolidada após as edições finais: inclui `check` e E2E do Playwright.
+- Vitest: **265 testes em 56 arquivos passaram**. Cobertura: **93,58% statements, 90,06% branches, 94,35% functions e 95,38% lines**.
+- Testes focados de auth/API/App/Sidebar: **60 passaram**. Cobrem cadastro sem auto-login, validação local, login, sessão restaurada, logout, 401/403, token inválido, proteção de rota, falha de rede e submissão duplicada.
+- `npm.cmd run test:e2e` passou após corrigir um seletor ambíguo do teste de cadastro: **30 passaram, 0 falharam e 2 testes de API real foram ignorados**. O Playwright cobriu cadastro/login com API simulada, restauração da sessão, navegação protegida, telas principais e axe-core nas páginas existentes.
+- O E2E usa endpoints simulados pelo navegador e valida o fluxo do cliente; não valida JWT assinado, persistência ou autorização no serviço real. `RUN_REAL_API`, `REAL_API_EMAIL` e `REAL_API_PASSWORD` não foram configurados. Nenhuma conta ou dado real foi usado.
+- `npm.cmd audit --json --cache node_modules/.cache/npm-audit` falhou porque o ambiente não conseguiu acessar `https://registry.npmjs.org/-/npm/v1/security/advisories/bulk`. A auditoria atual de vulnerabilidades ficou inconclusiva; o snapshot de 13/10 permanece apenas como referência histórica em [Pendências](PENDENCIAS.md).
+- Backend e Agent foram examinados somente por leitura. Testes do Backend, execução/compilação do Agent e E2E real não foram executados.
+- A execução final do `check:full` e a inspeção do diff/escopo estão registradas em [Relatório](RELATORIO_EXECUCAO_FRONTEND.md).
+
 ## Revisão complementar — 16/10/2026
 
 - **Linha de base:** antes das alterações, `npm.cmd run check` passou. Vitest: 242 testes em 55 arquivos; cobertura de 94,77% statements, 90,20% branches, 95,36% functions e 96,82% lines. O E2E inicial teve 29 aprovados e 2 ignorados por dependerem da API real.
