@@ -1,4 +1,14 @@
 # Alterações do frontend
+
+## 21/10/2026 — correção e encerramento local de F-04
+
+- **Diagnóstico:** em `a20750c` na branch `main`, `devApi.createTask()` enviava POST `/tasks`, enquanto o handler MSW declarava `/tasks/`. O teste integrado reproduziu a falha: o handler curinga respondeu 501.
+- **Código e testes:** alinhado o POST do cliente a `/tasks/`; o teste de cliente agora fixa pathname, método, autenticação, Content-Type, payload, validação da resposta e erro HTTP. Os testes de handlers cobrem o ciclo demonstrativo, status HTTP, reset e integração cliente + MSW real de testes.
+- **Documentação:** atualizado o status de F-04 e a descrição em Pendências, Contratos da API, Proposta de contratos do Backend, Matriz de issues, Funcionalidades, Testes, Plano e Relatório; o histórico do diagnóstico anterior foi preservado.
+- **Validação focada:** `npm.cmd run test -- src/dev-mocks/client.test.js src/dev-mocks/handlers.test.js` — 2 arquivos e 18 testes passaram.
+- **Verificações gerais:** lint, typecheck, cobertura (296 testes/58 arquivos), build, 4 verificações do bundle e E2E (30 aprovados/2 testes reais ignorados) passaram. O `format:check` global aponta somente `docs/ARQUITETURA.md` e `docs/README.md`, que não foram alterados nesta tarefa; por isso `check:full` parou nessa etapa. Os demais comandos foram executados separadamente.
+- **Limites:** F-04 cobre somente a rota demonstrativa. Issues #133 e #134 continuam abertas; CRUD real, autorização por gestor e integração da interface dependem do Backend.
+
 ## 21/10/2026 — auditoria e rastreabilidade documental
 
 - **Objetivo:** confrontar os 11 documentos existentes em FrontEnd/docs com o código local, requisitos, Backend, Agent e estado oficial de issues/PRs, preservando o conteúdo anterior.

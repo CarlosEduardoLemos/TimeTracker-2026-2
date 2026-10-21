@@ -2,6 +2,27 @@
 
 Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026**, **13/10/2026** e **16/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
+## Validação funcional de F-04 — 21/10/2026
+
+O checkout começou na branch `main`, HEAD `a20750c25bb24d1665ffb965e14aa80a73f590ae`, sem mudanças locais. A execução usou `npm.cmd` porque a política do PowerShell bloqueia o wrapper `npm.ps1`.
+
+- Linha de base antes de ampliar os testes: `npm.cmd run test -- src/dev-mocks/client.test.js src/dev-mocks/handlers.test.js` — 2 arquivos e 17 testes passaram.
+- Reprodução antes da correção: o novo teste integrado chamou `devApi.createTask()` com o `setupServer` MSW ativo. O cliente enviou POST `/tasks`; o handler de fallback respondeu 501 e o teste falhou, confirmando a incompatibilidade do matcher.
+- Após alinhar a rota: `npm.cmd run test -- src/dev-mocks/client.test.js src/dev-mocks/handlers.test.js` — **2 arquivos e 18 testes passaram**. O teste integrado cria via cliente e lê a Task pela lista no MSW real de testes.
+- Cobertura adicional do POST: pathname literal `/tasks/`, método, Bearer demonstrativo, Content-Type JSON, corpo com título/descrição/IDs, resposta válida, resposta inválida e erro HTTP 422.
+- Cobertura dos handlers: GET autenticado 200, POST válido 201, POST sem autenticação 401, POST inválido 422, persistência em memória, leitura após criação, PUT 200, DELETE 200, leitura após exclusão, reset dos dados e da sequência de IDs; PUT/DELETE de item ausente retornam 404.
+
+- `npm.cmd run lint`: passou dentro do `check:full`.
+- `npm.cmd run format:check`: não passou porque os documentos preexistentes e inalterados `docs/ARQUITETURA.md` e `docs/README.md` não seguem o formato Prettier atual. Os arquivos modificados nesta correção foram formatados; não foram feitas alterações de formatação nesses dois documentos alheios à F-04.
+- `npm.cmd run typecheck`: passou.
+- `npm.cmd run test:coverage`: **296 testes em 58 arquivos passaram**. Cobertura V8: **93,30% statements, 89,55% branches, 95,06% functions e 95,49% lines**; os limites configurados passaram.
+- `npm.cmd run build`: passou com Vite 6.4.4; o verificador confirmou que MSW, handlers e rotas demonstrativas não foram incluídos no bundle de produção.
+- `npm.cmd run test:bundle`: **4 verificações passaram**.
+- `npm.cmd run test:e2e`: **32 cenários, 30 passaram, 0 falharam e 2 foram ignorados**, pois exercitam API real sem serviço/credenciais autorizados.
+- `npm.cmd run check:full`: parou no `format:check` descrito acima e, por isso, não iniciou a cobertura, o build ou o E2E nesse comando. Esses passos foram executados separadamente e passaram, exceto a formatação global.
+
+Nenhuma API real foi chamada ou gravada nesta execução.
+
 ## Nota da auditoria documental — 21/10/2026
 
 O commit analisado nesta auditoria documental é f8556a1114a52ffc5064ab9ab8506a388778561b. Nenhum teste de código foi executado nesta rodada: os números abaixo são registros de execuções anteriores no mesmo histórico de 21/10, não resultados produzidos pela revisão dos documentos. A descrição da [PR #128](https://github.com/fabrica-bayarea/TimeTracker-2026-2/pull/128) informa 254 testes Vitest e 29 cenários E2E; o registro local mais recente abaixo informa 295 testes Vitest e 30 aprovados, com 2 casos de API real ignorados. Como os registros não usam a mesma contagem, cada um permanece ligado à sua origem até confirmação pelos mantenedores.

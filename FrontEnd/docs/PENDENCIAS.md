@@ -65,50 +65,51 @@ Os bloqueios funcionais impedem concluir o recorte anunciado como utilizável so
 
 **Atualização de alinhamentos da liderança: 02/10/2026.** As decisões abaixo foram incorporadas às entradas I-01, I-03, I-05/B-10, I-06, I-07, B-03 e B-06. Elas registram a direção acordada; não significam que backend, Agent ou contratos já tenham sido alterados.
 
-| ID   | Pendência                                                         | Área                 | Prioridade | Status                             |
-| ---- | ----------------------------------------------------------------- | -------------------- | ---------- | ---------------------------------- |
-| B-01 | Autorização dos endpoints e isolamento dos dados                  | Backend              | Alta       | AGUARDANDO BACKEND                 |
-| B-02 | CORS e HTTPS por ambiente                                         | Backend              | Alta       | AGUARDANDO BACKEND                 |
-| B-03 | Seed incompatível com chave UUID                                  | Backend              | Alta       | AGUARDANDO BACKEND                 |
-| B-04 | Limite salvo não aplicado ao realtime                             | Backend              | Média      | PARCIAL; BACKEND PENDENTE          |
-| B-05 | Capturas empatadas no realtime                                    | Backend              | Média      | AGUARDANDO BACKEND                 |
-| B-06 | Reenvio de atividades sem deduplicação                            | Backend              | Alta       | AGUARDANDO BACKEND                 |
-| B-07 | Datas futuras e tempo relativo negativo                           | Backend              | Média      | AGUARDANDO BACKEND                 |
-| B-08 | Segurança e fidelidade dos arquivos exportados                    | Backend              | Média      | AGUARDANDO BACKEND                 |
-| B-09 | Configuração global sem unicidade garantida                       | Backend              | Média      | AGUARDANDO BACKEND                 |
-| B-10 | Flag de inatividade pode gerar status `offline`                   | Backend              | Média      | AGUARDANDO BACKEND                 |
-| I-01 | Conta, login e sessão do gestor                                   | Integração           | Alta       | FRONTEND IMPLEMENTADO; B-01 ABERTO |
-| I-02 | Associação gestor–colaborador e código                            | Integração           | Alta       | AGENT INTEGRADO; BACKEND BLOQUEADO |
-| I-03 | Tasks, atribuição, escopo e monitoramento consentido              | Integração           | Alta       | BLOQUEADO                          |
-| I-04 | Jornada individual e possível hora extra                          | Integração           | Alta       | BLOQUEADO                          |
-| I-05 | Conexão real do agente                                            | Integração           | Média      | BLOQUEADO                          |
-| I-06 | Dashboard, timeline e relatórios completos                        | Integração           | Alta       | BLOQUEADO                          |
-| I-07 | Referência de fuso e virada do dia                                | Integração           | Média      | BLOQUEADO                          |
-| I-08 | Teste de integração com serviço real                              | Integração           | Média      | PENDENTE DE AMBIENTE               |
-| F-01 | Integração das telas após contratos                               | Frontend             | Alta       | BLOQUEADO                          |
-| F-02 | Instalação PWA e política offline                                 | Frontend             | Média      | FRONTEND FUTURO                    |
-| F-03 | Validação humana e matriz de navegadores                          | Frontend             | Média      | FRONTEND FUTURO                    |
-| F-04 | Harmonizar caminho POST de Task demonstrativa                     | Frontend             | Baixa      | DIVERGÊNCIA DE GRAFIA; COMPATIBILIDADE NÃO VALIDADA |
-| D-01 | Atualizar [responsividade.md](../../requisitos/responsividade.md) | Documentação externa | Baixa      | AGUARDANDO REVISÃO EXTERNA         |
-| A-01 | Identidade e revisão visual da interface desktop do Agent         | Agent                | Alta       | ABERTO PARA EQUIPE DO AGENT        |
+| ID   | Pendência                                                         | Área                 | Prioridade | Status                                            |
+| ---- | ----------------------------------------------------------------- | -------------------- | ---------- | ------------------------------------------------- |
+| B-01 | Autorização dos endpoints e isolamento dos dados                  | Backend              | Alta       | AGUARDANDO BACKEND                                |
+| B-02 | CORS e HTTPS por ambiente                                         | Backend              | Alta       | AGUARDANDO BACKEND                                |
+| B-03 | Seed incompatível com chave UUID                                  | Backend              | Alta       | AGUARDANDO BACKEND                                |
+| B-04 | Limite salvo não aplicado ao realtime                             | Backend              | Média      | PARCIAL; BACKEND PENDENTE                         |
+| B-05 | Capturas empatadas no realtime                                    | Backend              | Média      | AGUARDANDO BACKEND                                |
+| B-06 | Reenvio de atividades sem deduplicação                            | Backend              | Alta       | AGUARDANDO BACKEND                                |
+| B-07 | Datas futuras e tempo relativo negativo                           | Backend              | Média      | AGUARDANDO BACKEND                                |
+| B-08 | Segurança e fidelidade dos arquivos exportados                    | Backend              | Média      | AGUARDANDO BACKEND                                |
+| B-09 | Configuração global sem unicidade garantida                       | Backend              | Média      | AGUARDANDO BACKEND                                |
+| B-10 | Flag de inatividade pode gerar status `offline`                   | Backend              | Média      | AGUARDANDO BACKEND                                |
+| I-01 | Conta, login e sessão do gestor                                   | Integração           | Alta       | FRONTEND IMPLEMENTADO; B-01 ABERTO                |
+| I-02 | Associação gestor–colaborador e código                            | Integração           | Alta       | AGENT INTEGRADO; BACKEND BLOQUEADO                |
+| I-03 | Tasks, atribuição, escopo e monitoramento consentido              | Integração           | Alta       | BLOQUEADO                                         |
+| I-04 | Jornada individual e possível hora extra                          | Integração           | Alta       | BLOQUEADO                                         |
+| I-05 | Conexão real do agente                                            | Integração           | Média      | BLOQUEADO                                         |
+| I-06 | Dashboard, timeline e relatórios completos                        | Integração           | Alta       | BLOQUEADO                                         |
+| I-07 | Referência de fuso e virada do dia                                | Integração           | Média      | BLOQUEADO                                         |
+| I-08 | Teste de integração com serviço real                              | Integração           | Média      | PENDENTE DE AMBIENTE                              |
+| F-01 | Integração das telas após contratos                               | Frontend             | Alta       | BLOQUEADO                                         |
+| F-02 | Instalação PWA e política offline                                 | Frontend             | Média      | FRONTEND FUTURO                                   |
+| F-03 | Validação humana e matriz de navegadores                          | Frontend             | Média      | FRONTEND FUTURO                                   |
+| F-04 | Harmonizar caminho POST de Task demonstrativa                     | Frontend             | Baixa      | RESOLVIDA NO FRONTEND — VALIDAÇÃO LOCAL CONCLUÍDA |
+| D-01 | Atualizar [responsividade.md](../../requisitos/responsividade.md) | Documentação externa | Baixa      | AGUARDANDO REVISÃO EXTERNA                        |
+| A-01 | Identidade e revisão visual da interface desktop do Agent         | Agent                | Alta       | ABERTO PARA EQUIPE DO AGENT                       |
 
 Cada ID identifica uma pendência específica para facilitar referências no texto e na ordem de execução. A letra indica a área: `B` = backend, `I` = integração entre frontend e backend, `F` = frontend, `A` = Agent e `D` = documentação externa. O número distingue os itens da mesma área; não indica prioridade nem status, que aparecem em colunas próprias.
 
 Os status descrevem a dependência atual; a prioridade indica impacto. Eles não indicam que todo o frontend esteja parado.
 
-| Status                                 | Significado                                                                                                                                           |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **BLOQUEADO**                          | A funcionalidade não pode ser concluída com os contratos, dados ou ambiente disponíveis no momento; depende de definição ou implementação externa.    |
-| **ADIADO PARA DEPOIS DO MVP**          | Decisão histórica do recorte de 13/10, atualizada para autenticação pelo pedido da issue #138 em 21/10; a linha atual da sessão está no resumo acima. |
-| **AGUARDANDO BACKEND**                 | A correção precisa ser feita ou garantida no servidor, como a autorização dos endpoints.                                                              |
-| **PARCIAL; BACKEND PENDENTE**          | O Agent já consome a configuração, mas a classificação realtime ainda depende de limites próprios do backend.                                         |
-| **AGENT INTEGRADO; BACKEND BLOQUEADO** | O cliente Agent da PR #122 foi integrado; geração/consulta de código, associação e vínculo autorizado continuam ausentes no backend; consulte I-02.   |
-| **PENDENTE DE AMBIENTE**               | O cenário de integração está preparado; falta serviço real, banco, origem configurada e dados autorizados para executá-lo.                            |
-| **DIVERGÊNCIA DE GRAFIA; COMPATIBILIDADE NÃO VALIDADA** | As strings de caminho diferem entre o cliente demonstrativo e o handler; ainda não se confirmou se o matcher aceita ambas. Consulte F-04. |
-| **FRONTEND IMPLEMENTADO; B-01 ABERTO** | Cadastro, login, sessão e guarda de navegação existem no frontend; as rotas privadas ainda precisam exigir JWT e isolar dados no backend.             |
-| **FRONTEND FUTURO**                    | Trabalho previsto para uma etapa posterior do frontend, como instalação PWA ou validação em dispositivos reais.                                       |
-| **ABERTO PARA EQUIPE DO AGENT**        | Há correção ou revisão necessária em arquivos do Agent, que foram consultados somente para leitura nesta auditoria.                                   |
-| **AGUARDANDO REVISÃO EXTERNA**         | Depende da revisão de um documento fora de `FrontEnd/`; neste caso, `requisitos/responsividade.md`.                                                   |
+| Status                                                  | Significado                                                                                                                                                                   |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **BLOQUEADO**                                           | A funcionalidade não pode ser concluída com os contratos, dados ou ambiente disponíveis no momento; depende de definição ou implementação externa.                            |
+| **ADIADO PARA DEPOIS DO MVP**                           | Decisão histórica do recorte de 13/10, atualizada para autenticação pelo pedido da issue #138 em 21/10; a linha atual da sessão está no resumo acima.                         |
+| **AGUARDANDO BACKEND**                                  | A correção precisa ser feita ou garantida no servidor, como a autorização dos endpoints.                                                                                      |
+| **PARCIAL; BACKEND PENDENTE**                           | O Agent já consome a configuração, mas a classificação realtime ainda depende de limites próprios do backend.                                                                 |
+| **AGENT INTEGRADO; BACKEND BLOQUEADO**                  | O cliente Agent da PR #122 foi integrado; geração/consulta de código, associação e vínculo autorizado continuam ausentes no backend; consulte I-02.                           |
+| **PENDENTE DE AMBIENTE**                                | O cenário de integração está preparado; falta serviço real, banco, origem configurada e dados autorizados para executá-lo.                                                    |
+| **DIVERGÊNCIA DE GRAFIA; COMPATIBILIDADE NÃO VALIDADA** | Status histórico do checkpoint anterior à validação de F-04; o teste integrado posterior reproduziu a falha e a rota foi corrigida. Consulte o registro de 21/10/2026 abaixo. |
+| **RESOLVIDA NO FRONTEND — VALIDAÇÃO LOCAL CONCLUÍDA**   | O caminho demonstrativo foi harmonizado e os testes focados, inclusive cliente + MSW real de testes, passaram. Isso não conclui #133 ou #134. Consulte F-04.                  |
+| **FRONTEND IMPLEMENTADO; B-01 ABERTO**                  | Cadastro, login, sessão e guarda de navegação existem no frontend; as rotas privadas ainda precisam exigir JWT e isolar dados no backend.                                     |
+| **FRONTEND FUTURO**                                     | Trabalho previsto para uma etapa posterior do frontend, como instalação PWA ou validação em dispositivos reais.                                                               |
+| **ABERTO PARA EQUIPE DO AGENT**                         | Há correção ou revisão necessária em arquivos do Agent, que foram consultados somente para leitura nesta auditoria.                                                           |
+| **AGUARDANDO REVISÃO EXTERNA**                          | Depende da revisão de um documento fora de `FrontEnd/`; neste caso, `requisitos/responsividade.md`.                                                                           |
 
 As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID. O motivo específico aparece em **Motivo do bloqueio** ou **Motivo da pendência**.
 
@@ -419,11 +420,14 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 ### F-04 — Harmonizar caminho POST de Task demonstrativa — Baixa
 
 - **Área responsável:** Frontend.
-- **Status:** DIVERGÊNCIA DE GRAFIA; COMPATIBILIDADE DO MATCHER NÃO VALIDADA.
+- **Status:** RESOLVIDA NO FRONTEND — VALIDAÇÃO LOCAL CONCLUÍDA.
 - **Issue relacionada:** #134 (interface) e #133 (caminho de coleção citado pela issue Backend): https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/134 e https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/133.
 - **Requisito relacionado:** RF-06/RF-11; depende de I-03 antes de habilitar operação real.
 - **Arquivo ou componente:** src/dev-mocks/client.js, src/dev-mocks/handlers.js, src/dev-mocks/client.test.js e src/dev-mocks/handlers.test.js.
-- **Problema identificado:** no commit f8556a1114a52ffc5064ab9ab8506a388778561b, a listagem demonstrativa chama GET /tasks/, a criação chama POST /tasks sem barra final, e os handlers MSW declaram GET/POST /tasks/. Atualização e exclusão usam o caminho do item sem barra terminal. A documentação anterior dizia que a rota local estava alinhada a /tasks/; essa afirmação não descreve a string atual de criação.
+
+#### Registro original da auditoria documental — checkpoint `f8556a1`
+
+- **Problema identificado:** no commit f8556a1114a52ffc5064ab9ab8506a388778561b, a listagem demonstrativa chama GET /tasks/, a criação chama POST /tasks sem barra final, e os handlers MSW declaram GET/POST /tasks/. Atualização e exclusão usam o caminho do item sem barra terminal. A documentação anterior dizia que a rota local estava alinhada a /tasks/; essa afirmação não descreve a string de criação daquele checkpoint.
 - **Evidência:** o cliente configura essas chamadas em src/dev-mocks/client.js e as rotas estão registradas em src/dev-mocks/handlers.js. O Backend local não possui router de Tasks. Nesta auditoria documental não foi executado teste de roteamento do MSW nem chamada ao Backend.
 - **Causa provável:** o caminho da criação foi escrito sem barra terminal enquanto listagem e handler usam a forma com barra. O matcher MSW pode tratar barra terminal como opcional; isso não foi confirmado nesta revisão. O endpoint de produção ainda não existe, então comportamento de redirect do servidor também é desconhecido.
 - **Impacto:** a grafia não canônica dificulta provar equivalência entre cliente e handler e pode divergir do contrato futuro, mesmo que a demonstração atual seja compatível. Não há evidência suficiente nesta revisão para declarar falha funcional reproduzida.
@@ -432,6 +436,20 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Testes recomendados:** testar diretamente cada método e caminho no cliente e MSW; incluir criação e listagem com mock ativo; quando existir API, verificar o caminho canônico e ausência de 307/308 inesperado em homologação.
 - **Condição de desbloqueio:** revisão do código Frontend e confirmação do caminho final com Backend antes de habilitar CRUD em produção.
 - **Relações:** I-03, #133, #134 e proposta de CRUD em [Contratos da API](CONTRATOS_API.md) e [Propostas de contratos](PROPOSTA_CONTRATOS_BACKEND.md).
+
+#### Validação e encerramento — 21/10/2026, branch `main`, HEAD `a20750c25bb24d1665ffb965e14aa80a73f590ae`
+
+- **Causa confirmada:** `devApi.createTask()` chamava `POST /tasks`, que não correspondia ao handler `POST /tasks/`. O handler curinga devolveu 501 (`Sem mock de desenvolvimento...`); a criação integrada falhou antes da correção. Não houve redirecionamento HTTP.
+- **Comportamento observado antes da alteração:** a listagem `GET /tasks/` e o handler POST usavam a barra final; `createTask()` não. O teste integrado com o MSW de testes reproduziu a falha com status 501.
+- **Alteração implementada:** o cliente agora chama `POST /tasks/`. Método, corpo JSON, validação de título/descrição/IDs, Bearer demonstrativo, `AbortSignal`, validação da resposta e erros permanecem preservados.
+- **Arquivos de código/teste alterados:** `src/dev-mocks/client.js`, `src/dev-mocks/client.test.js` e `src/dev-mocks/handlers.test.js`.
+- **Testes focados:** `npm.cmd run test -- src/dev-mocks/client.test.js src/dev-mocks/handlers.test.js` — 2 arquivos e 18 testes passaram. O teste integrado usa `fetch` real interceptado pelo `setupServer` do MSW e confirma criação e listagem pelo mesmo caminho.
+- **Validação geral:** lint, typecheck, cobertura, build, verificações do bundle e E2E passaram. A cobertura teve 296 testes em 58 arquivos; 30 cenários E2E passaram e 2 testes de API real foram ignorados por falta de serviço/credenciais autorizados.
+- **Resultado de formatação:** `format:check` e, consequentemente, `check:full` pararam por dois documentos inalterados e fora do escopo F-04 (`docs/ARQUITETURA.md`, `docs/README.md`). Os arquivos alterados nesta correção passaram no Prettier direcionado. Os comandos de cobertura, build, teste de bundle e E2E foram executados separadamente e passaram.
+- **Handlers validados:** GET autenticado 200; POST autenticado válido 201; POST sem autenticação 401; POST inválido 422; PUT 200; DELETE 200; item inexistente 404; dados em memória, consulta após criação/exclusão e reset do estado/sequência de IDs.
+- **Critérios F-04 atendidos:** GET e POST da coleção usam `/tasks/`; cliente e handler estão alinhados; a chamada não depende de redirect; pathname de `createTask()` é verificado literalmente; cliente + MSW e CRUD demonstrativo foram exercitados.
+- **Limitações e dependências externas:** GET de item não existe no mock e não foi adicionado. A issue #133 permanece aberta: o Backend ainda precisa implementar/persistir CRUD de Tasks, atribuições e autorização por gestor. A issue #134 permanece aberta: a interface ainda não consome CRUD real. Produção continua sem chamadas fictícias de Tasks.
+- **Documentação relacionada:** `CONTRATOS_API.md`, `PROPOSTA_CONTRATOS_BACKEND.md`, `MATRIZ_ISSUES_FRONTEND.md`, `FUNCIONALIDADES.md`, `TESTES.md`, `ALTERACOES.md`, `PLANO_EXECUCAO_FRONTEND.md` e `RELATORIO_EXECUCAO_FRONTEND.md` registram a correção e mantêm os bloqueios externos.
 
 ## Pendência de documentação externa
 
@@ -479,7 +497,7 @@ Estado dos contratos observado no checkout em 21/10/2026. A tabela resume a audi
 
 #### PROPOSTA — NÃO IMPLEMENTADO: contrato persistente para o CRUD de Tasks
 
-**Correção de estado em 21/10/2026:** no HEAD f8556a1, devApi.createTask envia POST /tasks sem barra terminal, enquanto o handler MSW declara POST /tasks/. Portanto a afirmação histórica abaixo de que a string atual estava alinhada a /tasks/ está desatualizada. A diferença está registrada como F-04; sem validar o matcher nesta rodada, não se conclui que o mock falha.
+**Histórico de auditoria em 21/10/2026:** no checkpoint f8556a1, `devApi.createTask()` enviava POST /tasks sem barra terminal, enquanto o handler MSW declarava POST /tasks/. A execução posterior de F-04 no HEAD a20750c reproduziu 501 no teste integrado, alinhou cliente e handler em `/tasks/` e validou o fluxo local. I-03 continua proposta não implementada até o Backend publicar o CRUD real.
 
 **Necessidade e referências:** RF-06 e RF-11, RN-03 e RN-04, CA-02 a CA-04 e pendência I-03. O RF-06 pede criação/edição pelo Dashboard, descrição, colaboradores e aplicações no escopo. Consultar Tasks persistidas também é necessário para TasksPage. Criar ou editar uma Task não inicia monitoramento; início, encerramento, ciência do colaborador e envio de task_id dependem de contratos próprios do Agent.
 

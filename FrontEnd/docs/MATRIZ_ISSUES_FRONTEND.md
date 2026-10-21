@@ -60,16 +60,22 @@ Na consulta oficial feita nesta data, o repositório tinha **38 issues: 35 abert
 
 ### Trilhas de rastreabilidade verificadas
 
-| Issue | Requisito | Funcionalidade/código | Contrato | Teste | Pendência |
-| --- | --- | --- | --- | --- | --- |
-| #138/#112 | RF-02, CA-01 | AuthPage, ManagerSession, App/routes | POST /auth/register, POST /auth/login, GET /auth/me | AuthPage.test.jsx, ManagerSession.test.jsx, api.test.js | B-01/#137 para autorização dos dados; I-08 para integração real |
-| #133/#134 | RF-06/RF-11 | TasksPage, TaskForm, TaskList, useTasks, dev-mocks | CRUD somente demonstrativo; contrato futuro está proposto em I-03 | TasksPage.test.jsx, useTasks.test.js, client/handlers tests | I-03 e nova observação F-04 sobre grafia de /tasks |
-| #98/#140 | RF-27, CA-10 | DashboardPage, useTaskAnalytics, TaskSummaryCard | Apenas resposta vazia demonstrativa para resumo por Task | DashboardPage.test.jsx, useTaskAnalytics.test.js, TaskSummaryCard.test.jsx | I-06; faltam task_id e agregação real |
-| #105/#106/#113–#116 | RF-03/RF-04/RF-05, CA-01 | AssociationCodeCard; Agent cliente de associação | Nenhuma rota de código ou associação encontrada no Backend | AssociationCodeCard.test.jsx; testes Agent não executados nesta revisão | I-02; Backend precisa emitir código, persistir vínculo e autenticar Agent |
-| #108/#109/#132/#141 | RF-24/RF-25/RF-27, CA-07 | ReportsPage e useReportExport | Exportação do resumo diário existente, não relatório completo | ReportsPage.test.jsx, useReportExport.test.js; E2E mockado | I-06/I-08 e ambiente real autorizado |
+| Issue               | Requisito                | Funcionalidade/código                              | Contrato                                                          | Teste                                                                      | Pendência                                                                 |
+| ------------------- | ------------------------ | -------------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| #138/#112           | RF-02, CA-01             | AuthPage, ManagerSession, App/routes               | POST /auth/register, POST /auth/login, GET /auth/me               | AuthPage.test.jsx, ManagerSession.test.jsx, api.test.js                    | B-01/#137 para autorização dos dados; I-08 para integração real           |
+| #133/#134           | RF-06/RF-11              | TasksPage, TaskForm, TaskList, useTasks, dev-mocks | CRUD somente demonstrativo; contrato futuro está proposto em I-03 | TasksPage.test.jsx, useTasks.test.js, client/handlers tests                | I-03 e nova observação F-04 sobre grafia de /tasks                        |
+| #98/#140            | RF-27, CA-10             | DashboardPage, useTaskAnalytics, TaskSummaryCard   | Apenas resposta vazia demonstrativa para resumo por Task          | DashboardPage.test.jsx, useTaskAnalytics.test.js, TaskSummaryCard.test.jsx | I-06; faltam task_id e agregação real                                     |
+| #105/#106/#113–#116 | RF-03/RF-04/RF-05, CA-01 | AssociationCodeCard; Agent cliente de associação   | Nenhuma rota de código ou associação encontrada no Backend        | AssociationCodeCard.test.jsx; testes Agent não executados nesta revisão    | I-02; Backend precisa emitir código, persistir vínculo e autenticar Agent |
+| #108/#109/#132/#141 | RF-24/RF-25/RF-27, CA-07 | ReportsPage e useReportExport                      | Exportação do resumo diário existente, não relatório completo     | ReportsPage.test.jsx, useReportExport.test.js; E2E mockado                 | I-06/I-08 e ambiente real autorizado                                      |
 
 Os caminhos de código e teste nesta tabela são pistas para navegação; os links relativos e os critérios por área estão em [Funcionalidades](FUNCIONALIDADES.md), [Arquitetura](ARQUITETURA.md), [Contratos](CONTRATOS_API.md) e [Pendências](PENDENCIAS.md).
 
 ### Divergência de resultados reportados pela PR
 
 A descrição atual da PR #128 registra 254 testes Vitest e 29 cenários E2E como resultados do commit de validação nela citado. O registro local mais recente em [Testes](TESTES.md) registra 295 testes Vitest e 30 cenários Playwright aprovados, com 2 casos de API real ignorados, para a revisão documental/de código de 21/10. Esses números são mantidos vinculados às suas fontes e não são intercambiáveis; esta auditoria não repetiu a suíte. A descrição da PR pode representar uma validação anterior e não foi editada.
+
+## Atualização de F-04 após validação funcional — 21/10/2026
+
+Na branch `main`, o HEAD de referência desta execução era `a20750c25bb24d1665ffb965e14aa80a73f590ae`. O teste integrado mostrou que `POST /tasks` não casava com o handler MSW `/tasks/` e recebia 501 do handler curinga. O cliente foi alinhado a `/tasks/`; a suíte focada passou com 18 testes em 2 arquivos, incluindo o fluxo real `devApi` + `setupServer` do MSW.
+
+Na consulta oficial desta data, #133 e #134 estavam abertas. #133 continua dependendo do CRUD persistente e autorizado no Backend; #134 continua dependendo da integração das ações da interface com esse contrato. F-04 resolve apenas o caminho da demonstração no Frontend. Consulte [Pendências — F-04](PENDENCIAS.md#f-04--harmonizar-caminho-post-de-task-demonstrativa--baixa) e [Contratos da API](CONTRATOS_API.md).

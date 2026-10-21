@@ -4,12 +4,12 @@ Revisão iniciada em **21/10/2026**. Este documento registra o diagnóstico ante
 
 ## Estado após a auditoria documental — 21/10/2026
 
-- Checkout atual analisado: branch main, HEAD f8556a1114a52ffc5064ab9ab8506a388778561b; árvore limpa antes das alterações desta rodada e branch pessoal igual a origin/main.
+- Checkpoint registrado pela auditoria documental anterior: branch main, HEAD f8556a1114a52ffc5064ab9ab8506a388778561b; árvore limpa antes das alterações daquela rodada e branch pessoal igual a origin/main.
 - Remotes continuam distintos: origin é o repositório pessoal; upstream é o repositório oficial. A comparação consultada no GitHub confirma 8 commits à frente e 0 atrás da main oficial 230fc7fac1374941dcb26b1d507494aa6450234f. A PR #128 permanece aberta.
 - A consulta oficial nesta data confirma 38 issues, 35 abertas e 3 fechadas. As classificações técnicas e os critérios permanecem em [Matriz de issues](MATRIZ_ISSUES_FRONTEND.md).
-- Todos os 11 documentos existentes em FrontEnd/docs foram revisados. O README agora inclui a proposta de contratos no índice; os mapas de código e teste estão em Arquitetura e Funcionalidades; as rotas e a divergência de caminho de Task estão em Contratos e F-04.
+- Todos os 11 documentos existentes em FrontEnd/docs foram revisados. O README agora inclui a proposta de contratos no índice; os mapas de código e teste estão em Arquitetura e Funcionalidades; a auditoria registrou a diferença de caminho de Task em Contratos e F-04. Na validação funcional de F-04 em 21/10/2026, a chamada foi reproduzida, corrigida para /tasks/ e integrada com sucesso ao MSW de testes. O relato anterior permanece como histórico em [Pendências](PENDENCIAS.md).
 - Não foram executados testes de código nesta auditoria documental. Os resultados históricos mais recentes continuam em [Testes](TESTES.md); validações locais desta revisão se limitam aos documentos e ao escopo de edição.
-- **Próximos marcos:** (1) revisar F-04 e alinhar o caminho de criação/handler; (2) aguardar autorização e isolamento B-01/#137 antes de liberar uso com dados reais; (3) definir CRUD/atribuição de Tasks e identidade do Agent; (4) validar task_id, idempotência, agregação e timezone; (5) realizar homologação ponta a ponta em ambiente autorizado.
+- **Próximos marcos:** (1) aguardar autorização e isolamento B-01/#137 antes de liberar uso com dados reais; (2) definir CRUD/atribuição de Tasks em I-03/#133 e integração real da interface em #134; (3) validar task_id, idempotência, agregação e timezone; (4) realizar homologação ponta a ponta em ambiente autorizado. F-04 está resolvida no Frontend demonstrativo.
 
 ## Escopo e fontes
 

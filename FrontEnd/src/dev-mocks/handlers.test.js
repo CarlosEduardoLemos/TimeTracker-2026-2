@@ -1,6 +1,8 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { setupServer } from 'msw/node';
 import { handlers, resetMockData } from './handlers';
+import { devApi } from './client';
+import { MANAGER_ACCESS_TOKEN_KEY } from '../shared/auth/sessionStorage';
 
 const server = setupServer(...handlers);
 const baseUrl = 'http://localhost:8000';
@@ -16,7 +18,10 @@ async function demoAuthorization() {
 }
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers();
+  sessionStorage.removeItem(MANAGER_ACCESS_TOKEN_KEY);
+});
 afterAll(() => server.close());
 beforeEach(() => resetMockData());
 
@@ -91,6 +96,9 @@ describe('handlers das propostas de contrato', () => {
       collaborators: [{ id: collaborators[0].id }, { id: collaborators[1].id }],
     });
     expect(created.created_at).toBe(created.updated_at);
+    const persistedResponse = await fetch(`${baseUrl}/tasks/`, { headers: authorization });
+    expect(persistedResponse.status).toBe(200);
+    expect(await persistedResponse.json()).toEqual([created]);
 
     const updateResponse = await fetch(`${baseUrl}/tasks/${created.id}`, {
       method: 'PUT',
@@ -116,11 +124,24 @@ describe('handlers das propostas de contrato', () => {
     });
     expect(deleteResponse.status).toBe(200);
     expect(await deleteResponse.json()).toMatchObject({ id: created.id });
-    expect(await (await fetch(`${baseUrl}/tasks/`, { headers: authorization })).json()).toEqual([]);
+    const afterDeleteResponse = await fetch(`${baseUrl}/tasks/`, { headers: authorization });
+    expect(afterDeleteResponse.status).toBe(200);
+    expect(await afterDeleteResponse.json()).toEqual([]);
   });
 
   it('distingue payload inválido e Task inexistente', async () => {
     const authorization = await demoAuthorization();
+    const unauthorized = await fetch(`${baseUrl}/tasks/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Task without session',
+        description: 'Must not be created',
+        collaborator_ids: ['d94a4d6c-8542-4c3e-889b-89db302ef4cc'],
+      }),
+    });
+    expect(unauthorized.status).toBe(401);
+
     const invalid = await fetch(`${baseUrl}/tasks/`, {
       method: 'POST',
       headers: { ...authorization, 'Content-Type': 'application/json' },
@@ -163,6 +184,39 @@ describe('handlers das propostas de contrato', () => {
         },
         { username: 'bruno', first_activity_at: null, last_activity_at: null },
       ],
+    });
+  });
+
+  it('integra devApi.createTask com o handler MSW e consulta a Task criada', async () => {
+    const authorization = await demoAuthorization();
+    sessionStorage.setItem(
+      MANAGER_ACCESS_TOKEN_KEY,
+      authorization.Authorization.replace(/^Bearer /, ''),
+    );
+
+    const created = await devApi.createTask({
+      title: 'Integration client and MSW',
+      description: 'Persist only during the local demonstration',
+      collaborator_ids: ['d94a4d6c-8542-4c3e-889b-89db302ef4cc'],
+    });
+
+    expect(created).toMatchObject({
+      id: expect.any(String),
+      title: 'Integration client and MSW',
+      collaborators: [{ id: 'd94a4d6c-8542-4c3e-889b-89db302ef4cc' }],
+    });
+    await expect(devApi.tasks()).resolves.toEqual([created]);
+
+    resetMockData();
+    await expect(devApi.tasks()).resolves.toEqual([]);
+    await expect(
+      devApi.createTask({
+        title: 'After reset',
+        description: 'The sequence should restart',
+        collaborator_ids: ['d94a4d6c-8542-4c3e-889b-89db302ef4cc'],
+      }),
+    ).resolves.toMatchObject({
+      id: '00000000-0000-4000-8000-000000000001',
     });
   });
 

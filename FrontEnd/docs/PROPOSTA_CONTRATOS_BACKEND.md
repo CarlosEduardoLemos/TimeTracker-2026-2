@@ -19,6 +19,8 @@ As respostas de erro mantêm o envelope FastAPI observado (`{"detail":"..."}`). 
 
 ## 1. Tasks — I-03
 
+**Atualização F-04 — 21/10/2026:** a proposta detalhada e vigente em [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao) usa `/tasks/` para GET/POST da coleção, alinhada à issue #133 e ao cliente demonstrativo corrigido. A tabela abaixo é o recorte histórico de 13/10 e conserva suas rotas `/tasks` sem barra; ela não descreve o caminho atual do mock nem um contrato de produção publicado.
+
 ### Rotas propostas
 
 | Método  | Rota               | Uso proposto                                           |

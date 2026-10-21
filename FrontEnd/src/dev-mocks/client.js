@@ -51,7 +51,7 @@ export const devApi = {
   createTask(task, signal) {
     if (!taskBodyIsValid(task))
       throw new Error('Informe título, descrição e colaboradores válidos.');
-    return request('/tasks', validTask, jsonOptions('POST', task, signal));
+    return request('/tasks/', validTask, jsonOptions('POST', task, signal));
   },
   updateTask(taskId, task, signal) {
     if (!UUID_PATTERN.test(taskId)) throw new Error('ID de Task inválido');

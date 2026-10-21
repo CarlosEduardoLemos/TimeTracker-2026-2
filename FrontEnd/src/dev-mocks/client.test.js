@@ -48,13 +48,31 @@ describe('cliente isolado dos mocks de desenvolvimento', () => {
     };
     await expect(devApi.createTask(payload)).resolves.toEqual(task);
     expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'POST' });
+    expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/tasks/');
+    expect(fetchMock.mock.calls[0][1].headers.get('Authorization')).toBe(`Bearer ${token}`);
+    expect(fetchMock.mock.calls[0][1].headers.get('Content-Type')).toBe('application/json');
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual(payload);
     expect(() => devApi.createTask({ ...payload, title: ' ' })).toThrow('válidos');
     expect(() => devApi.createTask({ ...payload, collaborator_ids: [] })).toThrow('válidos');
     vi.stubGlobal(
       'fetch',
+      vi.fn(async () => ({
+        ok: false,
+        status: 422,
+        statusText: 'Unprocessable Entity',
+        json: async () => ({ detail: 'Invalid task payload' }),
+      })),
+    );
+    await expect(devApi.createTask(payload)).rejects.toMatchObject({
+      type: 'client',
+      status: 422,
+      message: 'Invalid task payload',
+    });
+    vi.stubGlobal(
+      'fetch',
       vi.fn(async () => ({ ok: true, json: async () => ({}) })),
     );
+    await expect(devApi.createTask(payload)).rejects.toMatchObject({ type: 'invalid-response' });
     await expect(devApi.tasks()).rejects.toThrow('Resposta inválida');
   });
 

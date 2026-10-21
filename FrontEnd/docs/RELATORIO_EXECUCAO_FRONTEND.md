@@ -178,26 +178,26 @@ As alterações de código/documentação persistentes foram restritas a `FrontE
 
 - Registros de auditoria anteriores usavam e14d831 e a comparação de sete commits; eram válidos para aquele checkpoint, mas já não descreviam o HEAD atual. Esta seção e a revalidação na matriz passam a identificar f8556a1 e oito commits à frente.
 - O índice documental não listava PROPOSTA_CONTRATOS_BACKEND.md nem orientava uma trilha de leitura por público/assunto.
-- A documentação de Tasks afirmava que a string de criação estava alinhada a /tasks/. O código atual chama POST /tasks, enquanto GET e handlers MSW usam /tasks/. Sem uma verificação de runtime nesta rodada, a diferença foi registrada como divergência de grafia e compatibilidade pendente F-04, não como falha reproduzida.
+- Naquele checkpoint, a documentação de Tasks afirmava que a string de criação estava alinhada a /tasks/. O código chamava POST /tasks, enquanto GET e handlers MSW usavam /tasks/. Como aquela rodada não executou uma verificação de runtime, registrou a diferença como divergência de grafia e compatibilidade pendente F-04, sem declarar falha reproduzida.
 - A descrição da PR #128 ainda informa 254 testes e 29 cenários E2E, enquanto o registro local mais recente em TESTES.md informa 295 testes e 30 cenários Playwright aprovados, além de 2 casos reais ignorados. Os resultados permanecem vinculados às fontes e não foram tratados como uma mesma execução.
 - A consulta GitHub nesta data confirmou 38 issues, 35 abertas e 3 fechadas; a PR #128 continua aberta. Estado do GitHub e conclusão técnica continuam separados.
 - Os contratos reais de autenticação, dados, configuração e exportação estão documentados, mas os formatos propostos para Tasks, associação, jornada e resumo por Task ainda dependem de implementação e validação externa.
 
 ### 17.3 Melhorias implementadas por documento
 
-| Documento | Conteúdo anterior preservado | Ampliação/documentação realizada |
-| --- | --- | --- |
-| README.md | Estado atual e links de navegação existentes | Índice completo de 11 documentos, ordem de leitura, público, navegação por assunto, estados de evidência e regra de rastreabilidade |
-| ARQUITETURA.md | Arquitetura, fluxos, decisões e estratégia de qualidade | Diagrama real/mock e tabela de responsabilidade com implementação, testes, requisitos/issues e pendências |
-| FUNCIONALIDADES.md | Descrição das telas, limites e relação com requisitos | Matriz por funcionalidade ligando RF/CA, issues, arquivos, testes, contratos e dependências |
-| CONTRATOS_API.md | Rotas consumidas, auth, validação e propostas separadas | Catálogo de rotas do Backend, schemas/status/autorização observados e análise explícita da grafia /tasks versus /tasks/ |
-| MATRIZ_ISSUES_FRONTEND.md | As 38 linhas de issues e classificações técnicas | Revalidação de branch/HEAD/remotes, quantidade e estado oficial, trilhas issue→requisito→código→contrato→teste→pendência e divergência do texto da PR |
-| PENDENCIAS.md | Identificadores, histórico e propostas existentes | Nova pendência F-04 com evidência, impacto, causa provável, solução, aceite, testes e condição de desbloqueio; correção de contexto para o caminho Task atual |
-| PLANO_EXECUCAO_FRONTEND.md | Diagnósticos e marcos anteriores | Estado final do checkout e próximas ações para os bloqueios atuais |
-| PROPOSTA_CONTRATOS_BACKEND.md | Propostas de Tasks, jornada, agregação e conexão do Agent | Efeitos por componente, riscos, alternativas, critérios e testes para Tasks/atribuição, associação, autorização, sessão, Agent, datas e homologação |
-| TESTES.md | Todos os resultados históricos e roteiros | Nota separando esta auditoria documental dos testes de código e mantendo visível a diferença entre números da PR e do registro local |
-| ALTERACOES.md | Histórico cronológico anterior | Registro desta ampliação e dos documentos afetados |
-| RELATORIO_EXECUCAO_FRONTEND.md | Relatórios anteriores | Esta seção de auditoria documental, diagnóstico, evidências, melhorias, rastreabilidade, validação e permissões |
+| Documento                      | Conteúdo anterior preservado                              | Ampliação/documentação realizada                                                                                                                              |
+| ------------------------------ | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| README.md                      | Estado atual e links de navegação existentes              | Índice completo de 11 documentos, ordem de leitura, público, navegação por assunto, estados de evidência e regra de rastreabilidade                           |
+| ARQUITETURA.md                 | Arquitetura, fluxos, decisões e estratégia de qualidade   | Diagrama real/mock e tabela de responsabilidade com implementação, testes, requisitos/issues e pendências                                                     |
+| FUNCIONALIDADES.md             | Descrição das telas, limites e relação com requisitos     | Matriz por funcionalidade ligando RF/CA, issues, arquivos, testes, contratos e dependências                                                                   |
+| CONTRATOS_API.md               | Rotas consumidas, auth, validação e propostas separadas   | Catálogo de rotas do Backend, schemas/status/autorização observados e análise explícita da grafia /tasks versus /tasks/                                       |
+| MATRIZ_ISSUES_FRONTEND.md      | As 38 linhas de issues e classificações técnicas          | Revalidação de branch/HEAD/remotes, quantidade e estado oficial, trilhas issue→requisito→código→contrato→teste→pendência e divergência do texto da PR         |
+| PENDENCIAS.md                  | Identificadores, histórico e propostas existentes         | Nova pendência F-04 com evidência, impacto, causa provável, solução, aceite, testes e condição de desbloqueio; correção de contexto para o caminho Task atual |
+| PLANO_EXECUCAO_FRONTEND.md     | Diagnósticos e marcos anteriores                          | Estado final do checkout e próximas ações para os bloqueios atuais                                                                                            |
+| PROPOSTA_CONTRATOS_BACKEND.md  | Propostas de Tasks, jornada, agregação e conexão do Agent | Efeitos por componente, riscos, alternativas, critérios e testes para Tasks/atribuição, associação, autorização, sessão, Agent, datas e homologação           |
+| TESTES.md                      | Todos os resultados históricos e roteiros                 | Nota separando esta auditoria documental dos testes de código e mantendo visível a diferença entre números da PR e do registro local                          |
+| ALTERACOES.md                  | Histórico cronológico anterior                            | Registro desta ampliação e dos documentos afetados                                                                                                            |
+| RELATORIO_EXECUCAO_FRONTEND.md | Relatórios anteriores                                     | Esta seção de auditoria documental, diagnóstico, evidências, melhorias, rastreabilidade, validação e permissões                                               |
 
 Nenhuma seção histórica foi removida; as novas descrições complementam os registros anteriores e identificam quando uma constatação mais recente substitui a fotografia de estado de um checkpoint antigo.
 
@@ -205,7 +205,7 @@ Nenhuma seção histórica foi removida; as novas descrições complementam os r
 
 - **Issue → requisito → funcionalidade:** [Matriz de issues](MATRIZ_ISSUES_FRONTEND.md) e a tabela de rastreabilidade em [Funcionalidades](FUNCIONALIDADES.md) conectam RF/CA às issues #94–#141 pertinentes.
 - **Funcionalidade → código → teste:** caminhos reais em FrontEnd/src e testes junto às features foram adicionados em [Arquitetura](ARQUITETURA.md) e [Funcionalidades](FUNCIONALIDADES.md).
-- **Código → endpoint:** [Contratos da API](CONTRATOS_API.md) separa rotas FastAPI dos clientes simulados MSW; a trilha por Task aponta à divergência F-04.
+- **Código → endpoint:** [Contratos da API](CONTRATOS_API.md) separa rotas FastAPI dos clientes simulados MSW; a trilha por Task registra o histórico e a resolução de F-04.
 - **Contrato → bloqueio/aceite:** [Pendências](PENDENCIAS.md) e [Proposta de contratos](PROPOSTA_CONTRATOS_BACKEND.md) descrevem dependências do Backend/Agent, riscos e validação necessária.
 - **Validação → histórico:** [Testes](TESTES.md), [Plano](PLANO_EXECUCAO_FRONTEND.md) e [Alterações](ALTERACOES.md) mantêm seus resultados associados à data e ao contexto.
 - **Fonte oficial:** issues e PRs usam links do repositório fabrica-bayarea; a branch pessoal e a main oficial não foram presumidas como sincronizadas.
@@ -220,7 +220,7 @@ Nenhuma seção histórica foi removida; as novas descrições complementam os r
 
 ### 17.6 Pendências
 
-- **Frontend:** revisar F-04 para uniformizar o caminho de criação de Task demonstrativa e validar o handler; não se declarou que a divergência causa falha sem teste de roteamento.
+- **Frontend:** no checkpoint dessa auditoria, F-04 ainda aguardava validação de roteamento. A execução posterior reproduziu 501, corrigiu a chamada para /tasks/ e validou cliente + MSW; consulte a atualização abaixo.
 - **Backend/Agent:** autorização e isolamento B-01/#137, Tasks/atribuições I-03/#133, código e vínculo I-02/#113–#116, task_id/#136, resumo por Task/#140, idempotência B-06 e regras de data I-07 continuam dependências externas.
 - **Homologação:** não houve instância API real, credenciais de teste, compilação/execução do Agent nem prova ponta a ponta.
 - **Resultados de testes:** confirmar/atualizar a descrição da PR #128 pelos mantenedores quando oportuno; o texto remoto segue fora do escopo autorizado.
@@ -228,3 +228,21 @@ Nenhuma seção histórica foi removida; as novas descrições complementam os r
 ### 17.7 Permissões
 
 As alterações desta auditoria estão restritas a FrontEnd/docs/. Os arquivos revisados e alterados são os 11 documentos listados na seção 17.1. Nenhum arquivo fora de FrontEnd/docs/ foi editado. Não houve commit, push, merge, deploy, alteração de issue ou de PR.
+
+## Atualização da execução F-04 — 21/10/2026
+
+### Diagnóstico e correção
+
+O checkout começou na branch `main`, HEAD `a20750c25bb24d1665ffb965e14aa80a73f590ae`, com árvore de trabalho limpa. `devApi.createTask()` enviava POST `/tasks`, mas o handler MSW esperava `/tasks/`; a reprodução integrada atingiu o handler curinga e recebeu 501. O cliente foi alinhado a `/tasks/`. Não houve redirecionamento. O matcher MSW não tratou esses caminhos como equivalentes.
+
+### Arquivos alterados e validação
+
+- Código/testes: `src/dev-mocks/client.js`, `src/dev-mocks/client.test.js`, `src/dev-mocks/handlers.test.js`.
+- Documentação: Pendências, Contratos da API, Proposta de contratos do Backend, Matriz de issues, Funcionalidades, Testes, Alterações, Plano e este Relatório. O histórico da auditoria anterior foi mantido, identificado pelo HEAD `f8556a1`.
+- Testes focados: `npm.cmd run test -- src/dev-mocks/client.test.js src/dev-mocks/handlers.test.js` — 2 arquivos, 18 testes aprovados; os detalhes e status HTTP observados estão em [Testes](TESTES.md).
+- Verificações gerais: lint passou; typecheck passou; cobertura passou com 296 testes em 58 arquivos (93,30% statements, 89,55% branches, 95,06% functions e 95,49% lines); build e 4 testes do bundle passaram; E2E teve 30 aprovados, 0 falhas e 2 testes de API real ignorados.
+- Limitação da suíte agregada: `format:check` aponta somente `docs/ARQUITETURA.md` e `docs/README.md`, arquivos inalterados fora do escopo desta correção. Por isso `check:full` parou nessa etapa; cobertura, build, testes de bundle e E2E foram executados separadamente. A formatação dos arquivos alterados passou em verificação direcionada.
+
+### Limites e permissões
+
+F-04 resolve apenas a rota da demonstração. As issues #133 e #134 seguem abertas: CRUD persistente e autorização por gestor no Backend, além da integração real da interface, continuam pendentes. A produção não habilita Tasks fictícias. Todas as alterações desta execução estão em `FrontEnd/`; nenhum arquivo fora desse diretório foi modificado e não houve commit, push, merge, deploy ou alteração remota.
