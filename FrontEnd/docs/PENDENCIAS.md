@@ -88,6 +88,7 @@ Os bloqueios funcionais impedem concluir o recorte anunciado como utilizável so
 | F-01 | Integração das telas após contratos                               | Frontend             | Alta       | BLOQUEADO                          |
 | F-02 | Instalação PWA e política offline                                 | Frontend             | Média      | FRONTEND FUTURO                    |
 | F-03 | Validação humana e matriz de navegadores                          | Frontend             | Média      | FRONTEND FUTURO                    |
+| F-04 | Harmonizar caminho POST de Task demonstrativa                     | Frontend             | Baixa      | DIVERGÊNCIA DE GRAFIA; COMPATIBILIDADE NÃO VALIDADA |
 | D-01 | Atualizar [responsividade.md](../../requisitos/responsividade.md) | Documentação externa | Baixa      | AGUARDANDO REVISÃO EXTERNA         |
 | A-01 | Identidade e revisão visual da interface desktop do Agent         | Agent                | Alta       | ABERTO PARA EQUIPE DO AGENT        |
 
@@ -103,6 +104,7 @@ Os status descrevem a dependência atual; a prioridade indica impacto. Eles não
 | **PARCIAL; BACKEND PENDENTE**          | O Agent já consome a configuração, mas a classificação realtime ainda depende de limites próprios do backend.                                         |
 | **AGENT INTEGRADO; BACKEND BLOQUEADO** | O cliente Agent da PR #122 foi integrado; geração/consulta de código, associação e vínculo autorizado continuam ausentes no backend; consulte I-02.   |
 | **PENDENTE DE AMBIENTE**               | O cenário de integração está preparado; falta serviço real, banco, origem configurada e dados autorizados para executá-lo.                            |
+| **DIVERGÊNCIA DE GRAFIA; COMPATIBILIDADE NÃO VALIDADA** | As strings de caminho diferem entre o cliente demonstrativo e o handler; ainda não se confirmou se o matcher aceita ambas. Consulte F-04. |
 | **FRONTEND IMPLEMENTADO; B-01 ABERTO** | Cadastro, login, sessão e guarda de navegação existem no frontend; as rotas privadas ainda precisam exigir JWT e isolar dados no backend.             |
 | **FRONTEND FUTURO**                    | Trabalho previsto para uma etapa posterior do frontend, como instalação PWA ou validação em dispositivos reais.                                       |
 | **ABERTO PARA EQUIPE DO AGENT**        | Há correção ou revisão necessária em arquivos do Agent, que foram consultados somente para leitura nesta auditoria.                                   |
@@ -414,6 +416,23 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Workaround frontend:** testes automatizados existentes são proteção parcial; não equivalem a inspeção humana.
 - **Motivo do bloqueio:** definição de suporte e recursos de validação externos não estão disponíveis nesta tarefa.
 
+### F-04 — Harmonizar caminho POST de Task demonstrativa — Baixa
+
+- **Área responsável:** Frontend.
+- **Status:** DIVERGÊNCIA DE GRAFIA; COMPATIBILIDADE DO MATCHER NÃO VALIDADA.
+- **Issue relacionada:** #134 (interface) e #133 (caminho de coleção citado pela issue Backend): https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/134 e https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/133.
+- **Requisito relacionado:** RF-06/RF-11; depende de I-03 antes de habilitar operação real.
+- **Arquivo ou componente:** src/dev-mocks/client.js, src/dev-mocks/handlers.js, src/dev-mocks/client.test.js e src/dev-mocks/handlers.test.js.
+- **Problema identificado:** no commit f8556a1114a52ffc5064ab9ab8506a388778561b, a listagem demonstrativa chama GET /tasks/, a criação chama POST /tasks sem barra final, e os handlers MSW declaram GET/POST /tasks/. Atualização e exclusão usam o caminho do item sem barra terminal. A documentação anterior dizia que a rota local estava alinhada a /tasks/; essa afirmação não descreve a string atual de criação.
+- **Evidência:** o cliente configura essas chamadas em src/dev-mocks/client.js e as rotas estão registradas em src/dev-mocks/handlers.js. O Backend local não possui router de Tasks. Nesta auditoria documental não foi executado teste de roteamento do MSW nem chamada ao Backend.
+- **Causa provável:** o caminho da criação foi escrito sem barra terminal enquanto listagem e handler usam a forma com barra. O matcher MSW pode tratar barra terminal como opcional; isso não foi confirmado nesta revisão. O endpoint de produção ainda não existe, então comportamento de redirect do servidor também é desconhecido.
+- **Impacto:** a grafia não canônica dificulta provar equivalência entre cliente e handler e pode divergir do contrato futuro, mesmo que a demonstração atual seja compatível. Não há evidência suficiente nesta revisão para declarar falha funcional reproduzida.
+- **Solução proposta:** escolher uma forma canônica para coleção após confirmar o contrato Backend; alinhar cliente demonstrativo, handler, testes de cliente/handler e documentação. Para a proposta atual, usar /tasks/ em GET e POST de coleção e /tasks/{task_id} para itens, sem depender de redirecionamento implícito.
+- **Critérios de aceitação:** GET e POST do CRUD de demonstração usam o mesmo caminho literal da coleção; handlers cobrem cada método e caminho; contrato publicado usa o mesmo caminho; requests de criação não dependem de redirect; respostas e erros continuam identificáveis por método.
+- **Testes recomendados:** testar diretamente cada método e caminho no cliente e MSW; incluir criação e listagem com mock ativo; quando existir API, verificar o caminho canônico e ausência de 307/308 inesperado em homologação.
+- **Condição de desbloqueio:** revisão do código Frontend e confirmação do caminho final com Backend antes de habilitar CRUD em produção.
+- **Relações:** I-03, #133, #134 e proposta de CRUD em [Contratos da API](CONTRATOS_API.md) e [Propostas de contratos](PROPOSTA_CONTRATOS_BACKEND.md).
+
 ## Pendência de documentação externa
 
 ### D-01 — Atualizar `requisitos/responsividade.md` — Baixa
@@ -459,6 +478,8 @@ Estado dos contratos observado no checkout em 21/10/2026. A tabela resume a audi
 <a id="proposta-tasks-crud"></a>
 
 #### PROPOSTA — NÃO IMPLEMENTADO: contrato persistente para o CRUD de Tasks
+
+**Correção de estado em 21/10/2026:** no HEAD f8556a1, devApi.createTask envia POST /tasks sem barra terminal, enquanto o handler MSW declara POST /tasks/. Portanto a afirmação histórica abaixo de que a string atual estava alinhada a /tasks/ está desatualizada. A diferença está registrada como F-04; sem validar o matcher nesta rodada, não se conclui que o mock falha.
 
 **Necessidade e referências:** RF-06 e RF-11, RN-03 e RN-04, CA-02 a CA-04 e pendência I-03. O RF-06 pede criação/edição pelo Dashboard, descrição, colaboradores e aplicações no escopo. Consultar Tasks persistidas também é necessário para TasksPage. Criar ou editar uma Task não inicia monitoramento; início, encerramento, ciência do colaborador e envio de task_id dependem de contratos próprios do Agent.
 
@@ -830,6 +851,8 @@ As decisões aprovadas continuam válidas: Dashboard sem rankings, exibição de
 3. Definir jornada, conexão, consultas completas e fuso (I-04 a I-07).
 4. Integrar UI e validar serviço real (F-01/I-08), decidir PWA e matriz de suporte (F-02/F-03).
 5. Atualizar o inventário técnico do requisito de responsividade (D-01) com os mantenedores de `requisitos/`.
+
+<a id="auditoria-de-continuacao--21102026"></a>
 
 ## Auditoria de continuação — 21/10/2026
 

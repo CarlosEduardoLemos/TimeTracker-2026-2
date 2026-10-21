@@ -151,6 +151,55 @@ Valores candidatos de `connection_status`: `online`, `offline` ou `unknown`. Reg
 
 `is_idle` descreve inatividade de uso e não altera `connection_status`. Para que eventos antigos sincronizados posteriormente não mudem o relógio de conexão, `last_record_at` deve refletir o instante de recebimento/persistência no servidor, não apenas `captured_at` do relógio do Agent; o modelo atual não expõe esse instante separadamente. A autenticação da máquina, a autorização para receber atividade e o vínculo gestor–colaborador são dependências de B-01/I-05. Se houver mais de um Agent por colaborador, a forma de resumir os estados por pessoa na interface também precisa ser definida.
 
+## Ampliação das propostas por dependência
+
+Revisão documental em 21/10/2026. Os itens abaixo permanecem **PROPOSTA — NÃO IMPLEMENTADO**. A especificação detalhada dos critérios, exemplos, códigos de erro e decisões em aberto fica centralizada nos IDs correspondentes em [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao); esta seção resume motivação, impacto entre componentes, riscos e validação para facilitar uma revisão conjunta.
+
+### Tasks, atribuições e remoção
+
+- **Problema e motivação:** o Frontend só possui CRUD volátil de demonstração; sem persistência e escopo de gestor, uma lista de Tasks não é compartilhável nem autorizada. Excluir uma Task pode invalidar registros históricos e atribuições ativas.
+- **Contrato candidato:** GET/POST /tasks/ para coleção; GET/PUT/DELETE /tasks/{task_id} para um item; as rotas exigem identidade do gestor e filtram pelo seu escopo. A proposta principal inclui collaborator_ids no POST/PUT; rotas separadas de atribuição são uma alternativa, não devem coexistir como contratos duplicados. Arquivamento pode substituir exclusão física se o histórico exigir retenção.
+- **Justificativa e efeitos:** o Frontend já possui formulário, lista, validação e estados de erro; o Backend precisa persistir Task, escopo e relações; o Agent precisa consultar somente as Tasks atribuídas e lidar com mudanças de atribuição. Nenhuma operação de CRUD deve iniciar monitoramento.
+- **Riscos e alternativas:** IDs conhecidos não podem conceder acesso cruzado; lista vazia, edição durante execução, arquivamento e exclusão exigem decisão de produto. Alternativas: atribuições no payload integral ou recurso separado; arquivar ou excluir após avaliar retenção.
+- **Aceite e testes:** provar isolamento entre dois gestores, UUID/payload inválido, conflito com execução ativa, lista vazia e remoção de Task com registros vinculados; API responde 401/404/409/422 conforme regra aprovada. Manter a tela de produção desabilitada até essa validação.
+- **Rastreabilidade:** issues #129/#130/#133/#134/#135, requisitos RF-06 a RF-11 e I-03; proposta detalhada em [CRUD e atribuições](PENDENCIAS.md#proposta-tasks-crud).
+
+### Associação gestor–colaborador e identidade do Agent
+
+- **Problema e motivação:** a PR #122 implementa o cliente de associação do Agent, mas o Backend não possui código, rota, vínculo ou emissão de credencial própria. O gestor também precisa consultar o código sem confundi-lo com seu JWT.
+- **Contrato candidato:** GET /auth/association-code autenticado por JWT do gestor; POST /associate/ recebe code como string, username e hostname, persiste o vínculo e emite um token de Agent com audiência/finalidade próprias. A resposta sugerida usa access_token, token_type e expires_in, respeitando a tolerância do Agent atual.
+- **Justificativa e efeitos:** o Frontend pode então mostrar o código real e filtrar a equipe; o Backend controla geração, expiração, tentativas e uso; o Agent já envia o código e protege o token com DPAPI. O token de gestor não deve ser aceito como identidade do Agent, nem o token do Agent como identidade do gestor.
+- **Riscos e alternativas:** decidir validade, rotação, uso único, revogação, limite de tentativas e se username/hostname bastam como identidade durável. Códigos numéricos devem ser tratados como texto para preservar zeros à esquerda.
+- **Aceite e testes:** associação válida cria exatamente um vínculo e credencial de Agent; código inválido/expirado/consumido não cria registro; testar 401/404/409/410/422/429, reuso, concorrência, isolamento entre gestores e persistência protegida no Agent.
+- **Rastreabilidade:** issues #105/#106/#113–#116, RF-03/RF-04/RF-05, CA-01 e I-02; propostas em [código e associação](PENDENCIAS.md#proposta-association-code).
+
+### Autorização, sessão e expiração
+
+- **Problema e motivação:** as rotas de dados atuais não verificam JWT nem filtram por gestor. A guarda React e o Bearer que o cliente envia não protegem dados no servidor.
+- **Contrato candidato:** as rotas de leitura/escrita gerenciais exigem JWT de gestor e derivam manager_id exclusivamente do token validado. POST /activities/ usa identidade de Agent e escopo mínimo separado. 401 indica credencial ausente/inválida/expirada; 404 pode ocultar recurso fora do escopo; 403 fica para papel sem permissão.
+- **Justificativa e efeitos:** o Frontend mantém seus guards e trata 401 limpando a sessão, mas autorização efetiva pertence ao Backend. O Agent deve preservar sua fila e solicitar reassociação/renovação conforme regra explícita. Não há refresh token nem revogação confirmados.
+- **Riscos e alternativas:** ainda é decisão se a sessão web permanece em sessionStorage ou migra a cookie HttpOnly com proteção CSRF; adicionar refresh sem rotação/revogação seria insuficiente. Rejeitar manager_id enviado pelo cliente e testar relações aninhadas em cada rota.
+- **Aceite e testes:** duas contas de gestores não podem ler/escrever dados uma da outra; testar token ausente, inválido, expirado, token de audiência errada, 403/404, logout, 401 no Frontend e recuperação do Agent sem perda de fila.
+- **Rastreabilidade:** issues #131/#137/#138/#139, RN-15/RNF-04/RNF-05, B-01/I-01 e [proposta de autorização](PENDENCIAS.md#proposta-authorization).
+
+### Sincronização de atividades, TaskId, jornada e fuso
+
+- **Problema e motivação:** ActivityLogCreate não contém task_id e captured_at isoladamente não define a data de negócio em Brasília. Reenvios da fila também podem duplicar eventos; realtime não representa entrada/saída.
+- **Contrato candidato:** incluir um identificador de evento idempotente e task_id conforme estado de execução acordado; expor consultas diárias de primeiro/último registro e resumo por Task com date, timezone IANA America/Sao_Paulo, filtros autorizados e duração definida. O primeiro/último registro deve ser descrito como leitura capturada, não como jornada formal, até haver eventos explícitos.
+- **Justificativa e efeitos:** o Agent persiste IDs na fila e reenvia com segurança; o Backend deduplica e agrupa eventos por limites do dia no timezone escolhido; o Frontend apresenta carregamento, vazio, falha parcial e valores retornados sem inferir dados.
+- **Riscos e alternativas:** duração pode incluir inatividade, apps fora do escopo ou lacunas de captura; a liderança precisa decidir. Intervalo de datas, tarefa removida, atividade sem Task e resposta para Task sem registros também precisam de definição.
+- **Aceite e testes:** reenviar o mesmo evento não duplica duração; atravessar meia-noite de São Paulo não duplica nem perde evento; validar data inválida/futura, task_id ausente/removido, Task sem atividade, consulta parcial e diferença entre erro e lista vazia.
+- **Rastreabilidade:** issues #107/#117/#118/#136/#140, RF-12/RF-13/RF-19/RF-24/RF-27, B-06 e I-06/I-07; propostas em [jornada](PENDENCIAS.md#proposta-attendance), [horas por Task](PENDENCIAS.md#proposta-task-hours) e [fuso horário](PENDENCIAS.md#proposta-timezone).
+
+### Erros, remoção, homologação e observabilidade
+
+- **Problema e motivação:** contratos ausentes podem gerar tratamentos divergentes no Frontend/Backend/Agent; sem ambiente de homologação, testes com mocks não provam integração, autorização ou transporte seguro.
+- **Contrato candidato:** manter o envelope FastAPI { "detail": "..." } para erros observados e padronizar 401/403/404/409/410/422/429/5xx por operação. Documentar comportamento após exclusão/arquivamento de Task, expiracão de token e retry de evento.
+- **Justificativa e efeitos:** o Frontend já transforma status HTTP em erros tipados e diferencia resposta vazia; o Backend deve tornar mensagens previsíveis sem expor dados de outro gestor; o Agent precisa distinguir erro transitório de credencial rejeitada e conservar a fila offline.
+- **Riscos e alternativas:** não converter falha HTTP em lista vazia, nem tratar 403 como token expirado sem contrato; logs não devem conter senha, JWT ou título de janela desnecessário. Homologação usa conta descartável e rede autorizada.
+- **Aceite e testes:** matriz de status por endpoint, testes negativos de autorização, retry/idempotência, verificação de logs sem segredo, HTTPS e E2E entre Frontend/Backend/Agent em ambiente de homologação; registrar ambiente, commit, comando e resultado.
+- **Rastreabilidade:** issues #118/#137/#139/#141, B-01/B-06/I-08 e itens relacionados em [Pendências](PENDENCIAS.md).
+
 ## Rastreabilidade e questões para confirmação
 
 | Proposta                               | Pendências relacionadas      | Requisitos relacionados                                              |

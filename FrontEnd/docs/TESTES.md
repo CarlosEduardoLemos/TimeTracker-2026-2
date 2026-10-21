@@ -2,6 +2,10 @@
 
 Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026**, **13/10/2026** e **16/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
+## Nota da auditoria documental — 21/10/2026
+
+O commit analisado nesta auditoria documental é f8556a1114a52ffc5064ab9ab8506a388778561b. Nenhum teste de código foi executado nesta rodada: os números abaixo são registros de execuções anteriores no mesmo histórico de 21/10, não resultados produzidos pela revisão dos documentos. A descrição da [PR #128](https://github.com/fabrica-bayarea/TimeTracker-2026-2/pull/128) informa 254 testes Vitest e 29 cenários E2E; o registro local mais recente abaixo informa 295 testes Vitest e 30 aprovados, com 2 casos de API real ignorados. Como os registros não usam a mesma contagem, cada um permanece ligado à sua origem até confirmação pelos mantenedores.
+
 ## Auditoria do formulário, Dashboard e sessão — 21/10/2026
 
 - `npm.cmd run lint`: passou.

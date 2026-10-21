@@ -51,3 +51,25 @@ Consulta oficial em **21/10/2026** ao repositório `fabrica-bayarea/TimeTracker-
 - PR #128 está aberta e contém cinco commits locais de `FrontEnd/` com Tasks demonstrativas, filtros de aplicação e acompanhamento realtime; seu conjunto de diffs estava na branch pessoal, não em `upstream/main`.
 - Esta matriz registra 38 issues únicas; issues pai/filhas são linhas distintas porque têm números próprios. Uma issue conserva uma classificação técnica principal, mesmo quando tem dependência adicional.
 - “Concluída no escopo original” não significa que a funcionalidade cubra os requisitos atuais de segurança, Task, associação, relatório ou deploy.
+
+## Revalidação documental do checkout — 21/10/2026
+
+Esta seção atualiza a fotografia técnica sem apagar os contextos registrados acima. A análise anterior tomou como base e14d831; o checkout atual está em **main, HEAD f8556a1114a52ffc5064ab9ab8506a388778561b**, limpo antes desta auditoria documental e alinhado a origin/main. O remote origin aponta para CarlosEduardoLemos/TimeTracker-2026-2; upstream aponta para fabrica-bayarea/TimeTracker-2026-2. A comparação consultada no GitHub confirmou que o HEAD pessoal está **8 commits à frente e 0 atrás** da main oficial em 230fc7fac1374941dcb26b1d507494aa6450234f. Não houve fetch ou alteração de refs locais.
+
+Na consulta oficial feita nesta data, o repositório tinha **38 issues: 35 abertas e 3 fechadas**. O estado oficial permanece separado da classificação técnica desta matriz. A PR #128 continua aberta, com base 230fc7fac1374941dcb26b1d507494aa6450234f e head f8556a1114a52ffc5064ab9ab8506a388778561b; não foi mesclada nem alterada por esta auditoria. As PRs #122 e #123 constam como integradas à main oficial.
+
+### Trilhas de rastreabilidade verificadas
+
+| Issue | Requisito | Funcionalidade/código | Contrato | Teste | Pendência |
+| --- | --- | --- | --- | --- | --- |
+| #138/#112 | RF-02, CA-01 | AuthPage, ManagerSession, App/routes | POST /auth/register, POST /auth/login, GET /auth/me | AuthPage.test.jsx, ManagerSession.test.jsx, api.test.js | B-01/#137 para autorização dos dados; I-08 para integração real |
+| #133/#134 | RF-06/RF-11 | TasksPage, TaskForm, TaskList, useTasks, dev-mocks | CRUD somente demonstrativo; contrato futuro está proposto em I-03 | TasksPage.test.jsx, useTasks.test.js, client/handlers tests | I-03 e nova observação F-04 sobre grafia de /tasks |
+| #98/#140 | RF-27, CA-10 | DashboardPage, useTaskAnalytics, TaskSummaryCard | Apenas resposta vazia demonstrativa para resumo por Task | DashboardPage.test.jsx, useTaskAnalytics.test.js, TaskSummaryCard.test.jsx | I-06; faltam task_id e agregação real |
+| #105/#106/#113–#116 | RF-03/RF-04/RF-05, CA-01 | AssociationCodeCard; Agent cliente de associação | Nenhuma rota de código ou associação encontrada no Backend | AssociationCodeCard.test.jsx; testes Agent não executados nesta revisão | I-02; Backend precisa emitir código, persistir vínculo e autenticar Agent |
+| #108/#109/#132/#141 | RF-24/RF-25/RF-27, CA-07 | ReportsPage e useReportExport | Exportação do resumo diário existente, não relatório completo | ReportsPage.test.jsx, useReportExport.test.js; E2E mockado | I-06/I-08 e ambiente real autorizado |
+
+Os caminhos de código e teste nesta tabela são pistas para navegação; os links relativos e os critérios por área estão em [Funcionalidades](FUNCIONALIDADES.md), [Arquitetura](ARQUITETURA.md), [Contratos](CONTRATOS_API.md) e [Pendências](PENDENCIAS.md).
+
+### Divergência de resultados reportados pela PR
+
+A descrição atual da PR #128 registra 254 testes Vitest e 29 cenários E2E como resultados do commit de validação nela citado. O registro local mais recente em [Testes](TESTES.md) registra 295 testes Vitest e 30 cenários Playwright aprovados, com 2 casos de API real ignorados, para a revisão documental/de código de 21/10. Esses números são mantidos vinculados às suas fontes e não são intercambiáveis; esta auditoria não repetiu a suíte. A descrição da PR pode representar uma validação anterior e não foi editada.

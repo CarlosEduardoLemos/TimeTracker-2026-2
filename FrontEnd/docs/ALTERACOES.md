@@ -1,4 +1,14 @@
 # Alterações do frontend
+## 21/10/2026 — auditoria e rastreabilidade documental
+
+- **Objetivo:** confrontar os 11 documentos existentes em FrontEnd/docs com o código local, requisitos, Backend, Agent e estado oficial de issues/PRs, preservando o conteúdo anterior.
+- **Documentos atualizados:** ALTERACOES, ARQUITETURA, CONTRATOS_API, FUNCIONALIDADES, MATRIZ_ISSUES_FRONTEND, PENDENCIAS, PLANO_EXECUCAO_FRONTEND, PROPOSTA_CONTRATOS_BACKEND, README, RELATORIO_EXECUCAO_FRONTEND e TESTES.
+- **Natureza:** índice e trilha de leitura ampliados; mapa arquitetura/mock-prod adicionados; relações de funcionalidade, requisito, código, endpoint e teste explicitadas; catálogo de rotas do Backend e caminho /tasks versus /tasks/ documentados; propostas externas com riscos, efeitos e critérios conectados a IDs.
+- **Motivo:** melhorar navegação e distinguir evidência atual, histórico, demonstração e contrato proposto; corrigir a fotografia de estado anterior ao HEAD f8556a1 e registrar a diferença de caminho de criação de Task.
+- **Rastreabilidade:** issues oficiais consultadas: 38 (35 abertas, 3 fechadas); PR #128 aberta entre a branch pessoal e a main oficial; PRs #122/#123 integradas. Relações detalhadas em [Matriz](MATRIZ_ISSUES_FRONTEND.md), [Funcionalidades](FUNCIONALIDADES.md) e [Pendências](PENDENCIAS.md).
+- **Validação e limites:** testes de código não foram reexecutados nesta auditoria documental. A revisão local do estado, caminhos e documentos foi registrada em [Relatório](RELATORIO_EXECUCAO_FRONTEND.md); nenhum endpoint real foi chamado.
+- **Pendência adicionada:** F-04 registra divergência textual entre POST /tasks no cliente demonstrativo e POST /tasks/ no handler. Compatibilidade do matcher ainda precisa de validação; nenhum defeito foi declarado reproduzido.
+- **Escopo:** todas as escritas ficaram dentro de FrontEnd/docs/. Nenhum código, arquivo externo, issue, PR ou remoto foi alterado; nenhum commit, push ou merge foi feito.
 
 Histórico de alterações por data, em ordem da mais recente para a mais antiga. Caminhos registrados em entradas antigas refletem a estrutura usada na época. Consulte [Arquitetura](ARQUITETURA.md) para a organização atual, [Testes](TESTES.md) para os resultados automatizados e [Pendências](PENDENCIAS.md) para bloqueios em aberto; detalhes de versões anteriores também estão no histórico do Git.
 

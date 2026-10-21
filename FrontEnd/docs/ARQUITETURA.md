@@ -105,6 +105,42 @@ O layout usa os breakpoints `sm`, `lg` e `xl` do Tailwind. O menu lateral fixo a
 
 Playwright executa os fluxos principais no Chrome, testa larguras de 375 a 1920 px e ampliação CSS de 200%; axe-core verifica violações WCAG detectáveis automaticamente em quatro telas e no menu móvel escuro. Leitor de tela, zoom nativo e backend real ainda exigem inspeção. Consulte [Testes](TESTES.md).
 
+## Mapa dos fluxos e evidências
+
+O diagrama mostra a fronteira entre chamadas reais e os recursos de demonstração. O caminho de mocks só existe em desenvolvimento quando VITE_USE_MOCKS=true; os handlers simulam dados e não substituem os routers do Backend.
+
+~~~mermaid
+flowchart LR
+  Entry[src/main.jsx] --> App[src/app/App.jsx]
+  App --> Routes[src/app/routes.js]
+  Routes --> Features[Features React]
+  Features --> Api[src/shared/api/api.js]
+  Api --> Backend[Backend FastAPI]
+  Entry -->|DEV e VITE_USE_MOCKS=true| Startup[src/dev-mocks/start.js]
+  Startup --> Worker[MSW Service Worker]
+  Features -->|devApi injetada| DevClient[src/dev-mocks/client.js]
+  DevClient --> Worker
+  Worker --> Handlers[src/dev-mocks/handlers.js]
+  Handlers -.->|respostas temporárias| Features
+~~~
+
+O cliente HTTP real atende resumo, usuários, realtime, configurações, exportações e sessão do gestor. O serviço de desenvolvimento atende o CRUD de demonstração e os dados analíticos simulados. No build de produção, o verificador em scripts/verify-production-bundle.mjs impede a inclusão dos handlers, do worker e das rotas simuladas. A API real não declara roteador de Tasks, presença diária ou agregação de horas por Task; consulte [Contratos](CONTRATOS_API.md).
+
+### Rastreabilidade por responsabilidade
+
+| Responsabilidade | Implementação principal | Testes representativos | Referências |
+| --- | --- | --- | --- |
+| Inicialização e rotas protegidas | src/main.jsx, src/app/App.jsx, src/app/routes.js, src/shared/auth/ManagerSession.jsx | src/app/App.test.jsx, src/shared/auth/ManagerSession.test.jsx | RF-02, issues #112/#138, I-01/B-01 em [Pendências](PENDENCIAS.md) |
+| Cliente HTTP e validação de contratos | src/shared/api/api.js, contracts.js, validators.js | src/shared/api/api.test.js, validators.test.js | [Contratos da API](CONTRATOS_API.md) |
+| Painel e atualização independente de fontes | src/features/dashboard/pages/DashboardPage.jsx, hooks/useDashboardData.js, hooks/useAutoRefresh.js | DashboardPage.test.jsx, useDashboardData.test.js, useAutoRefresh.test.js | RF-27, issues #98/#102/#109, I-06/I-07 |
+| Tasks demonstrativas | src/features/tasks/pages/TasksPage.jsx, hooks/useTasks.js, dev-mocks/handlers.js | TasksPage.test.jsx, useTasks.test.js, dev-mocks/handlers.test.js | RF-06/RF-11, issue #134, proposta I-03 |
+| Resumo demonstrativo por Task | src/features/dashboard/hooks/useTaskAnalytics.js, components/TaskSummaryCard.jsx | useTaskAnalytics.test.js, TaskSummaryCard.test.jsx | issue #140, proposta I-06 |
+| Colaboradores e leituras realtime | src/features/collaborators/hooks/useCollaboratorsData.js, lib/agentFilters.js | CollaboratorsPage.test.jsx, agentFilters.test.js | RF-05/RF-16, B-01/I-02/I-05 |
+| Exportações diárias | src/features/reports/hooks/useReportExport.js, src/shared/api/api.js | useReportExport.test.js, ReportsPage.test.jsx | RF-24/RF-25, CA-07, I-06/I-08 |
+| Configuração global | src/features/settings/hooks/useSettings.js, components/SettingsForm.jsx | SettingsPage.test.jsx, src/shared/api/api.test.js | RF-20/RF-21, B-04/B-09 |
+
+Os arquivos de teste listados exercitam a lógica do Frontend com clientes controlados ou mocks. Eles não demonstram autorização, persistência ou resposta de uma instância real. Os resultados efetivamente registrados por data estão em [Testes](TESTES.md), e as relações por issue em [Matriz](MATRIZ_ISSUES_FRONTEND.md).
+
 ## Qualidade automatizada
 
 `eslint.config.js` combina regras de JavaScript, React, Hooks, JSX a11y e fronteiras entre `app`, `features` e `shared`. `shared/api/contracts.js` documenta em JSDoc os campos garantidos pelos validadores e métodos do cliente; `npm run typecheck` aplica `checkJs` somente a essa camada e seus imports. Prettier formata código, configuração e Markdown. `vitest.config.js` inclui apenas testes em `src`, separando-os do Playwright, e define limites de cobertura para API, bibliotecas compartilhadas e hooks críticos. `e2e/run.mjs` gera o build, sobe o preview local, executa Chrome e encerra o servidor. `e2e/real-api.spec.js` só roda com `RUN_REAL_API=1` e FastAPI disponível. Consulte [Testes](TESTES.md) para resultados e [Alterações](ALTERACOES.md) para o histórico.

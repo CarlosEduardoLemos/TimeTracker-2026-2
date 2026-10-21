@@ -161,3 +161,70 @@ As alterações de código/documentação persistentes foram restritas a `FrontE
 4. Rodar E2E real em ambiente explicitamente autorizado; os dois cenários reais continuaram ignorados nesta execução.
 
 **Escopo observado:** nenhum segredo real foi usado. O único mock de autenticação usa token fixo de demonstração e não está presente no bundle de produção.
+
+## Auditoria e ampliação documental — 21/10/2026
+
+### 17.1 Escopo
+
+- **Commit analisado:** f8556a1114a52ffc5064ab9ab8506a388778561b.
+- **Branch e árvore inicial:** main; árvore limpa antes das edições documentais; branch local igual a origin/main.
+- **Remotes:** origin aponta para CarlosEduardoLemos/TimeTracker-2026-2; upstream aponta para fabrica-bayarea/TimeTracker-2026-2.
+- **Comparação entre repositórios:** GitHub confirmou a main oficial em 230fc7fac1374941dcb26b1d507494aa6450234f; o commit analisado está 8 commits à frente e 0 atrás. A PR #128 permanece aberta com esse head. Não foi feito fetch, push, merge nem alteração remota.
+- **Diretórios consultados em leitura:** FrontEnd/src, FrontEnd/e2e, FrontEnd/scripts, FrontEnd/package.json; backend/app e backend/tests; agent/; requisitos/; documentação de issues/PRs do repositório oficial.
+- **Documentos revisados:** todos os 11 arquivos existentes em FrontEnd/docs/: ALTERACOES.md, ARQUITETURA.md, CONTRATOS_API.md, FUNCIONALIDADES.md, MATRIZ_ISSUES_FRONTEND.md, PENDENCIAS.md, PLANO_EXECUCAO_FRONTEND.md, PROPOSTA_CONTRATOS_BACKEND.md, README.md, RELATORIO_EXECUCAO_FRONTEND.md e TESTES.md.
+- **Permissões:** escritas limitadas aos documentos dentro de FrontEnd/docs/. Código, testes, package/configuração, Backend, Agent, requisitos, raiz, issues, PRs e remotos não foram alterados.
+
+### 17.2 Diagnóstico
+
+- Registros de auditoria anteriores usavam e14d831 e a comparação de sete commits; eram válidos para aquele checkpoint, mas já não descreviam o HEAD atual. Esta seção e a revalidação na matriz passam a identificar f8556a1 e oito commits à frente.
+- O índice documental não listava PROPOSTA_CONTRATOS_BACKEND.md nem orientava uma trilha de leitura por público/assunto.
+- A documentação de Tasks afirmava que a string de criação estava alinhada a /tasks/. O código atual chama POST /tasks, enquanto GET e handlers MSW usam /tasks/. Sem uma verificação de runtime nesta rodada, a diferença foi registrada como divergência de grafia e compatibilidade pendente F-04, não como falha reproduzida.
+- A descrição da PR #128 ainda informa 254 testes e 29 cenários E2E, enquanto o registro local mais recente em TESTES.md informa 295 testes e 30 cenários Playwright aprovados, além de 2 casos reais ignorados. Os resultados permanecem vinculados às fontes e não foram tratados como uma mesma execução.
+- A consulta GitHub nesta data confirmou 38 issues, 35 abertas e 3 fechadas; a PR #128 continua aberta. Estado do GitHub e conclusão técnica continuam separados.
+- Os contratos reais de autenticação, dados, configuração e exportação estão documentados, mas os formatos propostos para Tasks, associação, jornada e resumo por Task ainda dependem de implementação e validação externa.
+
+### 17.3 Melhorias implementadas por documento
+
+| Documento | Conteúdo anterior preservado | Ampliação/documentação realizada |
+| --- | --- | --- |
+| README.md | Estado atual e links de navegação existentes | Índice completo de 11 documentos, ordem de leitura, público, navegação por assunto, estados de evidência e regra de rastreabilidade |
+| ARQUITETURA.md | Arquitetura, fluxos, decisões e estratégia de qualidade | Diagrama real/mock e tabela de responsabilidade com implementação, testes, requisitos/issues e pendências |
+| FUNCIONALIDADES.md | Descrição das telas, limites e relação com requisitos | Matriz por funcionalidade ligando RF/CA, issues, arquivos, testes, contratos e dependências |
+| CONTRATOS_API.md | Rotas consumidas, auth, validação e propostas separadas | Catálogo de rotas do Backend, schemas/status/autorização observados e análise explícita da grafia /tasks versus /tasks/ |
+| MATRIZ_ISSUES_FRONTEND.md | As 38 linhas de issues e classificações técnicas | Revalidação de branch/HEAD/remotes, quantidade e estado oficial, trilhas issue→requisito→código→contrato→teste→pendência e divergência do texto da PR |
+| PENDENCIAS.md | Identificadores, histórico e propostas existentes | Nova pendência F-04 com evidência, impacto, causa provável, solução, aceite, testes e condição de desbloqueio; correção de contexto para o caminho Task atual |
+| PLANO_EXECUCAO_FRONTEND.md | Diagnósticos e marcos anteriores | Estado final do checkout e próximas ações para os bloqueios atuais |
+| PROPOSTA_CONTRATOS_BACKEND.md | Propostas de Tasks, jornada, agregação e conexão do Agent | Efeitos por componente, riscos, alternativas, critérios e testes para Tasks/atribuição, associação, autorização, sessão, Agent, datas e homologação |
+| TESTES.md | Todos os resultados históricos e roteiros | Nota separando esta auditoria documental dos testes de código e mantendo visível a diferença entre números da PR e do registro local |
+| ALTERACOES.md | Histórico cronológico anterior | Registro desta ampliação e dos documentos afetados |
+| RELATORIO_EXECUCAO_FRONTEND.md | Relatórios anteriores | Esta seção de auditoria documental, diagnóstico, evidências, melhorias, rastreabilidade, validação e permissões |
+
+Nenhuma seção histórica foi removida; as novas descrições complementam os registros anteriores e identificam quando uma constatação mais recente substitui a fotografia de estado de um checkpoint antigo.
+
+### 17.4 Rastreabilidade
+
+- **Issue → requisito → funcionalidade:** [Matriz de issues](MATRIZ_ISSUES_FRONTEND.md) e a tabela de rastreabilidade em [Funcionalidades](FUNCIONALIDADES.md) conectam RF/CA às issues #94–#141 pertinentes.
+- **Funcionalidade → código → teste:** caminhos reais em FrontEnd/src e testes junto às features foram adicionados em [Arquitetura](ARQUITETURA.md) e [Funcionalidades](FUNCIONALIDADES.md).
+- **Código → endpoint:** [Contratos da API](CONTRATOS_API.md) separa rotas FastAPI dos clientes simulados MSW; a trilha por Task aponta à divergência F-04.
+- **Contrato → bloqueio/aceite:** [Pendências](PENDENCIAS.md) e [Proposta de contratos](PROPOSTA_CONTRATOS_BACKEND.md) descrevem dependências do Backend/Agent, riscos e validação necessária.
+- **Validação → histórico:** [Testes](TESTES.md), [Plano](PLANO_EXECUCAO_FRONTEND.md) e [Alterações](ALTERACOES.md) mantêm seus resultados associados à data e ao contexto.
+- **Fonte oficial:** issues e PRs usam links do repositório fabrica-bayarea; a branch pessoal e a main oficial não foram presumidas como sincronizadas.
+
+### 17.5 Validação documental
+
+- O inventário confirmou exatamente os 11 documentos listados em FrontEnd/docs/; não foi necessário criar arquivo novo.
+- Checagem documental estática em 11 arquivos: 368 links locais Markdown resolvidos, incluindo âncoras; 20 exemplos JSON analisados; nenhum caminho local quebrado, âncora sem destino, JSON inválido ou bloco de código sem fechamento. Os 51 links externos foram identificados, mas não foram todos abertos; as consultas oficiais de issues/PRs citadas acima foram feitas em leitura pelo conector GitHub. Blocos Mermaid foram verificados quanto ao fechamento, sem parser Mermaid dedicado.
+- git diff --check terminou sem erro de whitespace. git diff --numstat mostra somente adições nos 11 documentos, sem linhas removidas; preservação de conteúdo conferida. Git avisou que CRLF de ALTERACOES.md e PLANO_EXECUCAO_FRONTEND.md será normalizado para LF na próxima operação Git.
+- A documentação registra 295 testes Vitest e 30 cenários E2E aprovados mais 2 casos reais ignorados como resultados do histórico local de 21/10. Esta auditoria documental não repetiu Vitest, Playwright, build, lint ou chamadas ao Backend.
+- PR #128 e issues foram consultadas em leitura. A descrição da PR não foi alterada, apesar da diferença numérica em relação ao registro local.
+
+### 17.6 Pendências
+
+- **Frontend:** revisar F-04 para uniformizar o caminho de criação de Task demonstrativa e validar o handler; não se declarou que a divergência causa falha sem teste de roteamento.
+- **Backend/Agent:** autorização e isolamento B-01/#137, Tasks/atribuições I-03/#133, código e vínculo I-02/#113–#116, task_id/#136, resumo por Task/#140, idempotência B-06 e regras de data I-07 continuam dependências externas.
+- **Homologação:** não houve instância API real, credenciais de teste, compilação/execução do Agent nem prova ponta a ponta.
+- **Resultados de testes:** confirmar/atualizar a descrição da PR #128 pelos mantenedores quando oportuno; o texto remoto segue fora do escopo autorizado.
+
+### 17.7 Permissões
+
+As alterações desta auditoria estão restritas a FrontEnd/docs/. Os arquivos revisados e alterados são os 11 documentos listados na seção 17.1. Nenhum arquivo fora de FrontEnd/docs/ foi editado. Não houve commit, push, merge, deploy, alteração de issue ou de PR.

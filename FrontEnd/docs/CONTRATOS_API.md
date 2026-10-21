@@ -81,6 +81,40 @@ Os métodos reutilizam `ApiError`, timeout de 15 segundos e `AbortSignal`. Os er
 
 O backend também declara `GET /` (healthcheck), `POST /activities/`, `GET/POST /categories/`, `GET/POST /categories/rules`, `PUT/DELETE /categories/rules/{rule_id}`. A interface web atual não chama essas rotas.
 
+## Catálogo de rotas declarado no Backend
+
+Esta tabela foi confrontada com os routers e schemas presentes em backend/app/ no commit local analisado. “Sem autenticação na implementação atual” descreve o código, não uma recomendação de segurança. Apenas GET /auth/me injeta a dependência de gestor autenticado; a necessidade de proteger rotas de dados está em B-01/#137.
+
+| Método e caminho declarado | Estado atual e entrada | Resposta/códigos observados | Autenticação atual e consumidor |
+| --- | --- | --- | --- |
+| GET / | Implementado; sem parâmetros | Objeto de healthcheck | Sem autenticação; nenhuma tela chama |
+| POST /auth/register | Implementado; email e password | 201 ManagerOut; 409 email duplicado; 422 schema inválido | Público; AuthPage |
+| POST /auth/login | Implementado; email e password | 200 Token; 401 credencial incorreta; 422 schema inválido | Público; AuthPage |
+| GET /auth/me | Implementado; Bearer de gestor | 200 ManagerOut; 401 token ausente, inválido, expirado ou identidade inexistente | JWT de gestor obrigatório; ManagerSession |
+| GET /users/ | Implementado; sem parâmetros | 200 array de UserOut | Sem autenticação; Painel, Colaboradores, Relatórios |
+| POST /activities/ | Implementado; ActivityLogCreate | 201 ActivityLogOut; 422 payload inválido | Sem autenticação no router atual; Agent |
+| GET /activities/realtime | Implementado; sem parâmetros | 200 array de RealtimeEntry | Sem autenticação; Painel, Colaboradores |
+| GET /dashboard/summary | Implementado; date obrigatório e username opcional | 200 DailySummaryResponse; 422 date inválida/ausente | Sem autenticação; Painel |
+| GET /dashboard/export/csv | Implementado; mesmos filtros do resumo | 200 text/csv; cabeçalho e linhas username/category/total_seconds | Sem autenticação; Relatórios |
+| GET /dashboard/export/pdf | Implementado; mesmos filtros do resumo | 200 application/pdf | Sem autenticação; Relatórios |
+| GET /categories/ e POST /categories/ | Implementados; POST recebe name e color | GET retorna array; POST retorna CategoryOut com 201 | Sem autenticação; sem consumidor nas telas atuais |
+| GET /categories/rules e POST /categories/rules | Implementados; escrita recebe category_id, keyword e match_field | GET retorna array; POST retorna CategorizationRuleOut com 201 | Sem autenticação; sem consumidor nas telas atuais |
+| PUT /categories/rules/{rule_id} | Implementado; campos de atualização opcionais | 200 CategorizationRuleOut; 404 regra inexistente; 422 UUID/payload inválido | Sem autenticação; sem consumidor nas telas atuais |
+| DELETE /categories/rules/{rule_id} | Implementado; rule_id UUID | 204 sem corpo; 404 regra inexistente; 422 UUID inválido | Sem autenticação; sem consumidor nas telas atuais |
+| GET /config/ e PUT /config/ | Implementados; PUT recebe capture_interval_seconds e idle_timeout_seconds positivos | 200 SystemSettingsOut; 422 valores inválidos | Sem autenticação no router atual; SettingsPage e Agent |
+
+Os schemas de atividade e respostas de realtime/summary estão detalhados acima. Nos demais contratos declarados, UserOut inclui id, username, full_name, department e created_at; CategoryOut inclui id, name e color; CategorizationRuleOut inclui id, category_id, keyword e match_field; SystemSettingsOut inclui os dois inteiros e updated_at opcional. A validação Pydantic rejeita corpos inválidos com 422. As respostas 404 das regras decorrem explicitamente da lógica do router.
+
+### Grafia dos caminhos e diferença de barra final
+
+Os caminhos do cliente real devem permanecer iguais aos métodos em src/shared/api/api.js: ele usa /users/, /activities/realtime, /dashboard/summary, /dashboard/export/{csv|pdf}, /config/ e as rotas de autenticação sem barra final. Os routers atuais declaram esses caminhos. Não há chamada de Tasks no cliente de produção.
+
+As rotas demonstrativas têm uma diferença textual que deve ser mantida visível até o contrato ser harmonizado: devApi.tasks envia GET /tasks/; devApi.createTask envia POST /tasks sem a barra final; o handler MSW registra GET e POST em /tasks/. Atualização e exclusão usam /tasks/{task_id} sem barra terminal. O Backend não declara nenhum desses caminhos neste checkout; portanto não há evidência local de como FastAPI ou o serviço remoto redirecionariam a chamada POST sem barra.
+
+A proposta de CRUD em [Pendências — I-03](PENDENCIAS.md#propostas-de-contratos-de-integracao) adota /tasks/ para as operações da coleção e /tasks/{task_id} para um item, seguindo o caminho citado pela issue #133. F-04 registra a diferença observada entre a string chamada pelo cliente demonstrativo e o caminho escrito no handler. Isto é uma divergência de grafia no código; sem executar o matcher MSW/Backend, não se afirma que a demonstração falha. O aceite futuro deve usar o mesmo caminho canônico na API de desenvolvimento e no contrato publicado, sem depender de redirect implícito.
+
+O mock GET /dashboard/tasks-summary recebe date, username e task_id opcionais/obrigatórios conforme o cliente, mas a resposta vazia { "date": "AAAA-MM-DD", "timezone": "America/Sao_Paulo", "tasks": [] } pertence só à demonstração. Não existe endpoint de Dashboard por Task, presença diária ou horas por Task no Backend atual. Os demais caminhos propostos ficam em [Propostas de contratos](PROPOSTA_CONTRATOS_BACKEND.md) e [Pendências](PENDENCIAS.md).
+
 ## Associação Agent–gestor: endpoints ainda não confirmados no backend
 
 A PR #122 (`ed48ad7cfff9e724406ef9ffffeb6c0f132caf32`) foi integrada à `main` da organização em 12/10/2026 (merge `e43673b4dca212eaa991308d14c9dc25b6c64061`). O Agent implementa formulário de código numérico de seis dígitos, `POST /associate/`, armazenamento protegido por DPAPI do token obtido (`token` ou `access_token`), Bearer em chamadas posteriores e bloqueio do monitoramento até associação.
