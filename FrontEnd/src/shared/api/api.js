@@ -1,4 +1,5 @@
 import { isIsoDate } from '../lib/date';
+import { notifyAuthenticationRequired, readManagerAccessToken } from '../auth/sessionStorage';
 import {
   validManager,
   validManagerToken,
@@ -64,15 +65,21 @@ async function httpError(response, includeDetail = true) {
 /**
  * @template T
  * @param {string} path
- * @param {RequestInit & { omitErrorDetails?: boolean }} [options]
+ * @param {RequestInit & { omitErrorDetails?: boolean, authenticated?: boolean }} [options]
  * @param {(response: Response) => Promise<T>} [read]
  * @returns {Promise<T>}
  */
 async function request(
   path,
-  { signal, omitErrorDetails = false, ...options } = {},
+  { signal, omitErrorDetails = false, authenticated = false, ...options } = {},
   read = (response) => response.json(),
 ) {
+  const accessToken = authenticated ? readManagerAccessToken() : null;
+  if (authenticated && !accessToken) {
+    notifyAuthenticationRequired();
+    throw new ApiError('Sessão não autenticada', { type: 'client', status: 401 });
+  }
+
   // O controller próprio permite timeout; timedOut o distingue do cancelamento externo.
   const controller = new AbortController();
   const abort = () => controller.abort(signal?.reason);
@@ -86,14 +93,19 @@ async function request(
   }, TIMEOUT);
   try {
     controller.signal.throwIfAborted();
+    const headers = new Headers(options.headers);
+    if (options.body && !headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json');
+    }
+    if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
+
     const response = await fetch(`${API_BASE_URL}${path}`, {
       ...options,
       signal: controller.signal,
-      headers: options.body
-        ? { 'Content-Type': 'application/json', ...options.headers }
-        : options.headers,
+      headers,
     });
     controller.signal.throwIfAborted();
+    if (response.status === 401 && authenticated) notifyAuthenticationRequired();
     if (!response.ok) throw await httpError(response, !omitErrorDetails);
     try {
       const value = await read(response);
@@ -151,7 +163,7 @@ async function validateResponse(promise, validator) {
  * @template T
  * @param {string} path
  * @param {(value: unknown) => value is T} validator
- * @param {RequestInit & { omitErrorDetails?: boolean }} [options]
+ * @param {RequestInit & { omitErrorDetails?: boolean, authenticated?: boolean }} [options]
  * @returns {Promise<T>}
  */
 export function requestValidated(path, validator, options = {}) {
@@ -194,15 +206,28 @@ function exportPath(format, date, username = '') {
 
 /** @type {import('./contracts').ApiClient} */
 export const api = {
-  users: (signal) => validateResponse(request('/users/', { signal }), validUsers),
+  users: (signal) =>
+    validateResponse(request('/users/', { signal, authenticated: true }), validUsers),
   realtime: (signal) =>
-    validateResponse(request('/activities/realtime', { signal }), validRealtime),
+    validateResponse(
+      request('/activities/realtime', { signal, authenticated: true }),
+      validRealtime,
+    ),
   summary: async (date, username = '', signal) =>
-    validateResponse(request(summaryPath(date, username), { signal }), validSummary),
-  settings: (signal) => validateResponse(request('/config/', { signal }), validSettings),
+    validateResponse(
+      request(summaryPath(date, username), { signal, authenticated: true }),
+      validSummary,
+    ),
+  settings: (signal) =>
+    validateResponse(request('/config/', { signal, authenticated: true }), validSettings),
   saveSettings: (payload, signal) =>
     validateResponse(
-      request('/config/', { method: 'PUT', body: JSON.stringify(payload), signal }),
+      request('/config/', {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+        signal,
+        authenticated: true,
+      }),
       validSettings,
     ),
   registerManager: async (credentials, signal) =>
@@ -240,13 +265,17 @@ export const api = {
     );
   },
   async exportFile(format, date, username = '', signal) {
-    return request(exportPath(format, date, username), { signal }, (response) => {
-      const expectedType = format === 'csv' ? 'text/csv' : 'application/pdf';
-      const contentType = response.headers?.get('content-type');
-      if (!contentType || contentType.split(';')[0].trim().toLowerCase() !== expectedType) {
-        throw new ApiError('Formato de resposta inválido', { type: 'invalid-response' });
-      }
-      return response.blob();
-    });
+    return request(
+      exportPath(format, date, username),
+      { signal, authenticated: true },
+      (response) => {
+        const expectedType = format === 'csv' ? 'text/csv' : 'application/pdf';
+        const contentType = response.headers?.get('content-type');
+        if (!contentType || contentType.split(';')[0].trim().toLowerCase() !== expectedType) {
+          throw new ApiError('Formato de resposta inválido', { type: 'invalid-response' });
+        }
+        return response.blob();
+      },
+    );
   },
 };

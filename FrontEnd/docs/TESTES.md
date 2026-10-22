@@ -1,6 +1,110 @@
 # Testes e validação do frontend
 
-Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026** e **13/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
+Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026**, **13/10/2026** e **16/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
+
+## Revalidação documental e completa — 21/10/2026
+
+Execução no checkout local `main`, HEAD `fc3132ab5133b2ad9ea12da1e8ce1bbb987822eb`, inicialmente limpo. A primeira checagem confirmou falha de formatação somente em `docs/ARQUITETURA.md` e `docs/README.md`; ambos foram formatados com o Prettier configurado no Frontend, sem remover seções ou exemplos.
+
+- `npm.cmd run format:check`: passou; todos os arquivos verificados seguem o Prettier.
+- `npm.cmd run lint`: passou.
+- `npm.cmd run typecheck`: passou.
+- `npm.cmd run check:full`: passou, incluindo lint, format check, typecheck, cobertura, build, teste do bundle e E2E.
+- Cobertura: **296 testes em 58 arquivos passaram**. Statements: **93,30%**; branches: **89,55%**; functions: **95,06%**; lines: **95,49%**.
+- Build de produção passou com Vite 6.4.4; o verificador confirmou que handlers, worker e rotas dos mocks não entraram no bundle. As **4 verificações** do bundle passaram.
+- Playwright executou **32 cenários: 30 passaram, 0 falharam e 2 cenários de API real foram ignorados**, pois não havia serviço/credenciais autorizados configurados.
+- Os testes do Frontend cobrem a integração demonstrativa `devApi.createTask()` + `setupServer` do MSW, além dos caminhos `/tasks/`, códigos de erro e CRUD em memória. Não foram executados testes do Backend/Agent nem chamadas à API real.
+
+## Validação funcional de F-04 — 21/10/2026
+
+O checkout começou na branch `main`, baseado no HEAD `a20750c25bb24d1665ffb965e14aa80a73f590ae`, sem mudanças locais. A correção e os testes foram executados na árvore de trabalho e registrados no commit seguinte, `fc3132ab5133b2ad9ea12da1e8ce1bbb987822eb`. Foi usado `npm.cmd` porque a política do PowerShell bloqueia o wrapper `npm.ps1`.
+
+- Linha de base antes de ampliar os testes: `npm.cmd run test -- src/dev-mocks/client.test.js src/dev-mocks/handlers.test.js` — 2 arquivos e 17 testes passaram.
+- Reprodução antes da correção: o novo teste integrado chamou `devApi.createTask()` com o `setupServer` MSW ativo. O cliente enviou POST `/tasks`; o handler de fallback respondeu 501 e o teste falhou, confirmando a incompatibilidade do matcher.
+- Após alinhar a rota: `npm.cmd run test -- src/dev-mocks/client.test.js src/dev-mocks/handlers.test.js` — **2 arquivos e 18 testes passaram**. O teste integrado cria via cliente e lê a Task pela lista no MSW real de testes.
+- Cobertura adicional do POST: pathname literal `/tasks/`, método, Bearer demonstrativo, Content-Type JSON, corpo com título/descrição/IDs, resposta válida, resposta inválida e erro HTTP 422.
+- Cobertura dos handlers: GET autenticado 200, POST válido 201, POST sem autenticação 401, POST inválido 422, persistência em memória, leitura após criação, PUT 200, DELETE 200, leitura após exclusão, reset dos dados e da sequência de IDs; PUT/DELETE de item ausente retornam 404.
+
+- `npm.cmd run lint`: passou dentro do `check:full`.
+- `npm.cmd run format:check`: não passou porque os documentos preexistentes e inalterados `docs/ARQUITETURA.md` e `docs/README.md` não seguem o formato Prettier atual. Os arquivos modificados nesta correção foram formatados; não foram feitas alterações de formatação nesses dois documentos alheios à F-04.
+- `npm.cmd run typecheck`: passou.
+- `npm.cmd run test:coverage`: **296 testes em 58 arquivos passaram**. Cobertura V8: **93,30% statements, 89,55% branches, 95,06% functions e 95,49% lines**; os limites configurados passaram.
+- `npm.cmd run build`: passou com Vite 6.4.4; o verificador confirmou que MSW, handlers e rotas demonstrativas não foram incluídos no bundle de produção.
+- `npm.cmd run test:bundle`: **4 verificações passaram**.
+- `npm.cmd run test:e2e`: **32 cenários, 30 passaram, 0 falharam e 2 foram ignorados**, pois exercitam API real sem serviço/credenciais autorizados.
+- `npm.cmd run check:full`: parou no `format:check` descrito acima e, por isso, não iniciou a cobertura, o build ou o E2E nesse comando. Esses passos foram executados separadamente e passaram, exceto a formatação global.
+
+Nenhuma API real foi chamada ou gravada nesta execução.
+
+## Nota da auditoria documental — 21/10/2026
+
+O commit analisado nesta auditoria documental é f8556a1114a52ffc5064ab9ab8506a388778561b. Nenhum teste de código foi executado nesta rodada: os números abaixo são registros de execuções anteriores no mesmo histórico de 21/10, não resultados produzidos pela revisão dos documentos. A descrição da [PR #128](https://github.com/fabrica-bayarea/TimeTracker-2026-2/pull/128) informa 254 testes Vitest e 29 cenários E2E; o registro local mais recente abaixo informa 295 testes Vitest e 30 aprovados, com 2 casos de API real ignorados. Como os registros não usam a mesma contagem, cada um permanece ligado à sua origem até confirmação pelos mantenedores.
+
+## Auditoria do formulário, Dashboard e sessão — 21/10/2026
+
+- `npm.cmd run lint`: passou.
+- `npm.cmd run format:check`: passou.
+- `npm.cmd run typecheck`: passou; verifica os contratos JavaScript/TypeScript configurados, não todo JSX.
+- `npm.cmd run test:coverage`: **295 testes em 58 arquivos passaram**. Cobertura V8: **93,24% statements, 89,48% branches, 95,06% functions e 95,49% lines**; todos os limites globais e críticos passaram.
+- `npm.cmd run build`: passou com Vite 6.4.4; o verificador confirmou exclusão de MSW, worker e rotas demonstrativas do bundle de produção.
+- `npm.cmd run check`: passou, incluindo lint, formatação, typecheck, cobertura, build e 4 verificações do bundle.
+- `npm.cmd run check:full`: passou; repetiu `check` e executou **32 cenários Playwright: 30 passaram, 0 falharam e 2 testes de API real foram ignorados** porque não havia API/credenciais autorizadas configuradas.
+- Vitest agrega testes unitários, de hooks, serviços e componentes; não há uma contagem separada por categoria. Playwright usou o ambiente de teste com mocks. Os dois testes reais e qualquer gravação em serviço real não foram executados.
+- Nenhum teste de Backend ou compilação/execução do Agent foi executado. As métricas do resumo Tasks continuam simuladas e vazias; nenhuma validação de integração/homologação real foi declarada.
+
+## Conclusão da interface Tasks e validação completa — 21/10/2026
+
+- `npm.cmd run lint`, `npm.cmd run format:check` e `npm.cmd run typecheck`: passaram.
+- `npm.cmd run test:coverage`: **282 testes em 58 arquivos passaram**. Cobertura: **93,83% statements, 89,47% branches, 94,13% functions e 95,93% lines**.
+- `npm.cmd run build`: passou com Vite 6.4.4; o verificador confirmou que handlers, worker e rotas de mocks ficaram fora do bundle de produção.
+- `npm.cmd run test:bundle`: **4 verificações passaram**.
+- `npm.cmd run check` e `npm.cmd run check:full`: passaram. O segundo inclui a mesma suíte de qualidade, build e teste E2E.
+- Playwright: **30 passaram, 0 falharam e 2 testes de API real foram ignorados** por exigirem serviço configurado. O E2E confirma que a prévia de Tasks em produção mantém as ações desabilitadas; os fluxos CRUD e analíticos são cobertos por Vitest com serviços simulados.
+- A cobertura de browser não valida persistência, JWT assinado, autorização, isolamento do Backend ou associação Agent–Task. Não foram feitas chamadas de API real nem gravações externas.
+- `npm.cmd audit --json --cache node_modules/.cache/npm-audit`: inconclusivo; o endpoint de advisories do registry npm falhou por indisponibilidade de rede.
+
+## Autenticação real no frontend — 21/10/2026
+
+- `npm.cmd run check` passou com ESLint, Prettier, typecheck, cobertura Vitest, build de produção e teste do verificador do bundle.
+- `npm.cmd run check:full` passou na execução consolidada após as edições finais: inclui `check` e E2E do Playwright.
+- Vitest: **265 testes em 56 arquivos passaram**. Cobertura: **93,58% statements, 90,06% branches, 94,35% functions e 95,38% lines**.
+- Testes focados de auth/API/App/Sidebar: **60 passaram**. Cobrem cadastro sem auto-login, validação local, login, sessão restaurada, logout, 401/403, token inválido, proteção de rota, falha de rede e submissão duplicada.
+- `npm.cmd run test:e2e` passou após corrigir um seletor ambíguo do teste de cadastro: **30 passaram, 0 falharam e 2 testes de API real foram ignorados**. O Playwright cobriu cadastro/login com API simulada, restauração da sessão, navegação protegida, telas principais e axe-core nas páginas existentes.
+- O E2E usa endpoints simulados pelo navegador e valida o fluxo do cliente; não valida JWT assinado, persistência ou autorização no serviço real. `RUN_REAL_API`, `REAL_API_EMAIL` e `REAL_API_PASSWORD` não foram configurados. Nenhuma conta ou dado real foi usado.
+- `npm.cmd audit --json --cache node_modules/.cache/npm-audit` falhou porque o ambiente não conseguiu acessar `https://registry.npmjs.org/-/npm/v1/security/advisories/bulk`. A auditoria atual de vulnerabilidades ficou inconclusiva; o snapshot de 13/10 permanece apenas como referência histórica em [Pendências](PENDENCIAS.md).
+- Backend e Agent foram examinados somente por leitura. Testes do Backend, execução/compilação do Agent e E2E real não foram executados.
+- A execução final do `check:full` e a inspeção do diff/escopo estão registradas em [Relatório](RELATORIO_EXECUCAO_FRONTEND.md).
+
+## Revisão complementar — 16/10/2026
+
+- **Linha de base:** antes das alterações, `npm.cmd run check` passou. Vitest: 242 testes em 55 arquivos; cobertura de 94,77% statements, 90,20% branches, 95,36% functions e 96,82% lines. O E2E inicial teve 29 aprovados e 2 ignorados por dependerem da API real.
+- **Resultado final:** `npm.cmd run check:full` passou com lint, Prettier, typecheck, cobertura, build de produção, 4 verificações do bundle e E2E.
+- **Vitest/cobertura:** 254 testes em 55 arquivos passaram; cobertura de 95,23% statements, 90,84% branches, 96,11% functions e 97,13% lines.
+- **E2E:** 29 passaram, 0 falharam e 2 testes de API real foram ignorados. axe-core não encontrou violações nos fluxos cobertos; viewport móvel, tema escuro e ampliação de 200% também passaram.
+- A primeira execução E2E após incluir o anúncio acessível do horário encontrou dois seletores genéricos ambíguos/obsoletos; os testes passaram a distinguir o horário da consulta da contagem e a execução completa seguinte passou.
+- Testes focados de API cobrem 400, 401, 403, 404 e 500, além de 422/503, resposta inválida, timeout e cancelamento. Os testes de Colaboradores cobrem resposta parcial, falha, cancelamento, resposta antiga, ordenação, duplicidade visual de nomes e envelhecimento da leitura sem nova requisição.
+- `backend/.env` não existe e `RUN_REAL_API` não está habilitado. Nenhuma chamada real foi tentada; os dois E2E reais permaneceram ignorados e nenhum teste escreveu dados no Backend.
+- `git diff --check` passou; `git diff --name-only` confirmou que todas as 21 alterações versionadas estão em `FrontEnd/`.
+
+## Integração do Agent em Colaboradores — 16/10/2026
+
+- `npm.cmd run check:full` passou: ESLint, Prettier, typecheck, cobertura Vitest, build de produção, 4 verificações do bundle e Playwright E2E.
+- Vitest: **242 testes em 55 arquivos passaram**. Cobertura: **94,77% statements, 90,20% branches, 95,36% functions e 96,82% lines**.
+- E2E: **29 passaram, 0 falharam e 2 foram ignorados** por dependerem de API real. O novo cenário de Colaboradores combina pesquisa, estado e aplicativo, verifica tempo de leitura, contagem, limpeza, atualização manual e ausência do hostname na interface.
+- axe-core não detectou violações no fluxo de Colaboradores. A primeira tentativa E2E encontrou um seletor ambíguo preexistente no cenário de acessibilidade do Dashboard durante o carregamento; o teste foi ajustado para aguardar o texto específico da lista e a execução final passou.
+- `RUN_REAL_API` não estava configurado, portanto os contratos reais do Backend não foram exercitados. O Agent desktop também não foi executado; sua análise foi somente de código e os achados estão em [Pendências](PENDENCIAS.md).
+- `git diff --check` e auditoria do escopo final foram executados após a validação.
+
+## Filtro realtime e demonstração de Tasks — 16/10/2026
+
+- **Linha de base antes das alterações:** `npm.cmd run check` passou com lint, formatação, typecheck, build e bundle; Vitest: **216 testes em 51 arquivos**, cobertura de 94,68% statements, 91,74% branches, 95,95% functions e 96,82% lines. E2E: **27 passaram e 2 foram ignorados** por exigirem API real.
+- **Resultado final:** `npm.cmd run check:full` passou. Incluiu ESLint, `format:check`, typecheck, cobertura, build, 4 testes do verificador de bundle e E2E.
+- **Vitest/cobertura:** **226 testes em 53 arquivos passaram**; 94,85% statements, 91,20% branches, 95,58% functions e 96,86% lines.
+- **E2E:** **28 passaram, 0 falharam e 2 foram ignorados**. O cenário novo combina os filtros de usuário e aplicativo, confirma que o filtro de aplicativo não muda o resumo e limpa a seleção. axe-core não detectou violações no Dashboard coberto.
+- A seleção/consulta de Tasks foi verificada nos testes de componente e função no modo de desenvolvimento simulado; a suíte E2E de produção confirma que a tela continua sem criação quando os mocks não estão ativos.
+- Os dois testes de API real foram ignorados porque `RUN_REAL_API` e um ambiente Backend autorizado não estavam configurados. A interface desktop do Agent não foi executada; a análise foi somente de código, conforme o escopo.
+- `npm.cmd audit --json --cache node_modules/.cache/npm-audit` não obteve resultado: a requisição para `https://registry.npmjs.org/-/npm/v1/security/advisories/bulk` falhou por restrição de rede. A auditoria de dependências disponível continua sendo o snapshot de 13/10 registrado em [Pendências](PENDENCIAS.md), sem verificação upstream nesta execução.
+- O verificador do build confirmou que handlers, worker e rotas mock não foram incluídos em `dist/`. Não foram adicionadas dependências.
 
 ## Revisão de robustez dos mocks — 13/10/2026
 
@@ -153,37 +257,40 @@ Nesta revisão, `src/main.test.jsx` cobre falhas de importação/inicialização
 
 Os caminhos abaixo refletem a estrutura atual. Os testes específicos continuam próximos do código testado.
 
-| Arquivo(s)                                                                                                      | Comportamento protegido                                                                                                                                                               |
-| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/app/App.test.jsx`                                                                                          | Entrada direta em rotas com tema salvo, fallback de carregamento, link de salto, foco após navegação, 404 e título                                                                    |
-| `src/shared/api/api.test.js`                                                                                    | Codificação do usuário, `offline` realtime aceito, erro HTTP, cancelamento, timeout, exportação, data e MIME                                                                          |
-| `src/shared/api/validators.test.js`                                                                             | Estados realtime `online`/`ausente`/`offline` aceitos e desconhecido rejeitado; demais contratos válidos e inválidos                                                                  |
-| `src/shared/api/errorMessage.test.js`, `src/shared/lib/requestFailure.test.js`                                  | Mensagens seguras para erros, cancelamento, falha de contrato e rejeição por fonte                                                                                                    |
-| `src/features/dashboard/hooks/useDashboardData.test.js`                                                         | Três fontes, horário de atualização, dados mantidos no refresh, falha parcial e data divergente                                                                                       |
-| `src/app/hooks/useHashRoute.test.js`                                                                            | Hash desconhecido e reação a `hashchange`                                                                                                                                             |
-| `src/app/hooks/useTheme.test.js`                                                                                | Preferência do sistema, preferência salva, alternância, classe/documento e `localStorage`                                                                                             |
-| `src/features/dashboard/hooks/useAutoRefresh.test.js`                                                           | Intervalo, desativação, pausa na aba oculta e atualização ao retornar; usado pelo painel                                                                                              |
-| `src/features/dashboard/pages/DashboardPage.test.jsx`                                                           | Loading, indicadores com `offline`/sem dados, falha de realtime, filtro e contagem de cadastrados                                                                                     |
-| `src/features/dashboard/components/AssociationCodeCard.test.jsx`                                                | Código válido e zeros iniciais; ausência, valor não string e formatos inválidos; cópia com Clipboard API disponível/indisponível e sucesso/falha; loading, erro e anúncios acessíveis |
-| `src/features/collaborators/pages/CollaboratorsPage.test.jsx`                                                   | Duas fontes de dados, `offline`, sem dados, falhas parciais, lista vazia, retry e cancelamento                                                                                        |
-| `src/features/dashboard/components/DashboardFilters.test.jsx`, `LastActivityTable.test.jsx`                     | Filtros, status, tempo relativo em segundos/minutos/horas, carregamento, vazio e indisponibilidade                                                                                    |
-| `src/features/dashboard/components/DashboardMetrics.test.jsx`, `DashboardStatusNotice.test.jsx`                 | Indicadores com dados disponíveis/indisponíveis e aviso sobre limites dos dados do agente                                                                                             |
-| `src/testing/frontendRevision.test.jsx`                                                                         | Falha parcial, resposta antiga, resumo malformado, configuração indisponível/inválida, cancelamento de gravação e exportação, erro HTTP no download                                   |
-| `src/features/reports/pages/ReportsPage.test.jsx`                                                               | Loading/vazio/retry, envio duplicado, filtros bloqueados, download iniciado, liberação da URL de objeto e arquivo vazio                                                               |
-| `src/features/settings/pages/SettingsPage.test.jsx`                                                             | Alterações pendentes, restauração, proteção de saída, edição simultânea dos campos e salvamento sem envio duplicado                                                                   |
-| `src/features/reports/components/ReportFilters.test.jsx`, `ReportUsersState.test.jsx`, `ExportActions.test.jsx` | Atalhos de filtro, usuários indisponíveis, loading, retry e feedback das ações de exportação                                                                                          |
-| `src/features/reports/hooks/useReportExport.test.js`                                                            | Exportação, prevenção de envio simultâneo, URL de objeto, sucesso, falha, arquivo vazio e cancelamento ao desmontar                                                                   |
-| `src/features/auth/pages/AuthPage.test.jsx`, `src/features/tasks/pages/TasksPage.test.jsx`                      | Auth permanece informativa; Tasks cobre indisponibilidade do Backend e demonstração simulada quando os mocks de desenvolvimento são fornecidos.                                       |
-| `src/app/layout/Sidebar.test.jsx`                                                                               | Navegação, rota ativa, diálogo móvel, Tab, Escape, foco, histórico, rolagem e mudança para desktop                                                                                    |
-| `src/app/ErrorBoundary.test.jsx`                                                                                | Mensagem segura após exceção e ausência de log de payload em produção                                                                                                                 |
-| `src/app/PageErrorBoundary.test.jsx`                                                                            | Isolamento da falha e nova tentativa na página                                                                                                                                        |
-| `src/features/dashboard/components/CategorySummary.test.jsx`                                                    | Duração e percentual de categoria com dados do resumo                                                                                                                                 |
-| `src/features/reports/lib/exportFilename.test.js`                                                               | Nome seguro do download com filtro de usuário                                                                                                                                         |
-| `src/shared/components/MetricCard.test.jsx`, `PageHeader.test.jsx`, `IntegrationNotice.test.jsx`                | Indicadores, título/descrição/ações do cabeçalho e conteúdo dos avisos de integração                                                                                                  |
-| `src/shared/components/AsyncFeedback.test.jsx`, `ActivityStatusBadge.test.jsx`                                  | Anúncios, retry, toast temporário, skeletons e rótulos de status                                                                                                                      |
-| `src/shared/lib/team.test.js`, `src/features/dashboard/lib/summary.test.js`                                     | União e filtros da equipe, contagens de status e agregação de categorias                                                                                                              |
-| `src/shared/lib/routeLeaveGuard.test.js`, `activityStatus.test.js`                                              | Registro/remoção da proteção de saída e rótulos de status da atividade                                                                                                                |
-| `src/testing/architecture.test.js`                                                                              | Imports válidos e violações de camadas em imports, reexports e imports dinâmicos                                                                                                      |
+| Arquivo(s)                                                                                                            | Comportamento protegido                                                                                                                                                               |
+| --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/app/App.test.jsx`                                                                                                | Entrada direta em rotas com tema salvo, fallback de carregamento, link de salto, foco após navegação, 404 e título                                                                    |
+| `src/shared/api/api.test.js`                                                                                          | Codificação do usuário, `offline` realtime aceito, erro HTTP, cancelamento, timeout, exportação, data e MIME                                                                          |
+| `src/shared/api/validators.test.js`                                                                                   | Estados realtime `online`/`ausente`/`offline` aceitos e desconhecido rejeitado; demais contratos válidos e inválidos                                                                  |
+| `src/shared/api/errorMessage.test.js`, `src/shared/lib/requestFailure.test.js`                                        | Mensagens seguras para erros, cancelamento, falha de contrato e rejeição por fonte                                                                                                    |
+| `src/features/dashboard/hooks/useDashboardData.test.js`                                                               | Três fontes, horário de atualização, dados mantidos no refresh, falha parcial e data divergente                                                                                       |
+| `src/app/hooks/useHashRoute.test.js`                                                                                  | Hash desconhecido e reação a `hashchange`                                                                                                                                             |
+| `src/app/hooks/useTheme.test.js`                                                                                      | Preferência do sistema, preferência salva, alternância, classe/documento e `localStorage`                                                                                             |
+| `src/features/dashboard/hooks/useAutoRefresh.test.js`                                                                 | Intervalo, desativação, pausa na aba oculta e atualização ao retornar; usado pelo painel                                                                                              |
+| `src/features/dashboard/pages/DashboardPage.test.jsx`                                                                 | Loading, indicadores com `offline`/sem dados, falha de realtime, filtro e contagem de cadastrados                                                                                     |
+| `src/features/dashboard/components/AssociationCodeCard.test.jsx`                                                      | Código válido e zeros iniciais; ausência, valor não string e formatos inválidos; cópia com Clipboard API disponível/indisponível e sucesso/falha; loading, erro e anúncios acessíveis |
+| `src/features/collaborators/pages/CollaboratorsPage.test.jsx`                                                         | Duas fontes de dados, `offline`, sem dados, falhas parciais, lista vazia, retry e cancelamento                                                                                        |
+| `src/features/dashboard/components/DashboardFilters.test.jsx`, `LastActivityTable.test.jsx`                           | Filtros, status, tempo relativo em segundos/minutos/horas, carregamento, vazio e indisponibilidade                                                                                    |
+| `src/features/dashboard/components/DashboardMetrics.test.jsx`, `DashboardStatusNotice.test.jsx`                       | Indicadores com dados disponíveis/indisponíveis e aviso sobre limites dos dados do agente                                                                                             |
+| `src/testing/frontendRevision.test.jsx`                                                                               | Falha parcial, resposta antiga, resumo malformado, configuração indisponível/inválida, cancelamento de gravação e exportação, erro HTTP no download                                   |
+| `src/features/reports/pages/ReportsPage.test.jsx`                                                                     | Loading/vazio/retry, envio duplicado, filtros bloqueados, download iniciado, liberação da URL de objeto e arquivo vazio                                                               |
+| `src/features/settings/pages/SettingsPage.test.jsx`                                                                   | Alterações pendentes, restauração, proteção de saída, edição simultânea dos campos e salvamento sem envio duplicado                                                                   |
+| `src/features/reports/components/ReportFilters.test.jsx`, `ReportUsersState.test.jsx`, `ExportActions.test.jsx`       | Atalhos de filtro, usuários indisponíveis, loading, retry e feedback das ações de exportação                                                                                          |
+| `src/features/reports/hooks/useReportExport.test.js`                                                                  | Exportação, prevenção de envio simultâneo, URL de objeto, sucesso, falha, arquivo vazio e cancelamento ao desmontar                                                                   |
+| `src/features/auth/pages/AuthPage.test.jsx`, `src/features/tasks/pages/TasksPage.test.jsx`                            | Cadastro/login e sessão do gestor; prévia Tasks em produção e CRUD de demonstração, validação, atribuições, busca, ordenação, confirmação de exclusão e erros.                        |
+| `src/features/tasks/hooks/useTasks.test.js`, `src/features/tasks/lib/taskList.test.js`                                | Lista/colaboradores, operações CRUD, concorrência, falhas/cancelamento, busca por título/descrição e ordenação.                                                                       |
+| `src/features/tasks/components/TaskForm.jsx`, `TaskList.jsx`                                                          | Componentes de formulário e lista exercitados pela suíte TasksPage: entradas acessíveis, seleção múltipla, estados e confirmação antes de excluir.                                    |
+| `src/features/dashboard/hooks/useTaskAnalytics.test.js`, `src/features/dashboard/components/TaskSummaryCard.test.jsx` | Filtro de Task isolado dos indicadores, consulta demonstrativa, estados vazios/erro/carregamento e rótulo de colaborador.                                                             |
+| `src/app/layout/Sidebar.test.jsx`                                                                                     | Navegação, rota ativa, diálogo móvel, Tab, Escape, foco, histórico, rolagem e mudança para desktop                                                                                    |
+| `src/app/ErrorBoundary.test.jsx`                                                                                      | Mensagem segura após exceção e ausência de log de payload em produção                                                                                                                 |
+| `src/app/PageErrorBoundary.test.jsx`                                                                                  | Isolamento da falha e nova tentativa na página                                                                                                                                        |
+| `src/features/dashboard/components/CategorySummary.test.jsx`                                                          | Duração e percentual de categoria com dados do resumo                                                                                                                                 |
+| `src/features/reports/lib/exportFilename.test.js`                                                                     | Nome seguro do download com filtro de usuário                                                                                                                                         |
+| `src/shared/components/MetricCard.test.jsx`, `PageHeader.test.jsx`, `IntegrationNotice.test.jsx`                      | Indicadores, título/descrição/ações do cabeçalho e conteúdo dos avisos de integração                                                                                                  |
+| `src/shared/components/AsyncFeedback.test.jsx`, `ActivityStatusBadge.test.jsx`                                        | Anúncios, retry, toast temporário, skeletons e rótulos de status                                                                                                                      |
+| `src/shared/lib/team.test.js`, `src/features/dashboard/lib/summary.test.js`                                           | União e filtros da equipe, contagens de status e agregação de categorias                                                                                                              |
+| `src/shared/lib/routeLeaveGuard.test.js`, `activityStatus.test.js`                                                    | Registro/remoção da proteção de saída e rótulos de status da atividade                                                                                                                |
+| `src/testing/architecture.test.js`                                                                                    | Imports válidos e violações de camadas em imports, reexports e imports dinâmicos                                                                                                      |
 
 Playwright cobre também a resposta realtime com `offline` e o usuário sem entrada (sem rejeição da API), além de retry de Colaboradores, Configurações, CSV/PDF, layouts responsivos, menu móvel e erros. Os dois testes de FastAPI real são opt-in e dependem do ambiente descrito em [Pendências](PENDENCIAS.md).
 

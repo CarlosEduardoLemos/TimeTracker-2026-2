@@ -1,9 +1,15 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from './api';
+import { MANAGER_ACCESS_TOKEN_KEY } from '../auth/sessionStorage';
 
 const ACCESS_TOKEN = `eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYW5hZ2VyIn0.${'A'.repeat(43)}`;
 
+beforeEach(() => {
+  sessionStorage.setItem(MANAGER_ACCESS_TOKEN_KEY, ACCESS_TOKEN);
+});
+
 afterEach(() => {
+  sessionStorage.removeItem(MANAGER_ACCESS_TOKEN_KEY);
   vi.unstubAllGlobals();
   vi.useRealTimers();
 });
@@ -22,10 +28,9 @@ describe('cliente da API', () => {
       api.registerManager({ email: manager.email, password: 'SenhaSegura123!', role: 'admin' }),
     ).resolves.toEqual(manager);
     expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/auth/register');
-    expect(fetchMock.mock.calls[0][1]).toMatchObject({
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
+    expect(fetchMock.mock.calls[0][1].method).toBe('POST');
+    expect(fetchMock.mock.calls[0][1].headers.get('Content-Type')).toBe('application/json');
+    expect(fetchMock.mock.calls[0][1].headers.has('Authorization')).toBe(false);
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
       email: manager.email,
       password: 'SenhaSegura123!',
@@ -64,9 +69,56 @@ describe('cliente da API', () => {
 
     await expect(api.getCurrentManager(token)).resolves.toEqual(manager);
     expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/auth/me');
-    expect(fetchMock.mock.calls[0][1].headers).toEqual({
-      Authorization: `Bearer ${token}`,
-    });
+    expect(fetchMock.mock.calls[0][1].headers.get('Authorization')).toBe(`Bearer ${token}`);
+  });
+
+  it('adds the session bearer to private data requests but not to public authentication', async () => {
+    sessionStorage.setItem(MANAGER_ACCESS_TOKEN_KEY, ACCESS_TOKEN);
+    const fetchMock = vi.fn(async (url) => ({
+      ok: true,
+      json: async () =>
+        new URL(url).pathname === '/auth/login'
+          ? { access_token: ACCESS_TOKEN, token_type: 'bearer', expires_in: 3600 }
+          : [],
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await api.users();
+    expect(fetchMock.mock.calls[0][1].headers.get('Authorization')).toBe(`Bearer ${ACCESS_TOKEN}`);
+
+    await api.loginManager({ email: 'gestor@empresa.com', password: 'SenhaSegura123!' });
+    expect(fetchMock.mock.calls[1][1].headers.has('Authorization')).toBe(false);
+  });
+
+  it('rejects private requests without a session and coordinates logout after HTTP 401', async () => {
+    sessionStorage.removeItem(MANAGER_ACCESS_TOKEN_KEY);
+    const onUnauthorized = vi.fn();
+    window.addEventListener('timetracker:auth-required', onUnauthorized);
+    const fetchMock = vi.fn(async () => ({ ok: false, status: 401, json: async () => ({}) }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(api.users()).rejects.toMatchObject({ status: 401 });
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    sessionStorage.setItem(MANAGER_ACCESS_TOKEN_KEY, ACCESS_TOKEN);
+    await expect(api.users()).rejects.toMatchObject({ status: 401 });
+    expect(onUnauthorized).toHaveBeenCalledTimes(2);
+    window.removeEventListener('timetracker:auth-required', onUnauthorized);
+  });
+
+  it('preserves HTTP 403 without clearing or expiring the session', async () => {
+    sessionStorage.setItem(MANAGER_ACCESS_TOKEN_KEY, ACCESS_TOKEN);
+    const onUnauthorized = vi.fn();
+    window.addEventListener('timetracker:auth-required', onUnauthorized);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: false, status: 403, json: async () => ({}) })),
+    );
+
+    await expect(api.users()).rejects.toMatchObject({ status: 403 });
+    expect(onUnauthorized).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem(MANAGER_ACCESS_TOKEN_KEY)).toBe(ACCESS_TOKEN);
+    window.removeEventListener('timetracker:auth-required', onUnauthorized);
   });
 
   it('preserves duplicate-email status without exposing server-provided auth details', async () => {
@@ -282,6 +334,21 @@ describe('cliente da API', () => {
     await expect(api.users()).rejects.toThrow('API respondeu 403');
     expect(json).toHaveBeenCalledOnce();
   });
+
+  it.each([400, 401, 403, 404, 500])(
+    'preserva o status HTTP %i em consultas de dados',
+    async (status) => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => ({ ok: false, status, statusText: 'Erro', json: async () => ({}) })),
+      );
+
+      await expect(api.users()).rejects.toMatchObject({
+        type: status >= 500 ? 'server' : 'client',
+        status,
+      });
+    },
+  );
 
   it('preserva status e detail do FastAPI', async () => {
     vi.stubGlobal(

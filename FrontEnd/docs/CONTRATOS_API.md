@@ -1,26 +1,49 @@
 # Contratos da API do Frontend
 
-Revisado em **13/10/2026** com base nos arquivos locais de `backend/app/` e no código de `FrontEnd/src/shared/api/`. A PR #122 do Agent e a PR #123 de autenticação foram incorporadas à `main` da organização conforme os commits informados. A existência de um contrato no backend não significa que a interface web o consuma.
+Revalidado em **21/10/2026** no checkout local `main`, HEAD `fc3132ab5133b2ad9ea12da1e8ce1bbb987822eb`, com base nos arquivos de `backend/app/`, `agent/` e `FrontEnd/src/shared/api/`. A PR #122 do Agent e a PR #123 de autenticação foram incorporadas à `main` da organização. A PR #128 do frontend ainda estava aberta na consulta registrada anteriormente; a existência de um contrato não significa que o servidor já o proteja.
+
+## Como interpretar os status
+
+- **IMPLEMENTADO:** rota ou comportamento presente no Backend local.
+- **DEMONSTRATIVO:** rota do MSW usada somente no ambiente local de desenvolvimento.
+- **PROPOSTO:** candidato ainda sem implementação e confirmação do Backend.
+- **PARCIAL:** parte da funcionalidade existe, mas os critérios de integração ou negócio não foram concluídos.
+- **BLOQUEADO:** depende de contrato, implementação, decisão ou ambiente externo.
+- **AGUARDANDO VALIDAÇÃO:** implementação existe, mas ainda não foi homologada contra serviço real.
+- **HISTÓRICO:** estado registrado para o checkpoint indicado, mantido para rastreabilidade.
+- **RESOLVIDO:** pendência específica concluída no escopo descrito. F-04 está resolvida somente para a rota demonstrativa do Frontend.
 
 ## Rotas usadas pelas telas do frontend
 
-`VITE_API_URL` define a origem da API; sem configuração, o cliente usa `http://localhost:8000`. As telas chamam as rotas abaixo sem token e sem cookie de sessão.
+`VITE_API_URL` define a origem da API; sem configuração, o cliente usa `http://localhost:8000`. A sessão do gestor envia Bearer nas rotas de dados abaixo; o Backend atual ainda não exige esses tokens.
 
-| Método e rota               | Parâmetros/corpo                                                                | Resposta                                                                                            | Consumidor                         |
-| --------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| `GET /users/`               | Nenhum                                                                          | Array de `UserOut`                                                                                  | Painel, Colaboradores e Relatórios |
-| `GET /activities/realtime`  | Nenhum                                                                          | Array de `RealtimeEntry`                                                                            | Painel e Colaboradores             |
-| `GET /dashboard/summary`    | `date` obrigatório (`AAAA-MM-DD`); `username` opcional                          | `{ date, users: [{ username, total_seconds, by_category: [{ category, color, total_seconds }] }] }` | Painel                             |
-| `GET /dashboard/export/csv` | Mesmos filtros do resumo                                                        | `text/csv`                                                                                          | Relatórios                         |
-| `GET /dashboard/export/pdf` | Mesmos filtros do resumo                                                        | `application/pdf`                                                                                   | Relatórios                         |
-| `GET /config/`              | Nenhum                                                                          | `{ capture_interval_seconds, idle_timeout_seconds, updated_at? }`                                   | Configurações                      |
-| `PUT /config/`              | JSON com `capture_interval_seconds` e `idle_timeout_seconds` inteiros positivos | Objeto de configuração                                                                              | Configurações                      |
+| Método e rota               | Parâmetros/corpo                                                                | Resposta                                                                                            | Bearer enviado pelo frontend | Consumidor                         |
+| --------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------- | ---------------------------------- |
+| `GET /users/`               | Nenhum                                                                          | Array de `UserOut`                                                                                  | Sim                          | Painel, Colaboradores e Relatórios |
+| `GET /activities/realtime`  | Nenhum                                                                          | Array de `RealtimeEntry`                                                                            | Sim                          | Painel e Colaboradores             |
+| `GET /dashboard/summary`    | `date` obrigatório (`AAAA-MM-DD`); `username` opcional                          | `{ date, users: [{ username, total_seconds, by_category: [{ category, color, total_seconds }] }] }` | Sim                          | Painel                             |
+| `GET /dashboard/export/csv` | Mesmos filtros do resumo                                                        | `text/csv`                                                                                          | Sim                          | Relatórios                         |
+| `GET /dashboard/export/pdf` | Mesmos filtros do resumo                                                        | `application/pdf`                                                                                   | Sim                          | Relatórios                         |
+| `GET /config/`              | Nenhum                                                                          | `{ capture_interval_seconds, idle_timeout_seconds, updated_at? }`                                   | Sim                          | Configurações                      |
+| `PUT /config/`              | JSON com `capture_interval_seconds` e `idle_timeout_seconds` inteiros positivos | Objeto de configuração                                                                              | Sim                          | Configurações                      |
 
-Essas chamadas continuam sem cabeçalho `Authorization`. O parâmetro `username` filtra uma consulta; não impõe autorização ou isolamento no servidor.
+O cliente envia `Authorization: Bearer <JWT>` nas chamadas de dados da tabela. **O backend inspecionado não exige esse header nessas rotas**; envio do token pelo frontend não equivale a autenticação/isolamento. O parâmetro `username` filtra uma consulta, mas não impõe autorização no servidor.
 
-## Autenticação de gestor implementada no backend
+`GET /dashboard/summary` e as exportações aplicam `date` e o filtro opcional `username` no Backend. A agregação atual usa a data de `captured_at` sem declarar `America/Sao_Paulo` nem outro fuso no schema da resposta; portanto, não confirma um dia de negócio em Brasília. Os campos `by_category` representam categorias de atividade recebida, não Task, escopo de aplicação ou jornada formal. CSV/PDF exportam esse mesmo resumo diário filtrado, não o relatório completo de RF-24/RF-25.
 
-O backend implementa cadastro, login JWT e consulta do gestor. O cliente HTTP agora oferece métodos isolados para esses contratos, mas as telas `#/login` e `#/cadastro` continuam informativas: nenhuma chamada de autenticação é feita durante a navegação e as rotas do MVP não são protegidas.
+### Resposta realtime consumida pelo Dashboard e por Colaboradores
+
+`GET /activities/realtime` retorna uma captura (a mais recente) por usuário com registro dentro da janela de até 24 horas; não retorna o status de cada máquina se houver múltiplos Agents por usuário. Os campos incluem `username`, `hostname`, `process_name`, `status` e `seconds_since_last_activity`; a resposta também contém `window_title`, `category` e `is_idle`. O tempo é calculado sobre `captured_at` da captura, não sobre uma confirmação de gravação/recebimento no servidor. Eventos antigos sincronizados posteriormente ou relógios divergentes podem, portanto, alterar a idade exibida.
+
+O backend atual classifica `offline` quando `is_idle` é verdadeiro **ou** quando passaram mais de 900 segundos desde a captura; `ausente` usa o limite de 300 segundos. Portanto, `offline` não comprova desconexão, e a regra acordada de conexão por máquina ainda não é garantida. Não há campo de conexão, versão, fila local, pausa, última sincronização ou Task ativa, nem rota `/agents/status` implementada. Consulte B-10/I-05 em [Pendências](PENDENCIAS.md).
+
+Na página de Colaboradores, o timestamp de atualização é local: marca quando o navegador recebeu uma resposta validada. `seconds_since_last_activity` continua sendo a idade da captura calculada pelo Backend. O frontend avança essa idade com tempo monotônico decorrido desde a resposta, sem inferir `captured_at`, horário de recebimento no servidor ou conexão do Agent. A resposta realtime não expõe o `captured_at` bruto.
+
+Os validadores do frontend verificam o tipo de `is_idle`, `CategorySummary.color` e `SystemSettingsOut.updated_at` quando esses campos opcionais estão presentes; a ausência continua permitida onde o cliente não depende desses campos. As rotas, parâmetros e payloads consumidos não apresentaram divergência com os routers/schemas consultados. Isso não comprova comunicação com uma instância real; os cenários reais permanecem opt-in.
+
+## Autenticação de gestor no backend e frontend
+
+O backend implementa cadastro, login JWT e consulta do gestor; o frontend usa os contratos para iniciar e validar a sessão. As rotas do gestor aguardam uma identidade verificada antes de exibir conteúdo. A autorização das rotas de dados permanece uma dependência separada de backend descrita em B-01.
 
 ### `POST /auth/register`
 
@@ -53,23 +76,59 @@ Recebe o mesmo par `email` e `password`; e-mail inválido ou credenciais incorre
 }
 ```
 
-`expires_in` é um inteiro positivo em segundos, calculado a partir da configuração do backend. A implementação usa JWT HS256 com audiência de gestor; o servidor controla assinatura e expiração.
+`expires_in` é um inteiro positivo em segundos, calculado por `ACCESS_TOKEN_EXPIRE_MINUTES`; o padrão local é 60 minutos (3.600 segundos). O JWT HS256 contém `sub`, `aud`, `iat` e `exp`, com audiência `time-tracker:manager`. A validação de assinatura, audiência e expiração é feita no servidor; o frontend não decodifica o token para conceder acesso.
+
+O contrato Backend de cadastro/login/JWT está **IMPLEMENTADO** no checkout. O fluxo de sessão no Frontend também está implementado, mas sua integração continua **AGUARDANDO VALIDAÇÃO** contra um serviço real autorizado. A API simulada de desenvolvimento não verifica senha real, não homologa o JWT do Backend e não altera o estado de autorização das rotas de dados; a issue #138 permanecia aberta na consulta de 21/10/2026.
 
 ### `GET /auth/me`
 
 Exige `Authorization: Bearer <JWT_DO_GESTOR>` e retorna `ManagerOut`. Token ausente, inválido, expirado ou associado a gestor inexistente resulta em `401`. A rota está implementada e retorna a identidade do gestor; o schema não inclui código de associação.
 
-### Métodos preparados na camada HTTP do frontend
+### Métodos de autenticação na camada HTTP do frontend
 
-`api.registerManager(credentials, signal)`, `api.loginManager(credentials, signal)` e `api.getCurrentManager(accessToken, signal)` chamam os contratos acima e validam as respostas. Antes do envio, cadastro/login exigem um objeto com e-mail e senha não vazios e enviam somente esses dois campos; a validade e as regras da senha continuam a cargo do backend. `/auth/me` exige a forma compacta de JWT com três segmentos base64url, rejeitando espaços e caracteres de controle antes de compor `Authorization`. Essa verificação é apenas sintática: assinatura, validade e autorização continuam sob responsabilidade do servidor.
+`api.registerManager(credentials, signal)`, `api.loginManager(credentials, signal)` e `api.getCurrentManager(accessToken, signal)` chamam os contratos acima e validam as respostas. Antes do envio, cadastro/login exigem um objeto com e-mail e senha não vazios e enviam somente esses dois campos. A tela também valida formato de e-mail, mínimo de 8 caracteres e limite de 72 bytes UTF-8 no cadastro. `/auth/me` exige a forma compacta de JWT com três segmentos base64url, rejeitando espaços e caracteres de controle antes de compor `Authorization`. Essa verificação é apenas sintática: assinatura, validade e autorização continuam sob responsabilidade do servidor.
 
 Os métodos reutilizam `ApiError`, timeout de 15 segundos e `AbortSignal`. Os erros dessas chamadas preservam status HTTP, inclusive `401`, `409` e `422`, mas omitem detalhes fornecidos pelo servidor para evitar refletir credenciais ou tokens em mensagens. Resposta incompatível é `invalid-response`. Os validadores aceitam somente os campos definidos pelos schemas atuais `ManagerOut` e `Token`; novas propriedades exigem atualização coordenada do contrato antes de serem consumidas.
 
-Os métodos não armazenam JWT, não renovam sessão, não adicionam Bearer automaticamente às rotas de dados e não implementam logout, estado de autenticação ou proteção de navegação. O token de login só fica sob controle do chamador.
+`ManagerSessionProvider` controla cadastro, login e validação de identidade. Cadastro retorna `ManagerOut` e apresenta um link para entrar; não cria sessão. Login consulta `/auth/me` antes de armazenar o JWT em `sessionStorage`. A sessão é restaurada por outra chamada a `/auth/me`; logout remove o item da aba. O cliente injeta Bearer nas consultas privadas e emite evento coordenado após `401`; `403` preserva a sessão. Não há refresh token nem revogação no backend.
 
 ## Outras rotas presentes no backend, sem uso pelas telas
 
 O backend também declara `GET /` (healthcheck), `POST /activities/`, `GET/POST /categories/`, `GET/POST /categories/rules`, `PUT/DELETE /categories/rules/{rule_id}`. A interface web atual não chama essas rotas.
+
+## Catálogo de rotas declarado no Backend
+
+Esta tabela foi confrontada com os routers e schemas presentes em backend/app/ no commit local analisado. “Sem autenticação na implementação atual” descreve o código, não uma recomendação de segurança. Apenas GET /auth/me injeta a dependência de gestor autenticado; a necessidade de proteger rotas de dados está em B-01/#137.
+
+| Método e caminho declarado                     | Estado atual e entrada                                                              | Resposta/códigos observados                                                     | Autenticação atual e consumidor                        |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| GET /                                          | Implementado; sem parâmetros                                                        | Objeto de healthcheck                                                           | Sem autenticação; nenhuma tela chama                   |
+| POST /auth/register                            | Implementado; email e password                                                      | 201 ManagerOut; 409 email duplicado; 422 schema inválido                        | Público; AuthPage                                      |
+| POST /auth/login                               | Implementado; email e password                                                      | 200 Token; 401 credencial incorreta; 422 schema inválido                        | Público; AuthPage                                      |
+| GET /auth/me                                   | Implementado; Bearer de gestor                                                      | 200 ManagerOut; 401 token ausente, inválido, expirado ou identidade inexistente | JWT de gestor obrigatório; ManagerSession              |
+| GET /users/                                    | Implementado; sem parâmetros                                                        | 200 array de UserOut                                                            | Sem autenticação; Painel, Colaboradores, Relatórios    |
+| POST /activities/                              | Implementado; ActivityLogCreate                                                     | 201 ActivityLogOut; 422 payload inválido                                        | Sem autenticação no router atual; Agent                |
+| GET /activities/realtime                       | Implementado; sem parâmetros                                                        | 200 array de RealtimeEntry                                                      | Sem autenticação; Painel, Colaboradores                |
+| GET /dashboard/summary                         | Implementado; date obrigatório e username opcional                                  | 200 DailySummaryResponse; 422 date inválida/ausente                             | Sem autenticação; Painel                               |
+| GET /dashboard/export/csv                      | Implementado; mesmos filtros do resumo                                              | 200 text/csv; cabeçalho e linhas username/category/total_seconds                | Sem autenticação; Relatórios                           |
+| GET /dashboard/export/pdf                      | Implementado; mesmos filtros do resumo                                              | 200 application/pdf                                                             | Sem autenticação; Relatórios                           |
+| GET /categories/ e POST /categories/           | Implementados; POST recebe name e color                                             | GET retorna array; POST retorna CategoryOut com 201                             | Sem autenticação; sem consumidor nas telas atuais      |
+| GET /categories/rules e POST /categories/rules | Implementados; escrita recebe category_id, keyword e match_field                    | GET retorna array; POST retorna CategorizationRuleOut com 201                   | Sem autenticação; sem consumidor nas telas atuais      |
+| PUT /categories/rules/{rule_id}                | Implementado; campos de atualização opcionais                                       | 200 CategorizationRuleOut; 404 regra inexistente; 422 UUID/payload inválido     | Sem autenticação; sem consumidor nas telas atuais      |
+| DELETE /categories/rules/{rule_id}             | Implementado; rule_id UUID                                                          | 204 sem corpo; 404 regra inexistente; 422 UUID inválido                         | Sem autenticação; sem consumidor nas telas atuais      |
+| GET /config/ e PUT /config/                    | Implementados; PUT recebe capture_interval_seconds e idle_timeout_seconds positivos | 200 SystemSettingsOut; 422 valores inválidos                                    | Sem autenticação no router atual; SettingsPage e Agent |
+
+Os schemas de atividade e respostas de realtime/summary estão detalhados acima. Nos demais contratos declarados, UserOut inclui id, username, full_name, department e created_at; CategoryOut inclui id, name e color; CategorizationRuleOut inclui id, category_id, keyword e match_field; SystemSettingsOut inclui os dois inteiros e updated_at opcional. A validação Pydantic rejeita corpos inválidos com 422. As respostas 404 das regras decorrem explicitamente da lógica do router.
+
+### Grafia dos caminhos e diferença de barra final
+
+Os caminhos do cliente real devem permanecer iguais aos métodos em src/shared/api/api.js: ele usa /users/, /activities/realtime, /dashboard/summary, /dashboard/export/{csv|pdf}, /config/ e as rotas de autenticação sem barra final. Os routers atuais declaram esses caminhos. Não há chamada de Tasks no cliente de produção.
+
+No ambiente demonstrativo, `devApi.tasks()` e `devApi.createTask()` usam GET e POST `/tasks/`, como os handlers MSW. Atualização e exclusão usam `/tasks/{task_id}` sem barra terminal. A execução integrada de F-04 reproduziu o estado anterior: POST `/tasks` não casou com o handler `/tasks/` e caiu no handler curinga, que respondeu 501; não houve redirecionamento. A chamada do cliente foi corrigida para `/tasks/`, e o teste integrado agora confirma criação e listagem.
+
+A proposta de CRUD em [Pendências — I-03](PENDENCIAS.md#propostas-de-contratos-de-integracao) adota `/tasks/` para operações da coleção e `/tasks/{task_id}` para um item, seguindo a issue #133. F-04 está resolvida no Frontend demonstrativo. Isso não aprova o contrato de produção nem implementa #133 (CRUD/autorizações no Backend) ou #134 (integração real da interface); ambas as issues permanecem abertas. A interface de produção não chama as rotas simuladas.
+
+O mock GET /dashboard/tasks-summary recebe date, username e task_id opcionais/obrigatórios conforme o cliente, mas a resposta vazia { "date": "AAAA-MM-DD", "timezone": "America/Sao_Paulo", "tasks": [] } pertence só à demonstração. Não existe endpoint de Dashboard por Task, presença diária ou horas por Task no Backend atual. Os demais caminhos propostos ficam em [Propostas de contratos](PROPOSTA_CONTRATOS_BACKEND.md) e [Pendências](PENDENCIAS.md).
 
 ## Associação Agent–gestor: endpoints ainda não confirmados no backend
 
@@ -100,11 +159,38 @@ O JWT do gestor e o token do Agent são credenciais distintas. O frontend não d
 
 `get_current_manager` é aplicado em `GET /auth/me`, mas não está aplicado aos routers de `/users/`, `/activities/realtime`, `/dashboard/summary`, exportações nem `/config/`. Essas rotas dependem apenas de `get_db`; `PUT /config/` também não verifica gestor. As consultas de usuários, atividades, resumos e arquivos são globais no código atual, sem vínculo com `Manager`.
 
-Assim, qualquer cliente que alcance a API pode consultar os dados expostos e alterar a configuração global, sujeito apenas à disponibilidade da API. Filtrar colaboradores na interface não é controle de acesso. A autenticação implementada não comprova isolamento por gestor nem protege automaticamente os endpoints existentes; essa limitação e o risco permanecem em B-01/I-02 de [Pendências](PENDENCIAS.md). O frontend não corrige isso localmente.
+Assim, qualquer cliente que alcance a API pode consultar os dados expostos e alterar a configuração global, sujeito apenas à disponibilidade da API. A guarda de rota evita mostrar páginas do gestor sem `/auth/me` válido e os cabeçalhos Bearer estão preparados, mas as rotas acima ignoram autenticação e não filtram por gestor. Filtrar colaboradores na interface não é controle de acesso. Essa limitação e o risco permanecem em B-01/#137 de [Pendências](PENDENCIAS.md); autorização real depende do backend.
 
 ## Tasks e jornada diária
 
-Não foi localizado modelo/schema/endpoint de consulta ou gravação persistente de Tasks nem dados confiáveis de primeiro/último registro diário. O `realtime` descreve a última atividade e não substitui a jornada. O Agent não envia `task_id`. O cliente HTTP de produção não chama rotas presumidas nem infere esses dados. A demonstração local usa rotas candidatas somente com mocks de desenvolvimento explicitamente habilitados; ela não representa integração real. Veja I-03 e I-04–I-07 em [Pendências](PENDENCIAS.md).
+Não foi localizado modelo/schema/endpoint de consulta ou gravação persistente de Tasks nem dados confiáveis de primeiro/último registro diário. O `realtime` descreve a última atividade e não substitui a jornada. O Agent não envia `task_id`. O cliente HTTP de produção não chama rotas presumidas nem infere esses dados.
+
+### Rotas de demonstração local — MSW, não contratos do Backend
+
+Quando `import.meta.env.DEV` e `VITE_USE_MOCKS=true`, os handlers MSW oferecem as rotas abaixo para testar a interface. Elas não estão no Backend, não persistem e não devem ser usadas como evidência de integração real. As requisições de dados exigem o token fixo da identidade demonstrativa; o mock representa uma única identidade e não simula isolamento entre gestores nem `403` por escopo:
+
+| Método/rota                                                      | Comportamento somente na demonstração local                                                                                                                                            |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /auth/register`, `POST /auth/login`, `GET /auth/me`        | Cadastro/login aceitam credenciais sintaticamente válidas e retornam identidade/token fixos de demonstração; não verificam senha real nem criam conta no Backend.                      |
+| `GET /users/`                                                    | Retorna catálogo fixo de colaboradores; não representa uma equipe autorizada no servidor.                                                                                              |
+| `GET /tasks/`, `POST /tasks/`                                    | Lista/cria Tasks em memória. Criação recebe `title`, `description`, `collaborator_ids`; limita IDs ao catálogo fixo. GET responde 200, POST 201, sem sessão 401 e corpo inválido 422.  |
+| `PUT /tasks/{task_id}`, `DELETE /tasks/{task_id}`                | Atualiza/remove item em memória; resposta 200. ID UUID inexistente responde 404; sem sessão 401; corpo inválido em PUT 422. Não há GET demonstrativo de item individual.               |
+| `GET /dashboard/tasks-summary?date&username&task_id`             | `date` é obrigatório; o handler valida a data e o formato UUID de `task_id`, mas não filtra por `username`/`task_id`. Responde `{ date, timezone, tasks: [] }` e não calcula métricas. |
+| `GET /dashboard/attendance?date&username`                        | Valida `date`, retorna horários ilustrativos fixos e filtra o catálogo por `username`; os horários não vêm de registros do Backend.                                                    |
+| `GET /dashboard/task-hours?start_date&end_date&username&task_id` | Valida intervalo, datas e formato UUID de `task_id`; não agrega nem filtra registros e responde com `tasks: []`.                                                                       |
+| `GET /agents/status?username`                                    | Retorna estados fixos de demonstração para dois Agents; o filtro por `username` é local ao mock e não atesta conexão real.                                                             |
+
+Todas as rotas demonstrativas listadas são cobertas por handlers/testes locais, incluindo a integração `devApi.createTask()` + `setupServer` do MSW. Rotas que não têm handler caem no curinga de desenvolvimento e respondem 501 com indicação de que a chamada real foi bloqueada.
+
+Em `attendance`, data inválida responde 422 e a resposta fixa inclui `date`, `timezone`, `as_of` e usuários com timestamps ou valores nulos; 401 representa ausência do Bearer demonstrativo. Em `task-hours`, datas inválidas, intervalo invertido ou `task_id` malformado respondem 422; a resposta válida contém intervalo, fuso e lista vazia. Essas respostas servem para testar validação e estados da tela, não para documentar jornada ou duração real.
+
+Os formatos de Task são candidatos de interface, não schemas aceitos por um servidor. A rota demonstrativa `/tasks/` segue a grafia da coleção na issue #133. A issue #133 permanece aberta e descreve implementação persistente e autorizada no Backend; a issue #134 permanece aberta e pede integração da interface com essa API. A resolução local de F-04 cobre somente o caminho do POST demonstrativo. A interface de produção permanece desabilitada e não chama essas rotas. A proposta atual de CRUD, associação e resumo por Task está centralizada em [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao), com a recapitulação em [Proposta de contratos do Backend](PROPOSTA_CONTRATOS_BACKEND.md).
+
+O resumo por Task é independente dos indicadores gerais e do resumo por categoria. A interface não deriva tempo de categoria, janela ativa ou status realtime. Para implementar a rota real, Backend e Agent ainda precisam definir TaskId persistido, escopo/autorização, fuso e semântica da duração.
+
+O candidato canônico para o resumo diário é `GET /dashboard/tasks-summary?date&username&task_id`, alinhado à issue #140 e detalhado em [Pendências — I-06](PENDENCIAS.md#proposta-task-hours). `GET /dashboard/task-hours?start_date&end_date&username&task_id` só existe no mock e em um recorte histórico de proposta por período; não foi aprovado como segunda rota de produção. A consulta por período requer decisão explícita antes de qualquer implementação.
+
+Veja I-03 e I-04–I-07 em [Pendências](PENDENCIAS.md).
 
 ## Erros, validação e cancelamento
 

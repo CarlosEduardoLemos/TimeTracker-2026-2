@@ -1,9 +1,17 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { devApi } from './client';
+import { MANAGER_ACCESS_TOKEN_KEY } from '../shared/auth/sessionStorage';
+
+const token = `eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYW5hZ2VyIn0.${'A'.repeat(43)}`;
+
+beforeEach(() => {
+  sessionStorage.setItem(MANAGER_ACCESS_TOKEN_KEY, token);
+});
 
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
+  sessionStorage.removeItem(MANAGER_ACCESS_TOKEN_KEY);
 });
 
 describe('cliente isolado dos mocks de desenvolvimento', () => {
@@ -12,29 +20,111 @@ describe('cliente isolado dos mocks de desenvolvimento', () => {
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => response }));
     vi.stubGlobal('fetch', fetchMock);
     await expect(devApi.tasks()).resolves.toEqual(response);
-    expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/tasks');
+    expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/tasks/');
+    expect(fetchMock.mock.calls[0][1].headers.get('Authorization')).toBe(`Bearer ${token}`);
   });
 
-  it('cria Task com descrição validada e rejeita resposta incompatível', async () => {
+  it('cria Task com título, descrição e colaboradores validados', async () => {
     const task = {
       id: '6e7b94da-5651-46a0-bf28-fcb8f4f14c04',
+      title: 'Relatório mensal',
       description: 'Revisar relatório',
+      collaborators: [
+        {
+          id: 'd94a4d6c-8542-4c3e-889b-89db302ef4cc',
+          username: 'ana',
+          full_name: 'Ana Souza',
+        },
+      ],
       created_at: '2026-10-13T14:20:00Z',
       updated_at: '2026-10-13T14:20:00Z',
     };
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => task }));
     vi.stubGlobal('fetch', fetchMock);
-    await expect(devApi.createTask(' Revisar relatório ')).resolves.toEqual(task);
+    const payload = {
+      title: ' Relatório mensal ',
+      description: ' Revisar relatório ',
+      collaborator_ids: [task.collaborators[0].id],
+    };
+    await expect(devApi.createTask(payload)).resolves.toEqual(task);
     expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'POST' });
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
-      description: 'Revisar relatório',
+    expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/tasks/');
+    expect(fetchMock.mock.calls[0][1].headers.get('Authorization')).toBe(`Bearer ${token}`);
+    expect(fetchMock.mock.calls[0][1].headers.get('Content-Type')).toBe('application/json');
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual(payload);
+    expect(() => devApi.createTask({ ...payload, title: ' ' })).toThrow('válidos');
+    expect(() => devApi.createTask({ ...payload, collaborator_ids: [] })).toThrow('válidos');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: false,
+        status: 422,
+        statusText: 'Unprocessable Entity',
+        json: async () => ({ detail: 'Invalid task payload' }),
+      })),
+    );
+    await expect(devApi.createTask(payload)).rejects.toMatchObject({
+      type: 'client',
+      status: 422,
+      message: 'Invalid task payload',
     });
-    expect(() => devApi.createTask('  ')).toThrow('descrição');
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => ({ ok: true, json: async () => ({}) })),
     );
+    await expect(devApi.createTask(payload)).rejects.toMatchObject({ type: 'invalid-response' });
     await expect(devApi.tasks()).rejects.toThrow('Resposta inválida');
+  });
+
+  it('carrega colaboradores e envia atualizações/exclusões pela API de desenvolvimento', async () => {
+    const collaborator = {
+      id: 'd94a4d6c-8542-4c3e-889b-89db302ef4cc',
+      username: 'ana',
+      full_name: 'Ana Souza',
+    };
+    const task = {
+      id: '6e7b94da-5651-46a0-bf28-fcb8f4f14c04',
+      title: 'Relatório mensal',
+      description: 'Revisar relatório',
+      collaborators: [collaborator],
+      created_at: '2026-10-13T14:20:00Z',
+      updated_at: '2026-10-13T14:20:00Z',
+    };
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => [collaborator] }));
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(devApi.collaborators()).resolves.toEqual([collaborator]);
+    expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/users/');
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ ok: true, json: async () => task })),
+    );
+    await expect(
+      devApi.updateTask(task.id, {
+        title: task.title,
+        description: task.description,
+        collaborator_ids: [collaborator.id],
+      }),
+    ).resolves.toEqual(task);
+    expect(vi.mocked(fetch).mock.calls[0][1]).toMatchObject({ method: 'PUT' });
+
+    await expect(devApi.deleteTask(task.id)).resolves.toEqual(task);
+    expect(vi.mocked(fetch).mock.calls[1][1]).toMatchObject({ method: 'DELETE' });
+  });
+
+  it('consulta resumo demonstrativo por data, colaborador e Task', async () => {
+    const response = { date: '2026-10-13', timezone: 'America/Sao_Paulo', tasks: [] };
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => response }));
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(
+      devApi.taskSummary('2026-10-13', 'ana', '6e7b94da-5651-46a0-bf28-fcb8f4f14c04'),
+    ).resolves.toEqual(response);
+    const url = new URL(fetchMock.mock.calls[0][0]);
+    expect(url.pathname).toBe('/dashboard/tasks-summary');
+    expect(url.searchParams.get('date')).toBe('2026-10-13');
+    expect(url.searchParams.get('username')).toBe('ana');
+    expect(url.searchParams.get('task_id')).toBe('6e7b94da-5651-46a0-bf28-fcb8f4f14c04');
+    expect(() => devApi.taskSummary('2026-02-31')).toThrow('data válida');
   });
 
   it('consulta jornada e codifica username no filtro', async () => {

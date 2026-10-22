@@ -14,7 +14,7 @@ Este documento descreve o código executado atualmente em `FrontEnd/`: estrutura
 
 `src/main.jsx` só carrega `dev-mocks/start.js` e `dev-mocks/client.js` quando `import.meta.env.DEV` e `VITE_USE_MOCKS=true`. Os imports são dinâmicos e a aplicação só monta depois que o Service Worker inicia. Falha de import ou inicialização mostra um alerta com opção de nova tentativa; quando mocks foram solicitados, a interface não troca para chamadas reais. Handlers conhecidos simulam as rotas implementadas e uma rota final responde `501` para endpoints da API sem mock; outros requests não tratados na origem configurada causam erro MSW em vez de bypass ao Backend. Em desenvolvimento sem mocks, um módulo de limpeza remove apenas registros do `mockServiceWorker.js` deste app e recarrega a página se o worker antigo ainda controla a aba.
 
-As ramificações simuladas de Tasks e jornada também verificam `import.meta.env.DEV`. O cliente dos mocks usa `requestValidated` do cliente HTTP compartilhado, então mantém o timeout, o cancelamento e os erros de rede/HTTP/schema. `handlers.js` produz timestamps no fuso `America/Sao_Paulo`; essa demonstração não implementa nem confirma os contratos do Backend. O build de produção omite os módulos e componentes simulados, e `scripts/verify-production-bundle.mjs` verifica artefatos conhecidos.
+As ramificações simuladas de autenticação, Tasks e jornada também verificam `import.meta.env.DEV`. O cliente dos mocks usa `requestValidated` do cliente HTTP compartilhado, então mantém timeout, cancelamento e erros de rede/HTTP/schema. `handlers.js` fornece autenticação e colaboradores fixos para demonstração, CRUD de Tasks em memória e um resumo por Task sem métricas (`tasks: []`). Essa implementação não confirma contratos do Backend nem grava dados. O build de produção omite os módulos e componentes simulados, e `scripts/verify-production-bundle.mjs` verifica artefatos conhecidos.
 
 ## Mapa do código
 
@@ -25,25 +25,26 @@ As ramificações simuladas de Tasks e jornada também verificam `import.meta.en
 
 `app` pode importar `features` e `shared`; cada funcionalidade pode importar `shared` e seus próprios arquivos. `shared` não deve depender de `app` ou `features`. A regra local em `lint/architecture.js` verifica imports relativos, reexports e imports dinâmicos literais em `npm run lint`. Imports de pacotes externos ficam fora dessa regra. Use imports diretos, inclusive nos imports dinâmicos das páginas, sem arquivos de reexportação.
 
-| Caminho                                                                          | Responsabilidade                                                                                                         |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `src/shared/api/api.js`                                                          | Cliente HTTP único, timeout, cancelamento, parâmetros, downloads e contratos isolados de autenticação.                   |
-| `src/shared/api/validators.js`                                                   | Validação das respostas de usuários, realtime, resumo, configurações e schemas públicos do gestor/JWT.                   |
-| `src/shared/lib/date.js`, `duration.js`, `team.js`, `activityStatus.js`          | Funções reutilizadas para datas, duração, equipe e rótulos de status.                                                    |
-| `src/features/dashboard/hooks/useDashboardData.js`                               | Estado e atualização das fontes do painel: resumo, usuários e realtime.                                                  |
-| `src/features/dashboard/hooks/useAutoRefresh.js`                                 | Atualização periódica apenas com a aba visível e atualização ao retornar.                                                |
-| `src/features/dashboard/lib/summary.js`                                          | Soma de duração e consolidação de categorias do painel.                                                                  |
-| `src/features/dashboard/pages/DashboardPage.jsx`                                 | Composição de filtros, indicadores, atividade e categorias.                                                              |
-| `src/features/dashboard/components/AssociationCodeCard.jsx`                      | Apresentação isolada do código de associação, cópia e estados da interface.                                              |
-| `src/features/collaborators/hooks/useCollaboratorsData.js` e `components/`       | Consultas, combinação de usuários/realtime e visualização responsiva.                                                    |
-| `src/features/settings/hooks/useSettings.js` e `components/SettingsForm.jsx`     | Leitura, edição, validação, gravação e guarda de alterações não salvas.                                                  |
-| `src/features/reports/`                                                          | Página, consulta de usuários e exportação organizadas por responsabilidade.                                              |
-| `src/features/auth/pages/AuthPage.jsx`, `src/features/tasks/pages/TasksPage.jsx` | Auth permanece informativa; Tasks só tem formulário de dados em memória quando os mocks de desenvolvimento estão ativos. |
-| `src/app/layout/Sidebar.jsx`                                                     | Navegação desktop e diálogo móvel.                                                                                       |
+| Caminho                                                                              | Responsabilidade                                                                                                                                                          |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/shared/api/api.js`                                                              | Cliente HTTP único, timeout, cancelamento, parâmetros, downloads e contratos isolados de autenticação.                                                                    |
+| `src/shared/api/validators.js`                                                       | Validação das respostas de usuários, realtime, resumo, configurações e schemas públicos do gestor/JWT.                                                                    |
+| `src/shared/lib/date.js`, `duration.js`, `team.js`, `activityStatus.js`              | Funções reutilizadas para datas, duração, equipe e rótulos de status.                                                                                                     |
+| `src/features/dashboard/hooks/useDashboardData.js`                                   | Estado e atualização das fontes do painel: resumo, usuários e realtime.                                                                                                   |
+| `src/features/dashboard/hooks/useAutoRefresh.js`                                     | Atualização periódica apenas com a aba visível e atualização ao retornar.                                                                                                 |
+| `src/features/dashboard/lib/summary.js`                                              | Soma de duração e consolidação de categorias do painel.                                                                                                                   |
+| `src/features/dashboard/pages/DashboardPage.jsx`                                     | Composição de filtros, indicadores, atividade e categorias.                                                                                                               |
+| `src/features/dashboard/components/AssociationCodeCard.jsx`                          | Apresentação isolada do código de associação, cópia e estados da interface.                                                                                               |
+| `src/features/collaborators/hooks/useCollaboratorsData.js` e `components/`           | Consultas, combinação de usuários/realtime e visualização responsiva.                                                                                                     |
+| `src/features/settings/hooks/useSettings.js` e `components/SettingsForm.jsx`         | Leitura, edição, validação, gravação e guarda de alterações não salvas.                                                                                                   |
+| `src/features/reports/`                                                              | Página, consulta de usuários e exportação organizadas por responsabilidade.                                                                                               |
+| `src/features/auth/pages/AuthPage.jsx`, `src/features/tasks/pages/TasksPage.jsx`     | Auth integra a sessão real do gestor; Tasks só recebe serviço de CRUD em memória quando os mocks de desenvolvimento estão ativos e exibe prévia desabilitada em produção. |
+| `src/features/dashboard/hooks/useTaskAnalytics.js`, `components/TaskSummaryCard.jsx` | Filtro e resumo por Task isolados dos indicadores gerais; a consulta só usa serviço de demonstração e não inventa métricas.                                               |
+| `src/app/layout/Sidebar.jsx`                                                         | Navegação desktop e diálogo móvel.                                                                                                                                        |
 
 ## Fluxo de dados do painel
 
-`AssociationCodeCard` não faz parte de `useDashboardData`: sua identidade é independente da data e do usuário selecionados. O card permanece fora do Dashboard do MVP. O backend agora tem sessão JWT e `GET /auth/me`, e o cliente HTTP tem métodos de autenticação preparados, mas o frontend ainda não inicia sessão. `ManagerOut` não tem `association_code`; a busca do código depende de uma rota e um schema próprios ainda ausentes.
+`AssociationCodeCard` não faz parte de `useDashboardData`: sua identidade é independente da data e do usuário selecionados. O card permanece fora do Dashboard porque `ManagerOut` não tem `association_code` e o backend não oferece rota/schema de consulta. O frontend integra cadastro, login JWT e `GET /auth/me`; esta autenticação não preenche nem substitui o contrato do código de associação.
 
 Fluxo esperado, ainda não comprovado ponta a ponta:
 
@@ -64,11 +65,9 @@ AGENT — COLABORADOR
 
 ## Autenticação e sessão do gestor
 
-O backend fornece `POST /auth/register`, `POST /auth/login` e `GET /auth/me`. `api.js` expõe chamadas explícitas para essas três operações, com validação dos schemas `ManagerOut` e `Token`; nenhuma página as chama. Não há token em `localStorage` ou `sessionStorage`, estado global, renovação, logout, tratamento coordenado de `401` nem guarda de rota. As telas informativas e o acesso aberto do MVP permanecem como aprovados.
+O backend fornece `POST /auth/register`, `POST /auth/login` e `GET /auth/me`. `ManagerSessionProvider` controla o estado da sessão; `AuthPage` oferece os formulários, mantém credenciais apenas em memória durante o envio e nunca as armazena. Cadastro não cria sessão. Login valida a identidade em `/auth/me` antes de guardar o JWT em `sessionStorage`; a recarga revalida o token. Logout remove o token, e `401` nas chamadas privadas limpa a sessão e direciona para `#/login`. Um `403` mantém a identidade e mostra o erro da operação.
 
-Nenhuma estratégia de sessão foi escolhida ou implementada. A avaliação e recomendação para JWT em memória, `sessionStorage`, `localStorage` e cookie `HttpOnly` está registrada em I-01 de [Pendências](PENDENCIAS.md); qualquer ativação depende de decisão da liderança e, para cookie, de suporte de CORS/CSRF no backend. A sessão futura também precisa definir expiração, restauração, logout, limpeza no `401` e coordenação de respostas `401` concorrentes. As chamadas atuais omitem detalhes de erro do servidor e não registram credenciais/tokens.
-
-`GET /auth/me` protege somente a identificação do gestor. Os routers de usuários, realtime, dashboard, exportações e configuração não exigem `get_current_manager` e não filtram registros por gestor. A API continua expondo dados globais e configuração global; filtros visuais não são autorização. A implementação do login, sozinha, não torna as páginas atuais seguras. Consulte [Contratos](CONTRATOS_API.md) e B-01 em [Pendências](PENDENCIAS.md).
+O cliente HTTP envia Bearer nas chamadas de usuários, realtime, resumo/exportações e configuração. Isso prepara a interface para rotas autenticadas, mas `GET /auth/me` é a única rota local que exige `get_current_manager`. Os routers de usuários, realtime, dashboard, exportações e configuração ainda não exigem essa dependência nem filtram registros por gestor. A API continua expondo dados globais e configuração global; filtros visuais e guards React não são autorização. Consulte [Contratos](CONTRATOS_API.md) e B-01/#137 em [Pendências](PENDENCIAS.md).
 
 1. `DashboardPage` inicia com a data local do navegador e usuário vazio. A mudança de data ou usuário altera os argumentos de `useDashboardData`.
 2. O hook cancela a consulta anterior, incrementa um identificador de sequência e solicita resumo, usuários e realtime em paralelo com `Promise.allSettled`.
@@ -87,15 +86,16 @@ Nenhuma estratégia de sessão foi escolhida ou implementada. A avaliação e re
 
 ## Decisões arquiteturais
 
-| Decisão                                                  | Motivo e consequência                                                                                                                                                                 |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Rotas por hash, sem React Router                         | As rotas atuais cabem em `app/routes.js` e `useHashRoute`; o hash permite abrir uma tela sem regras de reescrita no servidor estático.                                                |
-| Estado com hooks do React, sem Redux                     | Filtros, carregamento e formulários pertencem às páginas; tema e navegação têm hooks próprios. Ainda não há estado global que justifique outro gerenciador.                           |
-| Login/cadastro sem formulário e Tasks sem `localStorage` | Contratos de auth existem e métodos HTTP estão preparados, mas a autenticação foi adiada para depois do MVP; sessão, autorização, Tasks persistidas e associação continuam pendentes. |
-| `Promise.allSettled` nas consultas independentes         | Resumo, usuários e realtime podem falhar separadamente. Painel e Colaboradores preservam as partes que responderam.                                                                   |
-| Validadores além do tratamento HTTP                      | Uma resposta `2xx` ainda pode ter formato incompatível. A validação evita exibir dados inválidos e distingue lista vazia de falha.                                                    |
-| `AbortController` por consulta/página                    | Mudança de filtro, retry e saída cancelam trabalho obsoleto. Uma gravação já processada pelo servidor não é revertida pelo cancelamento do cliente.                                   |
-| Estado realtime não comprova conexão do Agent            | Falha na fonte deixa os estados indisponíveis; não os transforma em zero. `offline` pode decorrer de `is_idle=true`; sem entrada na janela de 24 horas, exibe-se **Sem dados**.       |
+| Decisão                                               | Motivo e consequência                                                                                                                                                                                            |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rotas por hash, sem React Router                      | As rotas atuais cabem em `app/routes.js` e `useHashRoute`; o hash permite abrir uma tela sem regras de reescrita no servidor estático.                                                                           |
+| Estado com hooks do React, sem Redux                  | `ManagerSessionProvider` compartilha identidade e estado de sessão por Context; filtros, carregamento e formulários ficam nas páginas, e tema/navegação usam hooks próprios. O escopo ainda não justifica Redux. |
+| JWT de gestor em `sessionStorage` e proteção no React | Implementa a solicitação da issue #138; a API valida o token em `/auth/me`, mas a autorização/isolamento dos demais endpoints segue pendente em B-01.                                                            |
+| Tasks sem persistência no frontend de produção        | A API não tem CRUD de Tasks; mocks de desenvolvimento continuam isolados e não representam persistência real.                                                                                                    |
+| `Promise.allSettled` nas consultas independentes      | Resumo, usuários e realtime podem falhar separadamente. Painel e Colaboradores preservam as partes que responderam.                                                                                              |
+| Validadores além do tratamento HTTP                   | Uma resposta `2xx` ainda pode ter formato incompatível. A validação evita exibir dados inválidos e distingue lista vazia de falha.                                                                               |
+| `AbortController` por consulta/página                 | Mudança de filtro, retry e saída cancelam trabalho obsoleto. Uma gravação já processada pelo servidor não é revertida pelo cancelamento do cliente.                                                              |
+| Estado realtime não comprova conexão do Agent         | Falha na fonte deixa os estados indisponíveis; não os transforma em zero. `offline` pode decorrer de `is_idle=true`; sem entrada na janela de 24 horas, exibe-se **Sem dados**.                                  |
 
 Revise estas decisões quando os contratos ou o número de rotas mudarem. Consulte [Contratos da API](CONTRATOS_API.md) e [Pendências](PENDENCIAS.md) para detalhes relacionados.
 
@@ -104,6 +104,42 @@ Revise estas decisões quando os contratos ou o número de rotas mudarem. Consul
 O layout usa os breakpoints `sm`, `lg` e `xl` do Tailwind. O menu lateral fixo aparece no desktop; no mobile, o botão abre um diálogo com foco inicial, ciclo de Tab, fechamento por Escape ou clique externo, bloqueio da rolagem do fundo e restauração do foco. O link “Pular para o conteúdo principal” foca o `<main>` sem trocar o hash. Após trocar de rota, o foco vai ao `<main>` da nova página. Filtros têm labels; erros usam `role="alert"`, carregamento usa `role="status"` e skeletons, e tabelas passam a cards nas larguras menores. Status usam rótulo e badge; barras de categoria são decorativas porque duração e percentual já aparecem em texto. `index.css` oferece foco visível, mantém contraste em botões desabilitados e respeita `prefers-reduced-motion`.
 
 Playwright executa os fluxos principais no Chrome, testa larguras de 375 a 1920 px e ampliação CSS de 200%; axe-core verifica violações WCAG detectáveis automaticamente em quatro telas e no menu móvel escuro. Leitor de tela, zoom nativo e backend real ainda exigem inspeção. Consulte [Testes](TESTES.md).
+
+## Mapa dos fluxos e evidências
+
+O diagrama mostra a fronteira entre chamadas reais e os recursos de demonstração. O caminho de mocks só existe em desenvolvimento quando VITE_USE_MOCKS=true; os handlers simulam dados e não substituem os routers do Backend.
+
+```mermaid
+flowchart LR
+  Entry[src/main.jsx] --> App[src/app/App.jsx]
+  App --> Routes[src/app/routes.js]
+  Routes --> Features[Features React]
+  Features --> Api[src/shared/api/api.js]
+  Api --> Backend[Backend FastAPI]
+  Entry -->|DEV e VITE_USE_MOCKS=true| Startup[src/dev-mocks/start.js]
+  Startup --> Worker[MSW Service Worker]
+  Features -->|devApi injetada| DevClient[src/dev-mocks/client.js]
+  DevClient --> Worker
+  Worker --> Handlers[src/dev-mocks/handlers.js]
+  Handlers -.->|respostas temporárias| Features
+```
+
+O cliente HTTP real atende resumo, usuários, realtime, configurações, exportações e sessão do gestor. O serviço de desenvolvimento atende o CRUD de demonstração e os dados analíticos simulados. No build de produção, o verificador em scripts/verify-production-bundle.mjs impede a inclusão dos handlers, do worker e das rotas simuladas. A API real não declara roteador de Tasks, presença diária ou agregação de horas por Task; consulte [Contratos](CONTRATOS_API.md).
+
+### Rastreabilidade por responsabilidade
+
+| Responsabilidade                            | Implementação principal                                                                            | Testes representativos                                                   | Referências                                                       |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| Inicialização e rotas protegidas            | src/main.jsx, src/app/App.jsx, src/app/routes.js, src/shared/auth/ManagerSession.jsx               | src/app/App.test.jsx, src/shared/auth/ManagerSession.test.jsx            | RF-02, issues #112/#138, I-01/B-01 em [Pendências](PENDENCIAS.md) |
+| Cliente HTTP e validação de contratos       | src/shared/api/api.js, contracts.js, validators.js                                                 | src/shared/api/api.test.js, validators.test.js                           | [Contratos da API](CONTRATOS_API.md)                              |
+| Painel e atualização independente de fontes | src/features/dashboard/pages/DashboardPage.jsx, hooks/useDashboardData.js, hooks/useAutoRefresh.js | DashboardPage.test.jsx, useDashboardData.test.js, useAutoRefresh.test.js | RF-27, issues #98/#102/#109, I-06/I-07                            |
+| Tasks demonstrativas                        | src/features/tasks/pages/TasksPage.jsx, hooks/useTasks.js, dev-mocks/handlers.js                   | TasksPage.test.jsx, useTasks.test.js, dev-mocks/handlers.test.js         | RF-06/RF-11, issue #134, proposta I-03                            |
+| Resumo demonstrativo por Task               | src/features/dashboard/hooks/useTaskAnalytics.js, components/TaskSummaryCard.jsx                   | useTaskAnalytics.test.js, TaskSummaryCard.test.jsx                       | issue #140, proposta I-06                                         |
+| Colaboradores e leituras realtime           | src/features/collaborators/hooks/useCollaboratorsData.js, lib/agentFilters.js                      | CollaboratorsPage.test.jsx, agentFilters.test.js                         | RF-05/RF-16, B-01/I-02/I-05                                       |
+| Exportações diárias                         | src/features/reports/hooks/useReportExport.js, src/shared/api/api.js                               | useReportExport.test.js, ReportsPage.test.jsx                            | RF-24/RF-25, CA-07, I-06/I-08                                     |
+| Configuração global                         | src/features/settings/hooks/useSettings.js, components/SettingsForm.jsx                            | SettingsPage.test.jsx, src/shared/api/api.test.js                        | RF-20/RF-21, B-04/B-09                                            |
+
+Os arquivos de teste listados exercitam a lógica do Frontend com clientes controlados ou mocks. Eles não demonstram autorização, persistência ou resposta de uma instância real. Os resultados efetivamente registrados por data estão em [Testes](TESTES.md), e as relações por issue em [Matriz](MATRIZ_ISSUES_FRONTEND.md).
 
 ## Qualidade automatizada
 

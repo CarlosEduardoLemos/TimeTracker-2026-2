@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DashboardPage } from './DashboardPage';
 import { useDashboardData } from '../hooks/useDashboardData';
+import { todayIso } from '../../../shared/lib/date';
 
 vi.mock('../hooks/useDashboardData', () => ({ useDashboardData: vi.fn() }));
 
@@ -67,7 +68,7 @@ describe('DashboardPage', () => {
         .getByText('Online')
         .closest('article'),
     ).toHaveTextContent('1');
-    expect(screen.getAllByText('Editor')).toHaveLength(2);
+    expect(screen.getAllByText('Editor')).toHaveLength(3);
   });
 
   it('mostra offline da API e separa usuários sem entrada realtime', () => {
@@ -121,6 +122,157 @@ describe('DashboardPage', () => {
     render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
     fireEvent.change(screen.getByLabelText('Usuário'), { target: { value: 'ana' } });
     expect(useDashboardData.mock.calls.at(-1)[1]).toBe('ana');
+  });
+
+  it('combina usuário e aplicativo na última atividade sem alterar os indicadores por aplicativo', () => {
+    const data = {
+      ...fullData,
+      users: [
+        { username: 'ana', full_name: 'Ana' },
+        { username: 'bia', full_name: 'Bia' },
+      ],
+      realtime: [
+        {
+          username: 'ana',
+          status: 'online',
+          seconds_since_last_activity: 5,
+          process_name: 'Editor',
+        },
+        {
+          username: 'bia',
+          status: 'online',
+          seconds_since_last_activity: 8,
+          process_name: 'Chrome',
+        },
+      ],
+      summary: {
+        date: '2026-09-25',
+        users: [
+          { username: 'ana', total_seconds: 3600, by_category: [] },
+          { username: 'bia', total_seconds: 3600, by_category: [] },
+        ],
+      },
+    };
+    useDashboardData.mockReturnValue({ data, loading: false, refreshing: false, refresh: vi.fn() });
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} />);
+
+    const metrics = screen.getByText('Tempo registrado').closest('article');
+    const activity = screen.getByLabelText('Tabela de última atividade com rolagem horizontal');
+    expect(metrics).toHaveTextContent('2h 00min');
+    expect(activity).toHaveTextContent('Ana');
+    expect(activity).toHaveTextContent('Bia');
+
+    fireEvent.change(screen.getByLabelText('Aplicativo na última atividade'), {
+      target: { value: 'Chrome' },
+    });
+    expect(activity).toHaveTextContent('Bia');
+    expect(activity).not.toHaveTextContent('Ana');
+    expect(metrics).toHaveTextContent('2h 00min');
+
+    fireEvent.change(screen.getByLabelText('Usuário'), { target: { value: 'ana' } });
+    expect(
+      screen.getByText('Nenhum usuário corresponde aos filtros aplicados.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('0 de 1 usuários nesta lista');
+  });
+
+  it('aplica Task somente ao resumo por Task e deixa os indicadores gerais intactos', async () => {
+    const task = {
+      id: '6e7b94da-5651-46a0-bf28-fcb8f4f14c04',
+      title: 'Relatório mensal',
+      description: 'Revisar relatório',
+      collaborators: [],
+      created_at: '2026-10-13T14:20:00Z',
+      updated_at: '2026-10-13T14:20:00Z',
+    };
+    const devApi = {
+      tasks: vi.fn().mockResolvedValue([task]),
+      taskSummary: vi.fn().mockResolvedValue({
+        date: todayIso(),
+        timezone: 'America/Sao_Paulo',
+        tasks: [
+          {
+            task_id: task.id,
+            title: task.title,
+            total_seconds: 1800,
+            collaborators: [],
+          },
+        ],
+      }),
+    };
+    useDashboardData.mockReturnValue({
+      data: fullData,
+      loading: false,
+      refreshing: false,
+      refresh: vi.fn(),
+    });
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} devApi={devApi} />);
+
+    const taskFilter = await screen.findByLabelText(/Task \(somente resumo por Task\)/);
+    await waitFor(() => expect(taskFilter).toBeEnabled());
+    const date = screen.getByLabelText('Data do resumo').value;
+    const user = screen.getByLabelText('Usuário').value;
+    const originalQuery = useDashboardData.mock.calls.at(-1).slice(0, 2);
+    fireEvent.change(taskFilter, { target: { value: task.id } });
+
+    expect(devApi.taskSummary).toHaveBeenLastCalledWith(
+      date,
+      user,
+      task.id,
+      expect.any(AbortSignal),
+    );
+    expect(useDashboardData.mock.calls.at(-1).slice(0, 2)).toEqual(originalQuery);
+    expect(screen.getByText('Tempo registrado').closest('article')).toHaveTextContent('1h 00min');
+    expect(await screen.findByText('0h 30min')).toBeInTheDocument();
+  });
+
+  it('limpa uma Task removida no refresh e atualiza o resumo sem alterar métricas gerais', async () => {
+    const task = {
+      id: '6e7b94da-5651-46a0-bf28-fcb8f4f14c04',
+      title: 'Relatório mensal',
+      description: 'Revisar relatório',
+      collaborators: [],
+      created_at: '2026-10-13T14:20:00Z',
+      updated_at: '2026-10-13T14:20:00Z',
+    };
+    const devApi = {
+      tasks: vi.fn().mockResolvedValueOnce([task]).mockResolvedValue([]),
+      taskSummary: vi.fn((_date, _username, taskId) =>
+        Promise.resolve({
+          date: todayIso(),
+          timezone: 'America/Sao_Paulo',
+          tasks: taskId
+            ? [{ task_id: task.id, title: task.title, total_seconds: 1800, collaborators: [] }]
+            : [],
+        }),
+      ),
+    };
+    useDashboardData.mockReturnValue({
+      data: fullData,
+      loading: false,
+      refreshing: false,
+      refresh: vi.fn(),
+    });
+    render(<DashboardPage dark={false} toggleTheme={vi.fn()} devApi={devApi} />);
+
+    const taskFilter = await screen.findByLabelText(/Task \(somente resumo por Task\)/);
+    await waitFor(() => expect(taskFilter).toBeEnabled());
+    fireEvent.change(taskFilter, { target: { value: task.id } });
+    await screen.findByText('0h 30min');
+    expect(screen.getByText('Tempo registrado').closest('article')).toHaveTextContent('1h 00min');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar' }));
+    await waitFor(() => expect(taskFilter).toHaveValue(''));
+    await waitFor(() => {
+      expect(devApi.taskSummary).toHaveBeenLastCalledWith(
+        todayIso(),
+        '',
+        '',
+        expect.any(AbortSignal),
+      );
+    });
+    expect(screen.queryByText('0h 30min')).not.toBeInTheDocument();
+    expect(screen.getByText('Tempo registrado').closest('article')).toHaveTextContent('1h 00min');
   });
 
   it('mantém a contagem de usuários cadastrados quando realtime falha', () => {

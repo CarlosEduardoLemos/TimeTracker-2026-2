@@ -7,10 +7,23 @@ const users = [
 const realtime = [
   { username: 'ana', status: 'offline', seconds_since_last_activity: 901, process_name: 'Editor' },
 ];
+const managerToken = `eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYW5hZ2VyIn0.${'A'.repeat(43)}`;
+const manager = {
+  id: 'b06e3df5-c23b-49ec-9a40-081a451620b3',
+  email: 'gestor@empresa.com',
+  created_at: '2026-10-21T12:00:00Z',
+};
 
 async function mockApi(page) {
   await page.route('http://localhost:8000/**', async (route) => {
     const url = new URL(route.request().url());
+    if (url.pathname === '/auth/me') return route.fulfill({ json: manager });
+    if (url.pathname === '/auth/login') {
+      return route.fulfill({
+        json: { access_token: managerToken, token_type: 'bearer', expires_in: 3600 },
+      });
+    }
+    if (url.pathname === '/auth/register') return route.fulfill({ status: 201, json: manager });
     if (url.pathname === '/users/') return route.fulfill({ json: users });
     if (url.pathname === '/activities/realtime') return route.fulfill({ json: realtime });
     if (url.pathname === '/dashboard/summary') {
@@ -54,10 +67,18 @@ async function mockApi(page) {
 }
 
 test.beforeEach(async ({ page }) => {
+  await page.addInitScript(
+    ({ key, token }) => {
+      if (location.hash !== '#/cadastro') sessionStorage.setItem(key, token);
+    },
+    { key: 'timetracker.manager.access-token', token: managerToken },
+  );
   await mockApi(page);
 });
 
-test('abre o painel sem login, filtra data e usuário e navega até a rota 404', async ({ page }) => {
+test('restaura a sessão do gestor, filtra data e usuário e navega até a rota 404', async ({
+  page,
+}) => {
   await page.goto('/#/painel');
   await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Criar conta' })).toHaveCount(0);
@@ -75,6 +96,114 @@ test('abre o painel sem login, filtra data e usuário e navega até a rota 404',
   await expect(page.getByRole('main')).toBeFocused();
   await page.goto('/#/inexistente');
   await expect(page.getByRole('heading', { name: 'Página não encontrada' })).toBeVisible();
+});
+
+test('integra login e confirma que cadastro não cria uma sessão automaticamente', async ({
+  page,
+}) => {
+  await page.goto('/#/cadastro');
+  await page.getByLabel('E-mail').fill('gestor@empresa.com');
+  await page.getByLabel('Senha').fill('SenhaSegura123!');
+  await page.getByRole('button', { name: 'Criar conta' }).click();
+  await expect(page.getByRole('status')).toContainText(/não inicia uma sessão automaticamente/i);
+  await expect(page.getByRole('link', { name: 'Ir para entrar', exact: true })).toBeVisible();
+
+  await page.getByRole('link', { name: 'Ir para entrar', exact: true }).click();
+  await page.getByLabel('E-mail').fill('gestor@empresa.com');
+  await page.getByLabel('Senha').fill('SenhaSegura123!');
+  await page.getByRole('button', { name: 'Entrar' }).click();
+  await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible();
+  expect(
+    await page.evaluate(() => sessionStorage.getItem('timetracker.manager.access-token')),
+  ).toBe(managerToken);
+});
+
+test('filtra aplicativos somente na última atividade e combina com usuário', async ({ page }) => {
+  await page.route('http://localhost:8000/activities/realtime', (route) =>
+    route.fulfill({
+      json: [
+        {
+          username: 'ana',
+          status: 'online',
+          seconds_since_last_activity: 5,
+          process_name: 'Editor',
+        },
+        {
+          username: 'bia',
+          status: 'online',
+          seconds_since_last_activity: 8,
+          process_name: 'Chrome',
+        },
+      ],
+    }),
+  );
+  await page.goto('/#/painel');
+
+  const activity = page.getByLabel('Tabela de última atividade com rolagem horizontal');
+  const metrics = page.getByLabel('Indicadores disponíveis');
+  await expect(activity).toContainText('Ana Silva');
+  await expect(activity).toContainText('Bia Lima');
+  await expect(metrics).toContainText('2h 00min');
+
+  await page.getByLabel('Aplicativo na última atividade').selectOption('Chrome');
+  await expect(activity).toContainText('Bia Lima');
+  await expect(activity).not.toContainText('Ana Silva');
+  await expect(metrics).toContainText('2h 00min');
+
+  await page.getByRole('combobox', { name: 'Usuário' }).selectOption('ana');
+  await expect(page.getByText('Nenhum usuário corresponde aos filtros aplicados.')).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('0 de 1 usuários nesta lista');
+  await page.getByRole('button', { name: 'Limpar aplicativo' }).click();
+  await expect(activity).toContainText('Ana Silva');
+});
+
+test('filtra e atualiza a lista de atividade dos colaboradores', async ({ page }) => {
+  await page.route('http://localhost:8000/activities/realtime', (route) =>
+    route.fulfill({
+      json: [
+        {
+          username: 'ana',
+          status: 'online',
+          seconds_since_last_activity: 20,
+          process_name: 'Editor',
+          hostname: 'ESTACAO-01',
+        },
+        {
+          username: 'bia',
+          status: 'offline',
+          seconds_since_last_activity: 901,
+          process_name: 'Chrome',
+          hostname: 'ESTACAO-02',
+        },
+      ],
+    }),
+  );
+  let userRequests = 0;
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname === '/users/') userRequests += 1;
+  });
+  await page.goto('/#/colaboradores');
+
+  const table = page.getByRole('table', { name: 'Usuários cadastrados na API' });
+  await expect(table).toContainText('20s atrás');
+  await expect(table).toContainText('15min atrás');
+  await expect(table).not.toContainText('ESTACAO-01');
+  await expect(page.getByText(/2 de 2 colaboradores/)).toBeVisible();
+
+  await page.getByRole('searchbox', { name: 'Pesquisar colaborador' }).fill('Bia Lima');
+  await page.getByLabel('Estado informado pela API').selectOption('offline');
+  await page.getByLabel('Aplicativo na última leitura').selectOption('Chrome');
+  await expect(table).toContainText('Bia Lima');
+  await expect(table).not.toContainText('Ana Silva');
+  await expect(page.getByText(/1 de 2 colaboradores/)).toBeVisible();
+
+  await page.getByRole('button', { name: 'Limpar filtros' }).click();
+  await expect(table).toContainText('Ana Silva');
+  await expect(table).toContainText('Bia Lima');
+
+  await page.getByRole('button', { name: 'Atualizar' }).click();
+  await expect.poll(() => userRequests).toBe(2);
+  await expect(page.getByRole('button', { name: 'Atualizar' })).toBeEnabled();
 });
 
 test('mostra falha da API e recupera a lista ao tentar novamente', async ({ page }) => {
@@ -197,16 +326,22 @@ test('menu móvel oculta cadastro e mantém o último link acessível em orienta
   await expect(page.getByRole('main')).toBeFocused();
 });
 
-test('navega para Tasks e informa que persistência depende do backend', async ({ page }) => {
+test('navega para a prévia desativada de Tasks sem habilitar gravação fictícia', async ({
+  page,
+}) => {
   await page.goto('/#/painel');
   await page
     .getByRole('navigation', { name: 'Menu principal' })
     .getByRole('link', { name: 'Tasks' })
     .click();
   await expect(page.getByRole('heading', { name: 'Tasks', exact: true })).toBeVisible();
-  await expect(page.getByText(/backend ainda não oferece consulta ou persistência/i)).toBeVisible();
-  await expect(page.getByText(/não inicia nem controla o monitoramento pelo Agent/i)).toBeVisible();
-  await expect(page.getByRole('button', { name: /criar task/i })).toHaveCount(0);
+  await expect(page.getByText('Gestão de Tasks indisponível')).toBeVisible();
+  await expect(
+    page.getByText(/prévia desativada; nenhuma chamada ou gravação será feita/i),
+  ).toBeVisible();
+  await expect(page.getByLabel('Título')).toBeDisabled();
+  await expect(page.getByLabel('Descrição')).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Criar Task' })).toBeDisabled();
 });
 
 test('menu móvel aceita teclado e tema escuro', async ({ page }) => {

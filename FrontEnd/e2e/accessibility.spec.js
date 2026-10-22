@@ -1,9 +1,21 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
+const managerToken = `eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYW5hZ2VyIn0.${'A'.repeat(43)}`;
+const manager = {
+  id: 'b06e3df5-c23b-49ec-9a40-081a451620b3',
+  email: 'gestor@empresa.com',
+  created_at: '2026-10-21T12:00:00Z',
+};
+
 test.beforeEach(async ({ page }) => {
+  await page.addInitScript(({ key, token }) => sessionStorage.setItem(key, token), {
+    key: 'timetracker.manager.access-token',
+    token: managerToken,
+  });
   await page.route('http://localhost:8000/**', async (route) => {
     const url = new URL(route.request().url());
+    if (url.pathname === '/auth/me') return route.fulfill({ json: manager });
     if (url.pathname === '/dashboard/summary') {
       return route.fulfill({ json: { date: url.searchParams.get('date'), users: [] } });
     }
@@ -18,7 +30,15 @@ for (const route of ['painel', 'colaboradores', 'relatorios', 'configuracoes']) 
   test(`sem violações WCAG detectadas em ${route}`, async ({ page }) => {
     await page.goto(`/#/${route}`);
     await expect(page.getByRole('main')).toBeVisible();
-    await expect(page.getByRole('status')).toHaveCount(0);
+    if (route === 'painel') {
+      await expect(page.getByText(/0 usuários nesta lista/)).toBeVisible();
+    } else if (route === 'colaboradores') {
+      await expect(page.getByRole('status', { name: 'Atualização da consulta' })).toContainText(
+        'Última atualização da consulta',
+      );
+    } else {
+      await expect(page.getByRole('status')).toHaveCount(0);
+    }
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
       .analyze();

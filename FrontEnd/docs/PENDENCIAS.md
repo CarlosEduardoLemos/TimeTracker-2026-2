@@ -1,8 +1,8 @@
 # Pendências do frontend e dependências externas
 
-Revisão: **13/10/2026**. `backend/`, `agent/` e `requisitos/` foram consultados somente para leitura. Os IDs em **Problema/requisito** apontam para [RN/RF](../../requisitos/requisitos/rn_rf.md), [RNF](../../requisitos/requisitos/rnf.md), [critérios de aceite](../../requisitos/requisitos/ca.md) ou [RBAC](../../requisitos/rbac.md). Situação e prioridade refletem o código e os contratos observados neste checkout.
+Revisão: **21/10/2026**. `backend/`, `agent/` e `requisitos/` foram consultados somente para leitura. Os IDs em **Problema/requisito** apontam para [RN/RF](../../requisitos/requisitos/rn_rf.md), [RNF](../../requisitos/requisitos/rnf.md), [critérios de aceite](../../requisitos/requisitos/ca.md) ou [RBAC](../../requisitos/rbac.md). Situação e prioridade refletem o código e os contratos observados neste checkout.
 
-As PRs #122 (Agent, merge `e43673b4dca212eaa991308d14c9dc25b6c64061`) e #123 (autenticação do backend, merge `0fc4e7b7333ceb4fdd120f7f1f753f9836163e30`) já foram incorporadas à `main` da organização. A implementação local do backend confirma os contratos de cadastro/login/JWT/`/auth/me`; a associação no backend continua ausente. O escopo aprovado do MVP de 13/10 permanece sem login na apresentação.
+As PRs #122 (Agent, merge `e43673b4dca212eaa991308d14c9dc25b6c64061`) e #123 (autenticação do backend, merge `0fc4e7b7333ceb4fdd120f7f1f753f9836163e30`) já foram incorporadas à `main` da organização. A issue #138 de 21/10 e esta revisão integram a sessão do gestor no frontend. A apresentação aprovada em 13/10 permanece como registro histórico; ela não elimina o novo fluxo. Associação no backend continua ausente.
 
 ## Navegação
 
@@ -11,6 +11,7 @@ As PRs #122 (Agent, merge `e43673b4dca212eaa991308d14c9dc25b6c64061`) e #123 (au
 - [Resumo das pendências](#resumo-das-pendencias)
 - [Pendências do Backend](#pendencias-backend)
 - [Pendências de integração](#pendencias-integracao)
+- [Pendências do Agent](#pendencias-agent)
 - [Pendências futuras do Frontend](#pendencias-frontend)
 - [Propostas de contratos](#propostas-de-contratos-de-integracao)
   - [Tasks e escopo](#proposta-tasks-crud)
@@ -41,16 +42,22 @@ O resultado atual do `npm audit` não listou Vite, embora advisories oficiais do
 
 <a id="estado-do-mvp"></a>
 
-## Estado do MVP 13/10 nesta revisão
+## Estado do MVP — revisão de 21/10/2026
 
-| Funcionalidade                           | Prioridade              | Estado                          | Área/frontend afetado                         | Contrato/dependência e impacto                                                                                                                                                                                                                                                                                                                                |
-| ---------------------------------------- | ----------------------- | ------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Entrada e saída/últimos registros do dia | Alta                    | **BLOQUEADO POR BACKEND**       | `DashboardPage`; filtros por data e usuário   | Não ha endpoint de jornada, agregação diária nem campos confiáveis de primeiro/último registro. `GET /activities/realtime` representa a última leitura atual e não serve como entrada/saída. O backend precisa fornecer registros extremos por dia e agrupar segundo `America/Sao_Paulo`; até lá o painel não exibe horários inventados. Detalhes: I-06/I-07. |
-| Criar e consultar Tasks persistidas      | Alta                    | **BLOQUEADO POR BACKEND**       | `TasksPage`; futuramente Dashboard/relatórios | Não ha modelo/schema ou `GET`/`POST /tasks` equivalente. Por padrão, a tela é informativa e não oferece persistência. Somente com mocks de desenvolvimento habilitados é possível criar tasks em memória; esses dados não persistem e não representam Tasks do Backend. Sem persistência real, o MVP não pode afirmar que criou Tasks. Detalhes: I-03.        |
-| Relacionar Task ao Agent/atividade       | Alta para monitoramento | **BLOQUEADO POR BACKEND/AGENT** | `TasksPage`; integração futura                | Payload do Agent e atividade não tem `task_id`; não ha comando/seleção/início/fim de Task. Criar uma Task no futuro não poderá ser anunciado como início de monitoramento sem esse contrato separado. Detalhes: I-03.                                                                                                                                         |
-| Acesso direto sem login                  | Alta                    | **OK**                          | `App`, rotas e menu                           | Rotas do MVP abrem diretamente; o link "Criar conta" não aparece no menu e o `AssociationCodeCard` está oculto no Dashboard. Autenticação permanece **ADIADA PARA DEPOIS DO MVP**; implementação futura foi preservada.                                                                                                                                       |
+| Funcionalidade                           | Prioridade              | Estado                                 | Área/frontend afetado                         | Contrato/dependência e impacto                                                                                                                                                                                                                                                                                                                                |
+| ---------------------------------------- | ----------------------- | -------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Entrada e saída/últimos registros do dia | Alta                    | **BLOQUEADO POR BACKEND**              | `DashboardPage`; filtros por data e usuário   | Não ha endpoint de jornada, agregação diária nem campos confiáveis de primeiro/último registro. `GET /activities/realtime` representa a última leitura atual e não serve como entrada/saída. O backend precisa fornecer registros extremos por dia e agrupar segundo `America/Sao_Paulo`; até lá o painel não exibe horários inventados. Detalhes: I-06/I-07. |
+| Gerenciar Tasks persistidas              | Alta                    | **UI PARCIAL; INTEGRAÇÃO BLOQUEADA**   | `TasksPage`; resumo do Dashboard              | A UI de lista/formulário/edição/exclusão e o resumo por Task funcionam somente com serviço demonstrativo em desenvolvimento. Os mocks são voláteis; produção não chama rotas não confirmadas. Backend não oferece CRUD, atribuições ou agregação persistente (#133/#140). Detalhes: I-03 e proposta candidata.                                                |
+| Relacionar Task ao Agent/atividade       | Alta para monitoramento | **BLOQUEADO POR BACKEND/AGENT**        | `TasksPage`; integração futura                | Payload do Agent e atividade não tem `task_id`; não ha comando/seleção/início/fim de Task. Criar uma Task no futuro não poderá ser anunciado como início de monitoramento sem esse contrato separado. Detalhes: I-03.                                                                                                                                         |
+| Sessão e páginas do gestor               | Alta                    | **FRONTEND IMPLEMENTADO; B-01 ABERTO** | `ManagerSessionProvider`, `App`, rotas e menu | #138 integrou cadastro/login, validação `/auth/me`, `sessionStorage` e guardas. B-01 permanece aberto: API de dados sem JWT obrigatório nem isolamento por gestor. O status de MVP aberto em 13/10 é histórico e foi atualizado pela issue #138 de 21/10.                                                                                                     |
 
 Os bloqueios funcionais impedem concluir o recorte anunciado como utilizável somente com o frontend atual. A apresentação de status realtime e o resumo por categoria continuam sendo fontes distintas; nenhuma delas é convertida em jornada ou Task.
+
+### Entregas frontend desta revisão — 21/10/2026
+
+- O filtro de aplicativo deriva opções dos `process_name` recebidos no realtime e filtra somente a tabela atual de última atividade. Pode ser combinado com o usuário selecionado; não altera os indicadores ou o resumo diário e não responde a perguntas históricas de uso.
+- A demonstração de Tasks em desenvolvimento oferece lista, criação, edição e exclusão em memória, título/descrição, seleção múltipla de colaboradores, busca e ordenação. Produção apresenta a prévia desabilitada enquanto o CRUD backend não existe.
+- O Dashboard tem filtro e card de resumo por Task isolados dos indicadores gerais. O mock de `/dashboard/tasks-summary` responde vazio, sem fabricar métricas. A autenticação demonstrativa também é local ao MSW e não altera as chamadas de produção.
 
 <a id="resumo-das-pendencias"></a>
 
@@ -58,45 +65,51 @@ Os bloqueios funcionais impedem concluir o recorte anunciado como utilizável so
 
 **Atualização de alinhamentos da liderança: 02/10/2026.** As decisões abaixo foram incorporadas às entradas I-01, I-03, I-05/B-10, I-06, I-07, B-03 e B-06. Elas registram a direção acordada; não significam que backend, Agent ou contratos já tenham sido alterados.
 
-| ID   | Pendência                                                         | Área                 | Prioridade | Status                             |
-| ---- | ----------------------------------------------------------------- | -------------------- | ---------- | ---------------------------------- |
-| B-01 | Autorização dos endpoints e isolamento dos dados                  | Backend              | Alta       | AGUARDANDO BACKEND                 |
-| B-02 | CORS e HTTPS por ambiente                                         | Backend              | Alta       | AGUARDANDO BACKEND                 |
-| B-03 | Seed incompatível com chave UUID                                  | Backend              | Alta       | AGUARDANDO BACKEND                 |
-| B-04 | Limite salvo não aplicado ao realtime                             | Backend              | Média      | PARCIAL; BACKEND PENDENTE          |
-| B-05 | Capturas empatadas no realtime                                    | Backend              | Média      | AGUARDANDO BACKEND                 |
-| B-06 | Reenvio de atividades sem deduplicação                            | Backend              | Alta       | AGUARDANDO BACKEND                 |
-| B-07 | Datas futuras e tempo relativo negativo                           | Backend              | Média      | AGUARDANDO BACKEND                 |
-| B-08 | Segurança e fidelidade dos arquivos exportados                    | Backend              | Média      | AGUARDANDO BACKEND                 |
-| B-09 | Configuração global sem unicidade garantida                       | Backend              | Média      | AGUARDANDO BACKEND                 |
-| B-10 | Flag de inatividade pode gerar status `offline`                   | Backend              | Média      | AGUARDANDO BACKEND                 |
-| I-01 | Conta, login e sessão do gestor                                   | Integração           | Pós-MVP    | ADIADO PARA DEPOIS DO MVP          |
-| I-02 | Associação gestor–colaborador e código                            | Integração           | Alta       | AGENT INTEGRADO; BACKEND BLOQUEADO |
-| I-03 | Tasks, atribuição, escopo e monitoramento consentido              | Integração           | Alta       | BLOQUEADO                          |
-| I-04 | Jornada individual e possível hora extra                          | Integração           | Alta       | BLOQUEADO                          |
-| I-05 | Conexão real do agente                                            | Integração           | Média      | BLOQUEADO                          |
-| I-06 | Dashboard, timeline e relatórios completos                        | Integração           | Alta       | BLOQUEADO                          |
-| I-07 | Referência de fuso e virada do dia                                | Integração           | Média      | BLOQUEADO                          |
-| I-08 | Teste de integração com serviço real                              | Integração           | Média      | PENDENTE DE AMBIENTE               |
-| F-01 | Integração das telas após contratos                               | Frontend             | Alta       | BLOQUEADO                          |
-| F-02 | Instalação PWA e política offline                                 | Frontend             | Média      | FRONTEND FUTURO                    |
-| F-03 | Validação humana e matriz de navegadores                          | Frontend             | Média      | FRONTEND FUTURO                    |
-| D-01 | Atualizar [responsividade.md](../../requisitos/responsividade.md) | Documentação externa | Baixa      | AGUARDANDO REVISÃO EXTERNA         |
+| ID   | Pendência                                                         | Área                 | Prioridade | Status                                               |
+| ---- | ----------------------------------------------------------------- | -------------------- | ---------- | ---------------------------------------------------- |
+| B-01 | Autorização dos endpoints e isolamento dos dados                  | Backend              | Alta       | AGUARDANDO BACKEND                                   |
+| B-02 | CORS e HTTPS por ambiente                                         | Backend              | Alta       | AGUARDANDO BACKEND                                   |
+| B-03 | Seed incompatível com chave UUID                                  | Backend              | Alta       | AGUARDANDO BACKEND                                   |
+| B-04 | Limite salvo não aplicado ao realtime                             | Backend              | Média      | PARCIAL; BACKEND PENDENTE                            |
+| B-05 | Capturas empatadas no realtime                                    | Backend              | Média      | AGUARDANDO BACKEND                                   |
+| B-06 | Reenvio de atividades sem deduplicação                            | Backend              | Alta       | AGUARDANDO BACKEND                                   |
+| B-07 | Datas futuras e tempo relativo negativo                           | Backend              | Média      | AGUARDANDO BACKEND                                   |
+| B-08 | Segurança e fidelidade dos arquivos exportados                    | Backend              | Média      | AGUARDANDO BACKEND                                   |
+| B-09 | Configuração global sem unicidade garantida                       | Backend              | Média      | AGUARDANDO BACKEND                                   |
+| B-10 | Flag de inatividade pode gerar status `offline`                   | Backend              | Média      | AGUARDANDO BACKEND                                   |
+| I-01 | Conta, login e sessão do gestor                                   | Integração           | Alta       | FRONTEND IMPLEMENTADO; B-01 ABERTO                   |
+| I-02 | Associação gestor–colaborador e código                            | Integração           | Alta       | AGENT INTEGRADO; BACKEND BLOQUEADO                   |
+| I-03 | Tasks, atribuição, escopo e monitoramento consentido              | Integração           | Alta       | BLOQUEADO                                            |
+| I-04 | Jornada individual e possível hora extra                          | Integração           | Alta       | BLOQUEADO                                            |
+| I-05 | Conexão real do agente                                            | Integração           | Média      | BLOQUEADO                                            |
+| I-06 | Dashboard, timeline e relatórios completos                        | Integração           | Alta       | BLOQUEADO                                            |
+| I-07 | Referência de fuso e virada do dia                                | Integração           | Média      | BLOQUEADO                                            |
+| I-08 | Teste de integração com serviço real                              | Integração           | Média      | PENDENTE DE AMBIENTE                                 |
+| F-01 | Integração das telas após contratos                               | Frontend             | Alta       | BLOQUEADO                                            |
+| F-02 | Instalação PWA e política offline                                 | Frontend             | Média      | FRONTEND FUTURO                                      |
+| F-03 | Validação humana e matriz de navegadores                          | Frontend             | Média      | FRONTEND FUTURO                                      |
+| F-04 | Harmonizar caminho POST de Task demonstrativa                     | Frontend             | Baixa      | RESOLVIDO — DEMONSTRATIVO; VALIDAÇÃO LOCAL CONCLUÍDA |
+| D-01 | Atualizar [responsividade.md](../../requisitos/responsividade.md) | Documentação externa | Baixa      | AGUARDANDO REVISÃO EXTERNA                           |
+| A-01 | Identidade e revisão visual da interface desktop do Agent         | Agent                | Alta       | ABERTO PARA EQUIPE DO AGENT                          |
 
-Cada ID identifica uma pendência específica para facilitar referências no texto e na ordem de execução. A letra indica a área: `B` = backend, `I` = integração entre frontend e backend, `F` = frontend e `D` = documentação externa. O número distingue os itens da mesma área; não indica prioridade nem status, que aparecem em colunas próprias.
+Cada ID identifica uma pendência específica para facilitar referências no texto e na ordem de execução. A letra indica a área: `B` = backend, `I` = integração entre frontend e backend, `F` = frontend, `A` = Agent e `D` = documentação externa. O número distingue os itens da mesma área; não indica prioridade nem status, que aparecem em colunas próprias.
 
 Os status descrevem a dependência atual; a prioridade indica impacto. Eles não indicam que todo o frontend esteja parado.
 
-| Status                                 | Significado                                                                                                                                         |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **BLOQUEADO**                          | A funcionalidade não pode ser concluída com os contratos, dados ou ambiente disponíveis no momento; depende de definição ou implementação externa.  |
-| **ADIADO PARA DEPOIS DO MVP**          | A funcionalidade foi explicitamente retirada do recorte de 13/10; não bloqueia a demonstração solicitada.                                           |
-| **AGUARDANDO BACKEND**                 | A correção precisa ser feita ou garantida no servidor, como a autorização dos endpoints.                                                            |
-| **PARCIAL; BACKEND PENDENTE**          | O Agent já consome a configuração, mas a classificação realtime ainda depende de limites próprios do backend.                                       |
-| **AGENT INTEGRADO; BACKEND BLOQUEADO** | O cliente Agent da PR #122 foi integrado; geração/consulta de código, associação e vínculo autorizado continuam ausentes no backend; consulte I-02. |
-| **PENDENTE DE AMBIENTE**               | O cenário de integração está preparado; falta serviço real, banco, origem configurada e dados autorizados para executá-lo.                          |
-| **FRONTEND FUTURO**                    | Trabalho previsto para uma etapa posterior do frontend, como instalação PWA ou validação em dispositivos reais.                                     |
-| **AGUARDANDO REVISÃO EXTERNA**         | Depende da revisão de um documento fora de `FrontEnd/`; neste caso, `requisitos/responsividade.md`.                                                 |
+| Status                                                   | Significado                                                                                                                                                                   |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **BLOQUEADO**                                            | A funcionalidade não pode ser concluída com os contratos, dados ou ambiente disponíveis no momento; depende de definição ou implementação externa.                            |
+| **ADIADO PARA DEPOIS DO MVP**                            | Decisão histórica do recorte de 13/10, atualizada para autenticação pelo pedido da issue #138 em 21/10; a linha atual da sessão está no resumo acima.                         |
+| **AGUARDANDO BACKEND**                                   | A correção precisa ser feita ou garantida no servidor, como a autorização dos endpoints.                                                                                      |
+| **PARCIAL; BACKEND PENDENTE**                            | O Agent já consome a configuração, mas a classificação realtime ainda depende de limites próprios do backend.                                                                 |
+| **AGENT INTEGRADO; BACKEND BLOQUEADO**                   | O cliente Agent da PR #122 foi integrado; geração/consulta de código, associação e vínculo autorizado continuam ausentes no backend; consulte I-02.                           |
+| **PENDENTE DE AMBIENTE**                                 | O cenário de integração está preparado; falta serviço real, banco, origem configurada e dados autorizados para executá-lo.                                                    |
+| **DIVERGÊNCIA DE GRAFIA; COMPATIBILIDADE NÃO VALIDADA**  | Status histórico do checkpoint anterior à validação de F-04; o teste integrado posterior reproduziu a falha e a rota foi corrigida. Consulte o registro de 21/10/2026 abaixo. |
+| **RESOLVIDO — DEMONSTRATIVO; VALIDAÇÃO LOCAL CONCLUÍDA** | O caminho demonstrativo foi harmonizado e os testes focados, inclusive cliente + MSW real de testes, passaram. Isso não conclui #133 ou #134. Consulte F-04.                  |
+| **FRONTEND IMPLEMENTADO; B-01 ABERTO**                   | Cadastro, login, sessão e guarda de navegação existem no frontend; as rotas privadas ainda precisam exigir JWT e isolar dados no backend.                                     |
+| **FRONTEND FUTURO**                                      | Trabalho previsto para uma etapa posterior do frontend, como instalação PWA ou validação em dispositivos reais.                                                               |
+| **ABERTO PARA EQUIPE DO AGENT**                          | Há correção ou revisão necessária em arquivos do Agent, que foram consultados somente para leitura nesta auditoria.                                                           |
+| **AGUARDANDO REVISÃO EXTERNA**                           | Depende da revisão de um documento fora de `FrontEnd/`; neste caso, `requisitos/responsividade.md`.                                                                           |
 
 As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID. O motivo específico aparece em **Motivo do bloqueio** ou **Motivo da pendência**.
 
@@ -113,7 +126,10 @@ As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID
 - **Atual/impacto:** `get_current_manager` protege `GET /auth/me`, mas não está aplicado aos endpoints de dados. Consultas globais e `PUT /config/` permitem leitura/escrita sem identidade validada.
 - **Alteração necessária:** impor identidade, permissões e restrição por equipe no servidor, inclusive nas exportações e no recebimento de atividades.
 - **Workaround frontend:** não existe para proteção real; avisos informam a limitação, mas não protegem a API.
-- **Motivo do bloqueio:** esconder componentes ou filtrar listas localmente não autoriza nem isola dados no servidor. O fluxo visual de acesso está em I-01.
+- **Motivo do bloqueio:** esconder componentes ou filtrar listas localmente não autoriza nem isola dados no servidor. O frontend agora exige sessão válida antes de abrir páginas do gestor e envia Bearer nas consultas privadas, mas a autorização das rotas e o isolamento continuam ausentes.
+- **Contrato necessário:** aplicar `get_current_manager` às rotas de usuários, atividades realtime, resumo/exportação, configurações e demais dados privados; associar consultas ao gestor identificado e retornar `401` sem token válido e `403` quando autenticado sem permissão. O `PUT /activities/` do Agent deve usar credencial própria e escopo por colaborador, sem aceitar JWT do gestor como identidade do Agent.
+- **Critérios de aceite:** testar sem token, token inválido/expirado, gestor A lendo e alterando dados do gestor B, exportações, configuração e envio de atividades do Agent; provar isolamento em testes de API.
+- **Frontend realizado:** `ManagerSessionProvider`, guarda das cinco páginas de gestor, Bearer centralizado, expiração em `401`, preservação de `403`, logout acessível e sessão em `sessionStorage`. Isso não substitui autorização do servidor.
 - **Política proposta:** [autorização e isolamento por gestor](#proposta-authorization).
 
 ### B-02 — CORS e HTTPS por ambiente — Alta
@@ -212,12 +228,17 @@ As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID
 - **Problema/requisito:** a regra mistura inatividade de uso e conexão do agente, embora [RN-10/RF-14](../../requisitos/requisitos/rn_rf.md#rf-14--controlar-atividade-e-inatividade) e [RN-11/RF-16](../../requisitos/requisitos/rn_rf.md#rf-16--acompanhar-colaboradores-online) tratem esses conceitos separadamente.
 - **Frontend afetado:** indicadores e badges de status no Dashboard e em Colaboradores.
 - **Backend relacionado:** classificação de `/activities/realtime` baseada em `is_idle` e no tempo desde o último evento.
-- **Comportamento no backend consultado:** quando `is_idle=true`, a API pode retornar `offline` mesmo para uma captura recém-recebida. Portanto, o estado atual não comprova ausência de registro recente da máquina.
+- **Comportamento no backend consultado:** quando `is_idle=true`, a API pode retornar `offline` mesmo para uma captura recém-recebida. `seconds_since_last_activity` é calculado a partir de `captured_at` enviado pelo Agent; não há timestamp separado de recebimento/persistência. Sincronização atrasada ou relógio divergente também pode distorcer a idade. Portanto, o estado atual não comprova ausência de registro recente da máquina.
 - **Decisão da liderança:** considerar o Agent `offline` quando a máquina ficar mais de 15 minutos sem um novo registro no banco de dados. Inatividade de uso (`is_idle`) não deve, por si só, significar que o Agent perdeu conexão.
-- **Atual/impacto:** a regra acordada ainda não está garantida pelo contrato/runtime atual: a resposta pode classificar `offline` a partir de `is_idle` ou do intervalo sem evento. O frontend continua exibindo o estado fornecido pela API sem reinterpretá-lo.
-- **Alteração necessária:** implementar no backend a regra acordada, associada à última gravação por máquina, e expor um estado/tempo de conexão coerente. Confirmar como identificar a máquina e tratar registros ausentes ou atrasados.
+- **Atual/impacto:** a regra acordada ainda não está garantida pelo contrato/runtime atual: a resposta pode classificar `offline` a partir de `is_idle` ou do intervalo desde `captured_at`, agrupado pelo último registro do usuário. Não informa o último recebimento no banco por máquina.
+- **Alteração necessária:** persistir timestamp de recebimento no servidor, identificar Agents/máquinas de modo estável, calcular a regra acordada por máquina sem usar `is_idle` e expor status/instante de conexão no contrato autorizado. Definir tratamento de máquinas sem registro e de colaboradores com múltiplos Agents.
 - **Workaround frontend:** exibir o status retornado com texto neutro, sem reinterpretar o campo ou afirmar desconexão.
 - **Motivo da pendência:** o critério de produto foi definido, mas precisa ser implementado e exposto pelo backend; o frontend não consegue inferir a última gravação da máquina a partir dos campos atuais.
+
+**Complemento frontend (16/10/2026):** Colaboradores agora distingue o instante local de recepção da consulta da idade realtime calculada pelo servidor. O primeiro não confirma gravação no banco; o segundo ainda depende do `captured_at` enviado pelo Agent e pode refletir relógio divergente ou sincronização atrasada. Nenhum campo novo foi presumido. Para estado de conexão confiável, permanece necessário status e instante do último recebimento por identidade estável de Agent/máquina, com escopo autorizado. A equipe responsável e os critérios de aceitação já constam nesta pendência B-10.
+
+- **Equipe responsável/contrato necessário:** equipe Backend deve persistir o instante de recebimento da gravação e associá-lo a um identificador estável de Agent/máquina; expor esse instante e `connection_status` numa resposta autenticada e limitada à equipe do gestor. O contrato também deve definir máquinas sem registro e múltiplos Agents por colaborador.
+- **Critérios de aceitação:** `offline` após mais de 15 minutos sem novo registro persistido por máquina; `is_idle` não altera o estado de conexão; a resposta identifica cada máquina autorizada, declara o instante de recebimento com timezone e distingue ausência de registro de falha da consulta.
 
 <a id="pendencias-integracao"></a>
 
@@ -227,11 +248,12 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 
 ### I-01 — Conta, login e sessão do gestor — Alta
 
-- **Status:** backend implementado; integração frontend **ADIADA PARA DEPOIS DO MVP**.
+- **Status técnico:** sessão e navegação do gestor implementadas no frontend; proteção dos dados **bloqueada por B-01**.
 - **Problema/requisito:** [RF-02](../../requisitos/requisitos/rn_rf.md#rf-02--criar-e-acessar-conta-do-gestor)/[RF-23](../../requisitos/requisitos/rn_rf.md#rf-23--consultar-registros) e [CA-01](../../requisitos/requisitos/ca.md#ca-01--identificação-acesso-e-associação).
 - **Backend implementado pela PR #123:** cadastro `POST /auth/register`, login `POST /auth/login`, JWT assinado/expirável, validação do token e consulta protegida `GET /auth/me`. O merge é `0fc4e7b7333ceb4fdd120f7f1f753f9836163e30`; `ManagerOut` contém `id`, `email`, `created_at` e não contém código de associação.
-- **Frontend:** `api.registerManager`, `api.loginManager` e `api.getCurrentManager` estão preparados com validação de resposta, timeout, cancelamento e erros HTTP. `AuthPage` continua sem coletar credenciais; não há gerenciamento de sessão, logout, recuperação de expiração nem proteção de rota.
-- **Decisão do MVP de 13/10:** login/cadastro continuam adiados; o acesso direto permanece e “Criar conta” fica oculto na apresentação. A entrega do backend não altera essa aprovação de produto.
+- **Histórico de produto:** na apresentação de 13/10, login/cadastro foram adiados para manter o acesso direto do MVP. A issue oficial #138, aberta em 21/10, pede integração real; a instrução de execução também autoriza sessão e rotas protegidas no frontend. Esse avanço não altera o requisito de autorização do backend.
+- **Frontend implementado nesta revisão:** formulários acessíveis, validação de e-mail e senha conforme o schema real, cadastro sem login automático, login seguido de `GET /auth/me`, token somente em `sessionStorage`, restauração validada, logout, guarda das rotas do gestor, injeção centralizada de Bearer em consultas privadas e limpeza/redirect após `401`. Respostas `403` preservam a sessão.
+- **Limites:** a sessão de navegador não revoga JWT no servidor; não há refresh token. As cinco rotas de dados continuam respondendo sem identidade e sem filtro por gestor. Logo, a guarda é defesa de interface e não autoriza declarar o Dashboard seguro para dados reais.
 - **Alternativas avaliadas; nenhuma foi ativada:**
 
   | Estratégia                          | XSS e exposição                                                                   | Recarga/restauração                                                                                             | Backend necessário                                                                                     |
@@ -241,36 +263,37 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
   | `localStorage`                      | Legível por JavaScript e sujeito a roubo por XSS; aumenta o tempo de exposição.   | Restaura após recargas e reinício do navegador; sincronização de logout entre abas também precisa ser definida. | Nenhuma mudança; precisa limpar no logout e em `401`.                                                  |
   | Cookie `HttpOnly; Secure; SameSite` | JavaScript não lê o JWT; XSS ainda pode iniciar ações autenticadas na página.     | Enviado automaticamente e pode restaurar após recarga até expirar ou ser removido.                              | Emissão/remoção do cookie, CORS com credenciais e proteção CSRF; o contrato atual retorna JWT em JSON. |
 
-- **Recomendação para uma decisão futura:** preferir cookie `HttpOnly; Secure; SameSite` com proteção CSRF e CORS configurados no backend. Se essa arquitetura não for viável, manter o JWT somente em memória; evitar persistência em `localStorage` e `sessionStorage`. A liderança precisa aprovar a estratégia antes de ativar login.
-- **Comportamento que qualquer estratégia ainda precisa definir:** expiração baseada em `expires_in` e validade do servidor, restauração, logout, limpeza no primeiro `401` e coordenação de respostas `401` concorrentes. Logout apenas no navegador não revoga o JWT emitido, que permanece válido até expirar sem um contrato de revogação no backend.
-- **Autorização pendente:** proteger as rotas de dados e aplicar isolamento por gestor conforme B-01 antes de tratar login como proteção do Dashboard.
-- **Workaround frontend:** não existe; o formulário e a sessão permanecem indisponíveis na experiência atual.
+- **Estratégia aplicada para #138:** `sessionStorage`, conforme solicitado na issue. Ele é legível por JavaScript e exposto a XSS; o frontend não armazena senha, nunca registra o token e remove-o no logout ou em `401`. A recomendação arquitetural de longo prazo continua sendo avaliar cookie `HttpOnly; Secure; SameSite`, com CORS e proteção CSRF no backend.
+- **Expiração:** `/auth/me` valida sessão restaurada; um `401` de chamada marcada privada limpa a sessão e redireciona. `403` não apaga a identidade. Sem revogação/renovação no backend, o logout remove a cópia local, mas o JWT continua válido até expirar. Respostas `401` concorrentes convergem no mesmo evento de sessão inválida.
+- **Contrato externo necessário (B-01/#137):** exigir token válido para `GET /users/`, `GET /activities/realtime`, `GET /dashboard/summary`, exportações, `GET/PUT /config/` e novas rotas de dados; filtrar cada consulta pelo gestor autenticado. O cliente já envia Bearer nessas chamadas, mas a API atual não o valida.
+- **Critérios de aceite restantes:** cobertura de API prova que rotas de dados rejeitam token ausente/inválido/expirado, `403` preserva token válido sem permissão, gestores distintos não compartilham dados e cadastro/login mantêm respostas sem vazamento. Executar E2E real somente com ambiente e conta de teste autorizados.
+- **Workaround frontend:** a guarda evita que a interface exponha telas sem sessão validada, mas não há workaround que proteja as respostas da API enquanto B-01 estiver pendente.
 
 ### I-02 — Associação gestor–colaborador e código — Alta
 
 - **Status:** cliente de associação do Agent integrado; associação do backend **BLOQUEADA**.
 - **Problema/requisito:** [RF-03](../../requisitos/requisitos/rn_rf.md#rf-03--disponibilizar-código-de-associação)/[RF-04](../../requisitos/requisitos/rn_rf.md#rf-04--associar-colaborador)/[RF-05](../../requisitos/requisitos/rn_rf.md#rf-05--gerenciar-colaboradores-associados), [CA-01](../../requisitos/requisitos/ca.md#ca-01--identificação-acesso-e-associação)/[CA-07](../../requisitos/requisitos/ca.md#ca-07--consulta-relatórios-e-exportação) e [associação no RBAC](../../requisitos/rbac.md#6-associação).
 - **Frontend afetado:** painel, colaboradores, relatórios e futura exibição do código do gestor.
-- **A. Implementado no frontend:** `AssociationCodeCard` apresenta um código string de seis dígitos, preserva zeros à esquerda, oferece cópia com feedback e estados de carregamento, erro e indisponibilidade. Os testes verificam os estados visuais e acessíveis. O card permanece oculto no Dashboard do MVP.
+- **A. Implementado no frontend:** `AssociationCodeCard` apresenta um código string de seis dígitos, preserva zeros à esquerda, oferece cópia com feedback e estados de carregamento, erro e indisponibilidade. Os testes verificam os estados visuais e acessíveis. O card permanece oculto até existir contrato real de consulta do código.
 - **B. Implementado e integrado pela PR #122:** o Agent recebe código numérico de seis dígitos como string, envia `POST /associate/` com `code`, `username` e `hostname`, aceita token na resposta como `token` ou `access_token`, persiste o token protegido por DPAPI, reutiliza Bearer nas chamadas posteriores e não inicia monitoramento antes da associação. Commit de implementação `ed48ad7cfff9e724406ef9ffffeb6c0f132caf32`; merge `e43673b4dca212eaa991308d14c9dc25b6c64061`.
 - **C. Pendente no backend após inspeção de routers, `models.py`, `schemas.py` e `crud.py`:** geração e consulta autenticada do código (issue #113), `POST /associate/`, persistência do vínculo, validação/validade do código e isolamento de colaboradores por gestor. Não há `association_code` em `ManagerOut`; `GET /auth/me` não retorna esse campo e não substitui endpoint de código.
-- **D. Pendente no frontend:** após o backend definir rota e schema de consulta do código e a sessão do gestor ser aprovada, integrar o código e considerar exibi-lo (issue #114). A API não inventa rota e o card continua oculto no MVP.
+- **D. Pendente no frontend:** o frontend já possui sessão do gestor. Após o backend definir rota e schema autenticados de consulta do código, integrar a resposta e considerar exibi-lo (issue #114). A API não inventa rota e o card continua oculto.
 - **Segurança e impacto:** o token protegido localmente do Agent e o JWT do gestor são credenciais distintas. As rotas de usuários, realtime, painel, exportação e configuração continuam globais e sem dependência `get_current_manager`; a autenticação nova não prova autorização nem isolamento. Filtros locais não protegem dados. Estados realtime não são prova de associação ou conexão ativa.
 - **Motivo do bloqueio:** a PR #122 implementa o lado cliente Agent, mas o backend deste checkout ainda não tem código, endpoints ou persistência de associação. Também falta autorização e isolamento por gestor.
 - **Propostas detalhadas:** [consulta do código](#proposta-association-code) e [associação do Agent](#proposta-agent-association).
 
 ### I-03 — Tasks, atribuição, escopo e monitoramento consentido — Alta
 
-- **Status:** BLOQUEADO.
+- **Status:** UI frontend parcialmente implementada; persistência, integração real e monitoramento seguem BLOQUEADOS.
 - **Prioridade para o MVP de 13/10:** alta. Sem consulta e criação persistentes, a tela Tasks não pode ser apresentada como funcional.
 - **Problema/requisito:** [RF-06](../../requisitos/requisitos/rn_rf.md#rf-06--criar-e-editar-tasks) a [RF-13](../../requisitos/requisitos/rn_rf.md#rf-13--registrar-períodos-de-utilização), [RF-17](../../requisitos/requisitos/rn_rf.md#rf-17--encerrar-ou-trocar-task), [RN-18](../../requisitos/requisitos/rn_rf.md#rn-18--finalidade-e-minimização) e [CA-02](../../requisitos/requisitos/ca.md#ca-02--tasks-e-início-do-monitoramento)/[CA-03](../../requisitos/requisitos/ca.md#ca-03--monitoramento-da-atividade)/[CA-04](../../requisitos/requisitos/ca.md#ca-04--estado-e-execução-da-task).
 - **Frontend afetado:** `TasksPage`, painel e relatórios.
 - **Backend relacionado:** modelos/schemas/routers não contêm task; atividades não contêm vínculo, início/fim ou classificação de escopo.
 - **Agent relacionado:** `agent/Dtos/ApiDtos.cs`, `agent/Services/QueueSenderService.cs` e payload de atividade não têm `task_id` nem comandos de seleção/início/encerramento.
-- **Atual/impacto:** não há Task model/schema nem `GET /tasks`, `POST /tasks` ou contrato equivalente; a tela permanece informativa e não simula gravação. Categorias não equivalem às aplicações de uma task. A criação persistida pelo Dashboard, quando houver contrato, será distinta do controle de monitoramento pelo Agent.
+- **Atual/impacto:** não há Task model/schema nem endpoints de produção. A tela de produção exibe uma prévia desabilitada sem fazer chamadas presumidas. Com `VITE_USE_MOCKS=true`, a UI de demonstração lista, cria, edita e exclui Tasks em memória; exige título, descrição e colaborador válido da lista carregada; impede submissão durante carregamento/falha e sinaliza atribuições removidas. A edição sincroniza uma Task alterada pelo catálogo sem substituir um rascunho digitado. O serviço simulado envia Bearer da sessão de demonstração e usa `/tasks/`, conforme o caminho da issue #133. Os dados continuam voláteis e pertencem a uma única identidade demonstrativa. O Dashboard limpa filtro removido, atualiza catálogo/resumo e mantém métricas gerais separadas; o mock de `/dashboard/tasks-summary` responde vazio, sem fabricar horas.
 - **Alinhamento da liderança para Sprint 2:** será solicitado a Danyyel que crie uma task padrão. A solicitação ainda não equivale a task disponível na API nem define se ela será criada como seed, configuração ou registro operacional.
-- **Contrato necessário:** para o recorte mínimo de Tasks, consulta e criação persistentes com schema e validações reais; para RF-06 completo, também edição, descrição, colaboradores atribuídos, aplicações do escopo e autorização. A integração Agent exige ainda listagem/seleção/início/encerramento, `task_id` nos registros e confirmação de ciência.
-- **Workaround frontend:** não existe; armazenamento local, CRUD fictício ou reaproveitar categorias violaria a regra de negócio.
+- **Contrato necessário:** para o recorte implementado de #134, o Backend precisa definir consulta/criação/edição/exclusão persistentes, título/descrição, atribuições e escopo de gestor. A forma de exclusão (arquivamento ou remoção física) requer decisão de retenção. Para RF-06 completo, também são necessários aplicações do escopo e autorização. A integração Agent exige ainda listagem/seleção/início/encerramento, `task_id` nos registros e confirmação de ciência.
+- **Limite do frontend:** a UI de demonstração não é workaround de produção. Não usar `localStorage`, CRUD fictício em produção ou categorias como substituto da integração real. O formulário não chama `api.js`; só recebe `devApi` em desenvolvimento com mocks ativos.
 - **Motivo do bloqueio:** depende do modelo central de monitoramento e de implementação backend/agente.
 - **Propostas detalhadas:** [gerenciamento de Tasks](#proposta-tasks-crud) e [atribuição de colaboradores](#proposta-task-collaborators).
 
@@ -291,11 +314,14 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Problema/requisito:** [RF-05](../../requisitos/requisitos/rn_rf.md#rf-05--gerenciar-colaboradores-associados)/[RF-16](../../requisitos/requisitos/rn_rf.md#rf-16--acompanhar-colaboradores-online)/[RF-27](../../requisitos/requisitos/rn_rf.md#rf-27--exibir-dashboard-analítico) e [CA-04](../../requisitos/requisitos/ca.md#ca-04--estado-e-execução-da-task) exigem Online enquanto conectado/autenticado.
 - **Frontend afetado:** métricas de estado e tabela de última atividade.
 - **Backend relacionado:** `/activities/realtime`, estados calculados por tempo desde atividade e retenção de até 24 horas.
+- **Agent relacionado:** `AgentOrchestrator.IsOnline` é estado local derivado de tentativas de envio e não é publicado na API. `PendingCount`, pausa do monitoramento e versão também permanecem locais; o Frontend não consegue consultá-los.
 - **Decisão da liderança:** o Agent deverá ser considerado offline após mais de 15 minutos sem novo registro no banco de dados daquela máquina. `is_idle` representa inatividade de uso e não deve substituir esse critério de conexão.
-- **Atual/impacto:** a regra foi definida, mas ainda não está implementada/confirmada no backend. `offline` ainda pode decorrer de `is_idle` ou do intervalo sem evento; ausência na lista após a retenção de 24 horas também não permite inferir o último registro da máquina. O Agent existe, mas não há sessão autenticada; ver B-10.
-- **Contrato necessário:** expor informação calculada a partir da última gravação por máquina e aplicar o limite acordado de 15 minutos, distinguindo conexão de inatividade; autenticação de sessão permanece dependente de I-01.
+- **Atual/impacto:** a regra foi definida, mas ainda não está implementada/confirmada no backend. `offline` ainda pode decorrer de `is_idle` ou do intervalo desde `captured_at`; a consulta retorna somente a captura mais recente por usuário e não informa gravação recebida por máquina. Ausência após retenção de 24 horas não permite inferir o último registro. Falha de envio, fila local, pausa, versão e sincronização não estão disponíveis ao Frontend; ver B-10.
+- **Contrato necessário:** expor informação calculada a partir da última gravação recebida por máquina e aplicar o limite acordado de 15 minutos, distinguindo conexão de inatividade. Se o painel também precisar de fila, pausa, versão ou tentativas de envio, Agent e Backend devem definir telemetria própria; o navegador não deve estimar esses estados. Autenticação e autorização da API dependem de #137/B-01, embora a sessão frontend já tenha sido integrada em I-01.
 - **Workaround frontend:** mostrar última leitura com aviso é aceitável para o contrato atual; inferir conexão real não é.
-- **Motivo do bloqueio:** navegador do gestor não observa diretamente a conexão do agente.
+- **Critérios de aceite:** status online/offline por máquina usa instante de recebimento no servidor, limite estrito de mais de 900 segundos e não depende de `is_idle`; atividade e falha HTTP têm estados distintos; cada máquina é identificável sem agrupar Agents diferentes; campos operacionais adicionais são enviados pelo Agent, autorizados e não inferidos pelo frontend.
+- **Testes recomendados:** limite de 900/901 segundos, captura inativa recente, envio atrasado da fila local, falha de rede com fila vazia e com pendências, usuário com mais de uma máquina, ausência de telemetria e tentativa de acesso fora do gestor.
+- **Motivo do bloqueio:** navegador do gestor não observa diretamente a conexão, estado da fila ou pausa do Agent; o servidor e o cliente não oferecem contrato de telemetria/autorização suficiente.
 
 ### I-06 — Dashboard, timeline e relatórios completos — Alta
 
@@ -338,6 +364,22 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Workaround frontend:** fixtures de teste protegem comportamento do cliente, mas não comprovam a API real.
 - **Motivo da pendência:** o ambiente depende de serviço e banco disponíveis e de dados de teste autorizados; executar o cenário requer o ambiente real configurado.
 
+<a id="pendencias-agent"></a>
+
+## Pendências do Agent
+
+### A-01 — Identidade e revisão visual da interface desktop — Alta
+
+- **Identificação:** A-01; área responsável: equipe do Agent; prioridade P1 para identidade/status enganosos e P2 para revisão visual e de privacidade; status: ABERTO PARA EQUIPE DO AGENT.
+- **Problema:** o formulário de associação mostra o placeholder `{orchestrator.Username}` em vez do nome real. As telas também usam dimensões e posições fixas; a bandeja mantém o ícone genérico do Windows Forms. O formulário de status rotula como conexão atual um indicador que reflete somente tentativas de envio.
+- **Evidência:** em [`AssociationForm.cs`](../../agent/UI/AssociationForm.cs#L42), a estação usa interpolação, mas a linha `"Usuário: {orchestrator.Username}\n\n"` é uma string comum. [`StatusForm.cs`](../../agent/UI/StatusForm.cs#L28) define `ClientSize` 420×260 e posiciona controles por coordenadas fixas; [`AssociationForm.cs`](../../agent/UI/AssociationForm.cs#L36) define 380×230. [`TrayApplicationContext.cs`](../../agent/UI/TrayApplicationContext.cs#L47) usa `SystemIcons.Application` com comentário para substituí-lo por ícone próprio. `StatusForm` exibe o título da janela capturada. `AgentOrchestrator.IsOnline` começa como `true` e é atualizado pelo evento `SendAttempted`; [`QueueSenderService.cs`](../../agent/Services/QueueSenderService.cs#L47) retorna quando a fila está vazia sem confirmar a conexão.
+- **Impacto:** durante a associação, o colaborador não consegue confirmar pela janela qual usuário está sendo associado. “Conexão com o servidor: OK” pode aparecer sem tentativa de envio ou permanecer após o último envio bem-sucedido, sem provar contato atual. Rótulos longos ou escala ampliada podem deixar os formulários apertados; a aparência do ícone não identifica a aplicação. Exibir título de janela amplia a exposição de texto potencialmente sensível.
+- **Justificativa:** identidade correta evita associação feita com contexto equivocado; um status temporalmente honesto e uma hierarquia legível melhoram confiança e compreensão. O código consultado é externo ao escopo autorizado do Frontend.
+- **Solução proposta:** corrigir a string para `$"Usuário: {orchestrator.Username}\n\n"`. Em tarefa própria do Agent, renomear o indicador atual para “Último envio” ou publicar conexão confirmada por heartbeat; não iniciar o estado em conectado sem evidência. Reorganizar controles em layouts ancorados/contêineres com escala adequada, tratar textos longos, revisar teclado/foco e estados, substituir o ícone genérico e confirmar se o título da janela é necessário. Não há justificativa observada para migrar de Windows Forms.
+- **Dependências:** equipe do Agent; não depende de mudança no Frontend. Uma política sobre exibir título de janela deve seguir os requisitos de privacidade do produto.
+- **Critérios de aceite:** formulário de associação mostra o valor real de usuários de teste distintos; usuário consegue concluir os controles por teclado com foco visível; telas permanecem legíveis a 100%, 150% e 200% de escala e com usuário/estação longos; conexão, associação, pausa e erro são distinguíveis sem depender somente de cor; a informação de janela respeita a decisão de privacidade.
+- **Testes recomendados:** teste de apresentação do texto com nomes de usuários distintos; inspeção manual em Windows Forms nas escalas indicadas e com textos longos; verificação de ordem de Tab, foco, estados de conexão/associação/pausa e título de janela; build e testes da solução do Agent após a correção.
+
 <a id="pendencias-frontend"></a>
 
 ## Pendências futuras do Frontend
@@ -375,6 +417,50 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 - **Workaround frontend:** testes automatizados existentes são proteção parcial; não equivalem a inspeção humana.
 - **Motivo do bloqueio:** definição de suporte e recursos de validação externos não estão disponíveis nesta tarefa.
 
+### F-04 — Harmonizar caminho POST de Task demonstrativa — Baixa
+
+- **Área responsável:** Frontend.
+- **Status:** RESOLVIDA NO FRONTEND — VALIDAÇÃO LOCAL CONCLUÍDA.
+- **Issue relacionada:** #134 (interface) e #133 (caminho de coleção citado pela issue Backend): https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/134 e https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/133.
+- **Requisito relacionado:** RF-06/RF-11; depende de I-03 antes de habilitar operação real.
+- **Arquivo ou componente:** src/dev-mocks/client.js, src/dev-mocks/handlers.js, src/dev-mocks/client.test.js e src/dev-mocks/handlers.test.js.
+
+#### Registro original da auditoria documental — checkpoint `f8556a1`
+
+- **Problema identificado:** no commit f8556a1114a52ffc5064ab9ab8506a388778561b, a listagem demonstrativa chama GET /tasks/, a criação chama POST /tasks sem barra final, e os handlers MSW declaram GET/POST /tasks/. Atualização e exclusão usam o caminho do item sem barra terminal. A documentação anterior dizia que a rota local estava alinhada a /tasks/; essa afirmação não descreve a string de criação daquele checkpoint.
+- **Evidência:** o cliente configura essas chamadas em src/dev-mocks/client.js e as rotas estão registradas em src/dev-mocks/handlers.js. O Backend local não possui router de Tasks. Nesta auditoria documental não foi executado teste de roteamento do MSW nem chamada ao Backend.
+- **Causa provável:** o caminho da criação foi escrito sem barra terminal enquanto listagem e handler usam a forma com barra. O matcher MSW pode tratar barra terminal como opcional; isso não foi confirmado nesta revisão. O endpoint de produção ainda não existe, então comportamento de redirect do servidor também é desconhecido.
+- **Impacto:** a grafia não canônica dificulta provar equivalência entre cliente e handler e pode divergir do contrato futuro, mesmo que a demonstração atual seja compatível. Não há evidência suficiente nesta revisão para declarar falha funcional reproduzida.
+- **Solução proposta:** escolher uma forma canônica para coleção após confirmar o contrato Backend; alinhar cliente demonstrativo, handler, testes de cliente/handler e documentação. Para a proposta atual, usar /tasks/ em GET e POST de coleção e /tasks/{task_id} para itens, sem depender de redirecionamento implícito.
+- **Critérios de aceitação:** GET e POST do CRUD de demonstração usam o mesmo caminho literal da coleção; handlers cobrem cada método e caminho; contrato publicado usa o mesmo caminho; requests de criação não dependem de redirect; respostas e erros continuam identificáveis por método.
+- **Testes recomendados:** testar diretamente cada método e caminho no cliente e MSW; incluir criação e listagem com mock ativo; quando existir API, verificar o caminho canônico e ausência de 307/308 inesperado em homologação.
+- **Condição de desbloqueio:** revisão do código Frontend e confirmação do caminho final com Backend antes de habilitar CRUD em produção.
+- **Relações:** I-03, #133, #134 e proposta de CRUD em [Contratos da API](CONTRATOS_API.md) e [Propostas de contratos](PROPOSTA_CONTRATOS_BACKEND.md).
+
+#### Validação e encerramento — 21/10/2026, branch `main`, checkout baseado no HEAD `a20750c25bb24d1665ffb965e14aa80a73f590ae`
+
+O checkout começou no commit-base `a20750c`; a correção de código e testes descrita abaixo foi gravada no commit seguinte, `fc3132ab5133b2ad9ea12da1e8ce1bbb987822eb`, que é o HEAD revalidado nesta revisão documental.
+
+- **Causa confirmada:** `devApi.createTask()` chamava `POST /tasks`, que não correspondia ao handler `POST /tasks/`. O handler curinga devolveu 501 (`Sem mock de desenvolvimento...`); a criação integrada falhou antes da correção. Não houve redirecionamento HTTP.
+- **Comportamento observado antes da alteração:** a listagem `GET /tasks/` e o handler POST usavam a barra final; `createTask()` não. O teste integrado com o MSW de testes reproduziu a falha com status 501.
+- **Alteração implementada:** o cliente agora chama `POST /tasks/`. Método, corpo JSON, validação de título/descrição/IDs, Bearer demonstrativo, `AbortSignal`, validação da resposta e erros permanecem preservados.
+- **Arquivos de código/teste alterados:** `src/dev-mocks/client.js`, `src/dev-mocks/client.test.js` e `src/dev-mocks/handlers.test.js`.
+- **Testes focados:** `npm.cmd run test -- src/dev-mocks/client.test.js src/dev-mocks/handlers.test.js` — 2 arquivos e 18 testes passaram. O teste integrado usa `fetch` real interceptado pelo `setupServer` do MSW e confirma criação e listagem pelo mesmo caminho.
+- **Validação geral:** lint, typecheck, cobertura, build, verificações do bundle e E2E passaram. A cobertura teve 296 testes em 58 arquivos; 30 cenários E2E passaram e 2 testes de API real foram ignorados por falta de serviço/credenciais autorizados.
+- **Resultado de formatação:** `format:check` e, consequentemente, `check:full` pararam por dois documentos inalterados e fora do escopo F-04 (`docs/ARQUITETURA.md`, `docs/README.md`). Os arquivos alterados nesta correção passaram no Prettier direcionado. Os comandos de cobertura, build, teste de bundle e E2E foram executados separadamente e passaram.
+- **Handlers validados:** GET autenticado 200; POST autenticado válido 201; POST sem autenticação 401; POST inválido 422; PUT 200; DELETE 200; item inexistente 404; dados em memória, consulta após criação/exclusão e reset do estado/sequência de IDs.
+- **Critérios F-04 atendidos:** GET e POST da coleção usam `/tasks/`; cliente e handler estão alinhados; a chamada não depende de redirect; pathname de `createTask()` é verificado literalmente; cliente + MSW e CRUD demonstrativo foram exercitados.
+- **Limitações e dependências externas:** GET de item não existe no mock e não foi adicionado. A issue #133 permanece aberta: o Backend ainda precisa implementar/persistir CRUD de Tasks, atribuições e autorização por gestor. A issue #134 permanece aberta: a interface ainda não consome CRUD real. Produção continua sem chamadas fictícias de Tasks.
+- **Documentação relacionada:** `CONTRATOS_API.md`, `PROPOSTA_CONTRATOS_BACKEND.md`, `MATRIZ_ISSUES_FRONTEND.md`, `FUNCIONALIDADES.md`, `TESTES.md`, `ALTERACOES.md`, `PLANO_EXECUCAO_FRONTEND.md` e `RELATORIO_EXECUCAO_FRONTEND.md` registram a correção e mantêm os bloqueios externos.
+
+#### Revalidação documental no HEAD `fc3132ab5133b2ad9ea12da1e8ce1bbb987822eb` — 21/10/2026
+
+- **Estado do código:** `devApi.tasks()` e `devApi.createTask()` usam `GET/POST /tasks/`; `updateTask()` e `deleteTask()` usam `/tasks/{task_id}`. Os handlers MSW declaram os mesmos caminhos e não há chamada de Tasks no cliente HTTP de produção.
+- **Evidência de teste existente no checkout:** `client.test.js` verifica o pathname do GET/POST, método e autenticação; `handlers.test.js` cobre CRUD demonstrativo, códigos de erro e integração cliente + MSW. O teste integrado confirma criação e listagem pela coleção `/tasks/`.
+- **Limite do mock:** não existe GET demonstrativo de item. CRUD persiste apenas na memória do mock, com um catálogo fixo e uma identidade demonstrativa; não implementa isolamento entre gestores nem `403`.
+- **Status de issues consultado no GitHub em 21/10/2026:** #133, #134, #137, #138 e #140 permaneciam abertas. Tecnicamente, #133 depende do CRUD persistente e autorizado no Backend; #134 tem interface parcial e depende da integração real; #137 segue sem autorização/isolamento nas rotas de dados; #138 tem sessão implementada no frontend, aguardando homologação real; #140 tem visualização demonstrativa sem agregação real.
+- **Resultado desta revalidação:** F-04 continua resolvida no Frontend demonstrativo. Os resultados atuais de `format:check`, `lint`, `typecheck` e `check:full` são registrados em [Relatório](RELATORIO_EXECUCAO_FRONTEND.md) e [Testes](TESTES.md); eles não alteram o status das issues de Backend nem da integração real.
+
 ## Pendência de documentação externa
 
 ### D-01 — Atualizar `requisitos/responsividade.md` — Baixa
@@ -394,11 +480,11 @@ As descrições históricas de [Sprint 1](../../requisitos/sprints/sprint1.md), 
 
 ### Inventário dos contratos observados
 
-Estado observado no checkout em 13/10/2026. A tabela resume a auditoria que fundamenta as propostas; os contratos efetivamente implementados e seu comportamento ficam descritos em [Contratos da API](CONTRATOS_API.md).
+Estado dos contratos observado no checkout em 21/10/2026. A tabela resume a auditoria que fundamenta as propostas; os contratos efetivamente implementados e seu comportamento ficam descritos em [Contratos da API](CONTRATOS_API.md).
 
 | Área                   | Contrato observado                                                                                                                                             | Lacuna ou incompatibilidade                                                                                                                                                          |
 | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Autenticação do gestor | POST /auth/register, POST /auth/login e GET /auth/me. A última exige JWT de gestor e retorna id, email e created_at.                                           | A autenticação não está integrada à experiência aprovada para o MVP. ManagerOut não inclui código de associação. Ver I-01 e I-02.                                                    |
+| Autenticação do gestor | POST /auth/register, POST /auth/login e GET /auth/me. A última exige JWT de gestor e retorna id, email e created_at.                                           | O frontend agora integra cadastro/login e guarda páginas, mas apenas `/auth/me` exige JWT no backend. `ManagerOut` não inclui código de associação. Ver I-01, B-01 e I-02.           |
 | Colaboradores          | GET /users/ retorna usuários como UserOut.                                                                                                                     | A rota não exige identidade nem filtra por gestor; não há associação persistida gestor–colaborador nos modelos inspecionados. Ver B-01 e I-02.                                       |
 | Atividades e realtime  | POST /activities/, GET /activities/realtime, resumo diário e exportações existem. ActivityLogCreate não contém task_id e captured_at aceita datetime opcional. | As rotas de dados não exigem JWT. Realtime não representa entrada/saída diária. O resumo agrega duration_seconds por categoria usando date(captured_at). Ver B-01, B-06 e I-06/I-07. |
 | Tasks e atribuição     | Não foi encontrado modelo, schema ou router de Tasks.                                                                                                          | Não há criação, consulta ou edição persistentes, escopo de aplicações por Task nem atribuição de colaboradores. Categorias não substituem o escopo de Task. Ver I-03.                |
@@ -419,35 +505,44 @@ Estado observado no checkout em 13/10/2026. A tabela resume a auditoria que fund
 
 <a id="proposta-tasks-crud"></a>
 
-#### PROPOSTA — NÃO IMPLEMENTADO: criar, consultar e gerenciar Tasks
+#### PROPOSTA — NÃO IMPLEMENTADO: contrato persistente para o CRUD de Tasks
+
+**Histórico de auditoria em 21/10/2026:** no checkpoint f8556a1, `devApi.createTask()` enviava POST /tasks sem barra terminal, enquanto o handler MSW declarava POST /tasks/. A execução posterior, baseada no checkout `a20750c`, reproduziu 501 no teste integrado, alinhou cliente e handler em `/tasks/` e validou o fluxo local; essa correção foi registrada em `fc3132a`. I-03 continua proposta não implementada até o Backend publicar o CRUD real.
 
 **Necessidade e referências:** RF-06 e RF-11, RN-03 e RN-04, CA-02 a CA-04 e pendência I-03. O RF-06 pede criação/edição pelo Dashboard, descrição, colaboradores e aplicações no escopo. Consultar Tasks persistidas também é necessário para TasksPage. Criar ou editar uma Task não inicia monitoramento; início, encerramento, ciência do colaborador e envio de task_id dependem de contratos próprios do Agent.
 
-| Método | Endpoint candidato     | Uso proposto                                         |
-| ------ | ---------------------- | ---------------------------------------------------- |
-| GET    | /tasks                 | Listar Tasks do gestor autenticado.                  |
-| POST   | /tasks                 | Criar uma Task persistente.                          |
-| GET    | /tasks/{task_id}       | Consultar uma Task do gestor autenticado.            |
-| PATCH  | /tasks/{task_id}       | Editar campos da Task; não inicia monitoramento.     |
-| PUT    | /tasks/{task_id}/scope | Substituir a lista completa de aplicações do escopo. |
+| Método | Endpoint candidato     | Uso proposto                                                            |
+| ------ | ---------------------- | ----------------------------------------------------------------------- |
+| GET    | /tasks/                | Listar Tasks do gestor autenticado.                                     |
+| POST   | /tasks/                | Criar Task com título, descrição e colaboradores.                       |
+| GET    | /tasks/{task_id}       | Consultar uma Task do gestor autenticado.                               |
+| PUT    | /tasks/{task_id}       | Substituir título, descrição e colaboradores; não inicia monitoramento. |
+| DELETE | /tasks/{task_id}       | Remover ou arquivar após decisão de retenção do histórico.              |
+| PUT    | /tasks/{task_id}/scope | Substituir a lista completa de aplicações do escopo.                    |
 
-Não se propõe exclusão física. Retenção de registros e arquivamento devem ser decididos antes de expor exclusão ou estados de ciclo de vida.
+Os métodos do CRUD acima são uma proposta alinhada à interface demonstrada e aos caminhos de coleção e item descritos pela issue #133; ainda não são contrato confirmado nem implementação do Backend. A issue #133 está aberta e pede CRUD persistente, atribuição e autorização. A issue #134 também está aberta; sua UI parcial continua usando somente o serviço demonstrativo. A exclusão da interface só existe nos mocks; retenção de registros e arquivamento devem ser decididos antes de implementar o `DELETE` real. A rota local foi alinhada a `/tasks/` para não deixar a demonstração exercitar um caminho divergente da issue.
 
-**Parâmetros e schemas candidatos:** task_id é UUID no caminho. GET /tasks não exige filtro nesta proposta; paginação, ordenação e filtros por estado ainda precisam ser definidos. POST recebe description. PATCH aceita description e exige ao menos um campo alterável. PUT /tasks/{task_id}/scope substitui o conjunto integral do escopo, não é incremental.
+`PUT /tasks/{task_id}/scope` é uma extensão candidata para o escopo de aplicações, não uma rota descrita pela issue #133 nem existente no Backend. Só deve ser adotada após confirmação explícita do contrato e da regra de negócio.
+
+**Parâmetros e schemas candidatos:** task_id é UUID no caminho. GET /tasks não exige filtro nesta proposta; paginação, ordenação e filtros por estado ainda precisam ser definidos. POST recebe `title`, `description` e `collaborator_ids`. PUT substitui esses mesmos campos integralmente. A UI atual exige título e descrição não vazios, descrição de até 200 caracteres e pelo menos um colaborador; os limites e regras definitivos precisam ser acordados no Backend/produto. PUT /tasks/{task_id}/scope substitui o conjunto integral do escopo, não é incremental.
 
 Requisição de criação:
 
 ```json
 {
-  "description": "Revisar o relatório mensal"
+  "title": "Relatório mensal",
+  "description": "Revisar o relatório mensal",
+  "collaborator_ids": ["d94a4d6c-8542-4c3e-889b-89db302ef4cc"]
 }
 ```
 
-Requisição de edição:
+Requisição candidata de edição integral:
 
 ```json
 {
-  "description": "Revisar e publicar o relatório mensal"
+  "title": "Relatório mensal",
+  "description": "Revisar e publicar o relatório mensal",
+  "collaborator_ids": ["d94a4d6c-8542-4c3e-889b-89db302ef4cc"]
 }
 ```
 
@@ -464,24 +559,32 @@ Resposta candidata, usada em GET /tasks/{task_id} e nos itens da listagem:
 ```json
 {
   "id": "6e7b94da-5651-46a0-bf28-fcb8f4f14c04",
+  "title": "Relatório mensal",
   "description": "Revisar o relatório mensal",
+  "collaborators": [
+    {
+      "id": "d94a4d6c-8542-4c3e-889b-89db302ef4cc",
+      "username": "ana",
+      "full_name": "Ana Souza"
+    }
+  ],
   "applications": [{ "process_name": "EXCEL.EXE" }, { "process_name": "POWERPNT.EXE" }],
   "created_at": "2026-10-13T14:20:00Z",
   "updated_at": "2026-10-13T14:20:00Z"
 }
 ```
 
-A listagem responde com um array desses objetos. Os campos e schemas são candidatos, não implementados.
+A listagem responde com um array desses objetos. Os campos e schemas são candidatos, não implementados. O mock de desenvolvimento aceita os mesmos campos básicos sem `applications`; o contrato do escopo de aplicações continua separado.
 
 **Validação, autorização e respostas:**
 
-- description não pode ficar vazia depois de remover espaços. O limite máximo deve ser definido e aplicado pelo Backend; nenhum limite numérico de negócio foi confirmado. O mock de desenvolvimento atual limita a 200 caracteres, mas esse comportamento local não confirma o limite do contrato ou da regra de negócio.
+- title e description não podem ficar vazios depois de remover espaços. O mock limita description a 200 caracteres; esse valor local não confirma o limite do contrato ou da regra de negócio.
 - Cada aplicação do escopo precisa de identificador estável. Rejeitar duplicatas e entradas vazias. A escolha entre nome de processo, executável, padrão ou outra chave permanece pendente.
 - task_id deve ser UUID e o servidor deve confirmar que a Task pertence ao gestor autenticado.
-- Todas as rotas exigem JWT de gestor e limitam leitura/escrita às Tasks desse gestor. IDs enviados pelo browser não concedem acesso.
-- POST responde 201; consultas e edição respondem 200; 401 sem autenticação; 404 se inexistente ou fora do escopo; 409 para conflito de estado, por exemplo alteração incompatível com execução ativa, depois que a regra for acordada; 422 para payload inválido; 5xx para indisponibilidade.
+- Todas as rotas exigem JWT de gestor e limitam leitura/escrita às Tasks desse gestor e aos colaboradores da equipe. IDs enviados pelo browser não concedem acesso.
+- POST responde 201; consultas/edição respondem 200; exclusão deve definir 200 ou 204 após decidir entre arquivar e remover; 401 sem autenticação; 404 se inexistente ou fora do escopo; 409 para conflito de estado após definição de regra; 422 para payload inválido; 5xx para indisponibilidade.
 
-**Impacto e dependências:** TasksPage só poderá passar de informativa para CRUD depois da implementação e publicação do contrato. O frontend deverá validar schemas, exibir erros e distinguir carregamento, lista vazia e falha; esta proposta não adiciona chamadas. Backend precisa de modelo/migração, schemas, router, relação com gestor, persistência do escopo e regras transacionais/histórico. O Agent precisa receber lista/escopo e só registrar atividade durante execução consentida. A liderança define identidade e correspondência de aplicações, campos obrigatórios, limite de description, arquivamento/exclusão e efeito de alterar escopo durante Task ativa.
+**Impacto e dependências:** a prévia de produção só poderá se tornar CRUD integrado depois da implementação e publicação do contrato. A camada visual e seus testes de serviço simulado já existem; a API de produção ainda precisa validar schemas, autorizar gestor, persistir escopo/histórico e decidir semântica de exclusão. O Agent precisa receber lista/escopo e só registrar atividade durante execução consentida. A liderança define identidade e correspondência de aplicações, campos obrigatórios, limites, arquivamento/exclusão e efeito de alterar escopo durante Task ativa.
 
 <a id="proposta-task-collaborators"></a>
 
@@ -493,6 +596,8 @@ A listagem responde com um array desses objetos. Os campos e schemas são candid
 | ------ | ------------------------------ | ----------------------------------------------------------- |
 | GET    | /tasks/{task_id}/collaborators | Consultar colaboradores atribuídos a uma Task do gestor.    |
 | PUT    | /tasks/{task_id}/collaborators | Substituir o conjunto completo de colaboradores atribuídos. |
+
+Estas rotas são uma alternativa de desenho caso o Backend queira separar atribuições do recurso Task. A proposta principal de CRUD acima já inclui `collaborator_ids` em POST/PUT; a implementação deve escolher um único formato, sem manter dois contratos concorrentes.
 
 Requisição candidata:
 
@@ -585,7 +690,7 @@ Endpoint e schemas são candidatos, não implementados. O JWT de Agent deve ter 
 - Consulta: 401 sem JWT; 404 ou 409 se não houver código ativo, conforme decisão de produto; 5xx em falha do serviço.
 - Associação: 422 para payload malformado; 404 ou 410 para código inválido/expirado; 409 para vínculo existente ou conflito; 429 para excesso de tentativas; 5xx em falha. O Agent mapeia vários desses status como código inválido, mas a tolerância do cliente não define o contrato do servidor.
 - Associação válida deve persistir o vínculo e emitir credencial de Agent. Código inválido não cria usuário, vínculo ou sessão.
-- O card visual permanece fora do MVP e sem chamada de API. Após aprovar a sessão do gestor, o frontend poderá consultar o código e tratar indisponibilidade, erro e cópia. O frontend nunca reutiliza o token do Agent.
+- O card visual permanece oculto e sem chamada de API até existir contrato real de código. A sessão do gestor já está integrada no frontend; depois que o backend definir a rota e o escopo de autorização, será possível consultar o código e tratar indisponibilidade, erro e cópia. O frontend nunca reutiliza o token do Agent.
 - Backend precisa de campo/entidade, geração segura, endpoint autenticado, associação, vínculo persistente e credenciais distintas por tipo de cliente. O Agent já envia o payload e protege o token com DPAPI; schema final precisa ser alinhado. A liderança define geração sob demanda/no cadastro, expiração, rotação, revogação, reutilização/uso único, tentativas, troca de gestor e identidade duradoura do Agent.
 
 ### B-01 — Autorização e isolamento por gestor
@@ -611,13 +716,15 @@ Authorization: Bearer <JWT_DO_GESTOR>
 
 A resposta candidata é um array de UserOut limitado aos colaboradores associados ao gestor. GET /users/ existe, mas autenticação JWT e filtro de equipe ainda não estão implementados. POST /activities/ é usado pelo Agent e precisa de autenticação de Agent, identidade associada e autorização do vínculo; não se deve proteger essa rota com JWT de gestor sem definir fluxo compatível. Categorias e configuração global exigem decisão de propriedade antes de receber filtros.
 
+No acompanhamento do Agent, `GET /activities/realtime` também retorna `hostname`, mas a interface não o exibe nem oferece filtro por máquina enquanto a API entrega usuários e capturas sem escopo por gestor. Antes de apresentar esse identificador, o Backend deve autenticar o gestor e restringir tanto `/users/` quanto `/activities/realtime` aos vínculos autorizados; o Agent também precisa de identidade persistente associada. Filtros locais da interface não substituem esse controle.
+
 - O servidor deriva manager_id dos claims validados do JWT, rejeita manager_id enviado pelo cliente e filtra toda leitura, escrita e exportação.
 - Operações sobre IDs de Task, usuário ou registro verificam o vínculo no banco em cada requisição, inclusive relações aninhadas.
 - JWT de gestor tem audiência de gestor. A credencial proposta do Agent tem audiência distinta e direitos mínimos para a identidade associada.
 - Respostas propostas: 401 para token ausente/inválido/expirado; 403 para identidade autenticada sem função exigida; 404 para recurso fora do escopo, sem revelar existência; 422 para filtro/payload inválido.
 - Exportações e filtros por username, task_id e data delimitam a consulta, mas nunca substituem autorização.
-- O MVP aprovado segue sem login e as chamadas atuais permanecem inalteradas. Antes de integrar sessão, o Backend deve proteger rotas e isolar dados; após decisão de produto, o frontend implementaria Bearer, expiração, logout e tratamento de 401. Esconder páginas ou filtrar tabelas localmente não protege a API.
-- Backend precisa de relações Manager–User–Task–Activity, dependências de autorização nos routers, isolamento nas exportações, testes de acesso cruzado e decisão sobre /config/ e categorias globais. O Agent precisa de identidade e autorização próprias para associação e atividade. A liderança aprova a estratégia de sessão pós-MVP e confirma a política de configuração e credenciais.
+- O MVP de apresentação de 13/10 foi aprovado sem login; em 21/10, a issue #138 retomou a integração. O frontend agora envia Bearer e guarda páginas, mas nada disso muda a política do servidor. Esconder páginas ou filtrar tabelas localmente não protege a API.
+- Backend precisa de relações Manager–User–Task–Activity, dependências de autorização nos routers, isolamento nas exportações, testes de acesso cruzado e decisão sobre `/config/` e categorias globais. O Agent precisa de identidade e autorização próprias para associação e atividade. A estratégia de sessão usada pela interface é `sessionStorage`; a liderança ainda pode decidir se esse armazenamento é temporário ou se há migração para cookie `HttpOnly`.
 
 ### I-06 — Registros diários e horas por Task
 
@@ -664,32 +771,38 @@ Os campos date, timezone, users, username, first_activity_at e last_activity_at 
 
 **Necessidade e referências:** RN-19, RF-24, RF-27 e I-06. A direção aprovada pela liderança é apresentar horas gastas por Task, sem rankings, notas ou comparações de desempenho. O resumo atual agrupa por categoria e não pode ser usado como tempo por Task.
 
-**Endpoint candidato:** GET /dashboard/task-hours com start_date e end_date obrigatórios e username/task_id opcionais.
+**Endpoint candidato alinhado à issue #140 e à interface de demonstração:** GET /dashboard/tasks-summary com `date` obrigatório e `username`/`task_id` opcionais. A agregação por período de múltiplos dias segue em aberto e não deve ser presumida pela rota diária.
 
 ```json
 {
-  "start_date": "2026-10-01",
-  "end_date": "2026-10-13",
+  "date": "2026-10-13",
   "timezone": "America/Sao_Paulo",
   "tasks": [
     {
       "task_id": "6e7b94da-5651-46a0-bf28-fcb8f4f14c04",
-      "description": "Revisar o relatório mensal",
-      "total_seconds": 28800
+      "title": "Relatório mensal",
+      "total_seconds": 28800,
+      "collaborators": [
+        {
+          "id": "d94a4d6c-8542-4c3e-889b-89db302ef4cc",
+          "username": "ana",
+          "full_name": "Ana Souza"
+        }
+      ]
     }
   ]
 }
 ```
 
-O endpoint, os parâmetros e todos os campos de resposta são candidatos, não implementados. total_seconds é um nome proposto para duração agregada de atividade vinculada à Task. Inclusão de períodos inativos ou fora do escopo ainda requer aprovação.
+O endpoint, os parâmetros e todos os campos de resposta são candidatos, não implementados. A resposta inclui `date`, `timezone` e `tasks`; cada item identifica Task/título, `total_seconds` e colaboradores. `task_id: null` pode representar registros sem Task apenas se a regra de negócio aprovar essa categoria. O mock local retorna sempre `tasks: []` e serve para validar estados da interface, não a agregação nem dados de produção. `total_seconds` é duração agregada de atividade vinculada à Task; inclusão de períodos inativos ou fora do escopo ainda requer aprovação.
 
-- start_date e end_date são datas válidas, obrigatórias, inclusivas e interpretadas no timezone declarado.
+- `date` é uma data válida no fuso declarado; filtros por período e seus limites ainda precisam de definição para análises de vários dias.
 - username e task_id são filtros opcionais limitados ao gestor autenticado; task_id é UUID.
-- end_date não pode anteceder start_date. O Backend deve definir período máximo para limitar custo da consulta.
+- O Backend deve definir período máximo para limitar custo de uma futura consulta por período.
 - Agregar somente registros com vínculo persistido com Task. Não deduzir task_id por categoria, aplicação, janela ativa ou estado realtime.
-- Ordenação estável por descrição/identificador; nunca ordenar por duração para formar ranking. Não incluir pontuação nem comparar desempenho entre colaboradores.
-- Consulta válida sem registros responde 200 com tasks: []. Respostas de erro propostas: 401 sem autenticação; 404 para filtro fora do escopo; 422 para período/UUID inválido; 5xx para indisponibilidade.
-- O Dashboard só mostra horas reais por Task depois que cada registro estiver ligado à Task correta e a regra de duração aprovada. A visualização respeita período, colaborador e Task.
+- Ordenação estável por título/identificador; nunca ordenar por duração para formar ranking. Não incluir pontuação nem comparar desempenho entre colaboradores.
+- Consulta válida sem registros responde 200 com `tasks: []`. Respostas de erro propostas: 401 sem autenticação; 404 para filtro fora do escopo; 422 para data/UUID inválido; 5xx para indisponibilidade.
+- O filtro desta interface afeta apenas o card de resumo por Task; não altera métricas gerais ou categorias. O Dashboard só pode mostrar horas reais por Task depois que cada registro estiver ligado à Task correta e a regra de duração aprovada.
 - Backend precisa persistir vínculo entre Task e registros/períodos, implementar agregação autorizada e idempotência (B-06). Agent precisa enviar task_id correto após seleção, início/fim e ciência do colaborador. A liderança decide se horas incluem inatividade, aplicações fora do escopo e períodos sem atividade, e se Tasks sem registro entram com zero ou são omitidas.
 
 ### I-07 — Datas e fusos horários
@@ -730,21 +843,21 @@ A resposta segue o schema candidato de registros diários acima; a mesma regra v
 | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Backend                              | Persistir Tasks, escopo, atribuições, vínculo gestor–colaborador e vínculo de atividades com Task; implementar schemas/rotas; proteger e filtrar por identidade; agregar dados diários e por Task; aplicar timezone; definir idempotência e erros.       |
 | Agent                                | Consumir associação e credencial apropriada; listar Tasks autorizadas; exigir ciência antes do monitoramento; enviar task_id e timestamps consistentes; encerrar/trocar execução sem sobreposição. O payload atual de atividade ainda não envia task_id. |
-| Liderança/produto                    | Decidir semântica, ciclo de vida, associação, duração agregada, sessão e configuração regional/global listadas abaixo; as decisões já aprovadas permanecem preservadas.                                                                                  |
+| Liderança/produto                    | Decidir semântica, ciclo de vida, associação, duração agregada, política de longo prazo do armazenamento de sessão e configuração regional/global listadas abaixo; decisões já aprovadas permanecem preservadas.                                         |
 | Frontend, após contratos disponíveis | Integrar somente endpoints e schemas confirmados, distinguindo estados de erro/vazio/carregamento. Esta proposta não adiciona chamadas nem altera a apresentação aprovada do MVP.                                                                        |
 
 <a id="decisoes-pendentes-lideranca"></a>
 
 ### Decisões pendentes da liderança
 
-As decisões aprovadas continuam válidas: Dashboard sem rankings, exibição de horas gastas por Task, Agent offline após mais de 15 minutos sem novo registro no banco da máquina, fuso de Brasília como referência, autenticação do frontend adiada no MVP e associação gestor–colaborador dependente do Backend. As perguntas abaixo tratam dos detalhes ainda abertos e não reabrem essas decisões.
+As decisões aprovadas continuam válidas: Dashboard sem rankings, exibição de horas gastas por Task, Agent offline após mais de 15 minutos sem novo registro no banco da máquina e fuso de Brasília como referência. A decisão de adiar autenticação pertence ao MVP de 13/10; a issue #138 aberta em 21/10 e esta execução retomaram a sessão frontend. Associação gestor–colaborador continua dependente do Backend. As perguntas abaixo tratam dos detalhes ainda abertos e não reabrem essas decisões.
 
 1. Quais campos definem uma Task e qual o limite da descrição? A Task padrão solicitada para a Sprint 2 será seed, configuração ou registro operacional? Como identificar aplicação do escopo (nome exato de processo, executável ou regra)? Como arquivar ou excluir Task com histórico?
 2. Uma Task aceita vários colaboradores? O que acontece com execução ativa ao alterar escopo ou remover colaborador? O Agent recebe uma atualização pendente de ciência?
 3. “Horas gastas por Task” inclui tempo inativo, aplicação fora do escopo e intervalos sem atividade? Tasks sem registro aparecem com zero? A lista em ordem estável por descrição/identificador atende à decisão aprovada de não usar rankings?
 4. A consulta diária inclui todos os colaboradores associados sem registro, com timestamps nulos, ou apenas quem tem eventos? O produto quer primeiro/último registro ou eventos explícitos de entrada e saída?
 5. O código de associação expira, é rotativo, reutilizável ou de uso único? Qual o limite de tentativas? username e hostname identificam o Agent de modo suficiente ou é necessário identificador persistente?
-6. Qual estratégia de sessão do gestor será usada depois do MVP? A configuração global e as categorias permanecem globais ou passam a pertencer a cada gestor?
+6. `sessionStorage` foi adotado para a issue #138. A liderança pretende mantê-lo como escolha de produto ou planejar migração para cookie `HttpOnly` com proteção CSRF? A configuração global e as categorias permanecem globais ou passam a pertencer a cada gestor?
 7. O timezone America/Sao_Paulo vale por instalação ou gestor? Qual variável de ambiente será adotada? Como tratar captured_at sem offset?
 8. Qual política de conflito/status deve ser usada para 403/404/409 nos endpoints aninhados?
 
@@ -768,3 +881,42 @@ As decisões aprovadas continuam válidas: Dashboard sem rankings, exibição de
 3. Definir jornada, conexão, consultas completas e fuso (I-04 a I-07).
 4. Integrar UI e validar serviço real (F-01/I-08), decidir PWA e matriz de suporte (F-02/F-03).
 5. Atualizar o inventário técnico do requisito de responsividade (D-01) com os mantenedores de `requisitos/`.
+
+<a id="auditoria-de-continuacao--21102026"></a>
+
+## Auditoria de continuação — 21/10/2026
+
+O checkout inicial estava limpo em `e14d831b973f9160c2ff3434b9c53578f90bc156`. A `main` oficial consultada pelo GitHub era `230fc7fac1374941dcb26b1d507494aa6450234f`; o compare oficial confirmou sete commits à frente e nenhum commit atrás. A PR #128 permanecia aberta e não recebeu alterações nesta execução. O diretório `requisitos/` não teve commits desde 22/09/2026. Nenhum fetch Git foi feito para não alterar `.git` fora do escopo.
+
+### Evidências desta rodada
+
+- `TaskForm` impede submit durante carga/falha de colaboradores, valida cada ID contra o catálogo concluído, permite remover uma associação que deixou de existir e associa alertas aos campos. O retry não fica preso dentro de um fieldset desabilitado.
+- A criação limpa o rascunho após sucesso. Uma falha preserva valores. Na edição, uma resposta nova do mesmo ID sincroniza o formulário apenas enquanto ele está limpo; texto digitado é preservado. Cancelamento e remoção do catálogo limpam a edição/seleção correspondente.
+- `useTasks` ignora listagens iniciadas antes de uma mutação concluída. O Dashboard cancela requisições anteriores, rejeita resumo de outra data, atualiza catálogo e resumo no ciclo de 30 segundos existente e limpa filtro de Task excluída; métricas gerais não dependem de `task_id`.
+- As barras do resumo expõem proporção acessível e duração inválida não vira zero. Uma resposta com `task_id: null` aparece como “Sem Task / Atividades Gerais”. Os mocks não geram segundos.
+- O login em andamento recebe `AbortSignal`; logout aborta a operação. Um token salvo que não tenha três segmentos JWT é descartado antes da consulta de identidade. `403` mantém a sessão, como já coberto na camada HTTP.
+- MSW exige o Bearer da sessão demonstrativa nos recursos de dados e as rotas de Task usam `/tasks/`. O mock representa uma única identidade fixa; não simula isolamento multi-gestor nem `403` entre equipes e não comprova autorização do servidor.
+
+### Situação oficial e técnica das issues relacionadas
+
+| Issue                                                                                                                                                                                                                                                                                                  | Estado oficial em 21/10 | Estado técnico nesta rodada                       | Evidência frontend                                                                                                                                            | Dependência e próximo aceite                                                                                      |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| [#129](https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/129)                                                                                                                                                                                                                               | Aberta                  | Bloqueada                                         | Tela real desabilitada; demonstração de Tasks isolada.                                                                                                        | Backend #133 e Agent #135/#136 devem entregar persistência, equipe, associação e execução para a issue pai.       |
+| [#133](https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/133)                                                                                                                                                                                                                               | Aberta                  | Dependência externa                               | Router/modelo/schema de Tasks não existe no Backend inspecionado; issue define `/tasks/`.                                                                     | Backend: CRUD autenticado, atribuição a usuário do gestor, 401/403/404/422 e testes de escopo.                    |
+| [#134](https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/134)                                                                                                                                                                                                                               | Aberta                  | Parcial                                           | `TasksPage`, `TaskForm`, `TaskList`, `useTasks`; Vitest cobre create/update/delete, validação, retry, rascunho, mesmo ID, ID inválido e resposta concorrente. | Continua parcial até conectar a API persistente, obter colaboradores da equipe e homologar operações reais.       |
+| [#98](https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/98)                                                                                                                                                                                                                                 | Aberta                  | Parcial                                           | `DashboardFilters` e `DashboardPage` cobrem filtros combinados, catálogo indisponível e remoção de Task sem alterar indicadores gerais.                       | O catálogo real e o filtro de atividade exigem contrato/`task_id` do Backend e Agent.                             |
+| [#140](https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/140)                                                                                                                                                                                                                               | Aberta                  | UI demonstrativa parcial                          | `useTaskAnalytics` cobre cancelamento, ordem de resposta, data e atualização; `TaskSummaryCard` agrupa “Sem Task / Atividades Gerais”.                        | Backend precisa persistir `task_id`, escopar equipe e agregar segundos reais por data; ainda não está homologado. |
+| [#137](https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/137)                                                                                                                                                                                                                               | Aberta                  | Bloqueada por Backend                             | Bearer e guarda frontend não tornam protegidas as rotas do servidor.                                                                                          | Backend deve aplicar identidade/escopo a cada rota, separar token do Agent e provar isolamento entre gestores.    |
+| [#138](https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/138)                                                                                                                                                                                                                               | Aberta                  | Parcial                                           | Sessão do frontend e testes de JWT sintático, restauração, logout/401/403 e cancelamento de login.                                                            | Falta validação ponta a ponta com API autorizada; issue segue aberta e depende da autorização #137.               |
+| [#112](https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/112)                                                                                                                                                                                                                               | Fechada                 | Implementada no Frontend; API real não homologada | Cadastro/login, sessão de aba, restauração e logout cobertos por Vitest.                                                                                      | A issue oficial está fechada; a confirmação do backend fica separada da implementação local.                      |
+| [#105](https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/105), [#113](https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/113), [#114](https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/114), [#115](https://github.com/fabrica-bayarea/TimeTracker-2026-2/issues/115) | Abertas                 | Bloqueadas por contrato/backend                   | O card não gera código e o frontend não chama rotas de associação presumidas.                                                                                 | Backend define geração/consulta, expiração, vínculo, autorização e erros; Agent precisa validar o fluxo.          |
+
+### Critérios para retirar os bloqueios externos
+
+1. Backend publica `GET/POST /tasks/` e rotas de item; testes comprovam propriedade da Task, colaborador da mesma equipe, 401 sem token e 403/404 fora do escopo.
+2. Contrato define atualização, exclusão/arquivamento e política dos registros históricos; Frontend valida resposta, atribuições e mensagens com API de homologação.
+3. Agent persiste e envia `task_id`; Backend agrega dados válidos por equipe e data, agrupa vínculos ausentes/excluídos sob “Sem Task / Atividades Gerais” e testa totais.
+4. Backend protege rotas atuais de usuários, realtime, resumo, exportação e configuração com identidade do gestor; teste negativo comprova isolamento entre dois gestores.
+5. Backend publica o código de associação e endpoint autenticado de consulta; testes cobrem seis dígitos como string, 401, expiração e associação válida/inválida.
+
+As validações executadas nesta rodada e os resultados exatos de Vitest, cobertura, lint, formato, typecheck, build, E2E e API real estão em [Testes](TESTES.md) e [Relatório](RELATORIO_EXECUCAO_FRONTEND.md). Os dados mockados continuam sem persistência real.

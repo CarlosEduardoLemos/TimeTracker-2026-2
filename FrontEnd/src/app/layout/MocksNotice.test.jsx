@@ -8,6 +8,7 @@ describe('aviso de mocks', () => {
     expect(screen.getByRole('note', { name: 'Aviso de dados simulados' })).toHaveTextContent(
       'DADOS SIMULADOS',
     );
+    expect(screen.getByRole('note')).toHaveTextContent(/não acessam nem gravam dados reais/i);
   });
 
   it('não aparece fora do modo de mocks', () => {
