@@ -4,6 +4,7 @@ Este guia distingue verificação automatizada, build e verificações manuais a
 
 ## Auditoria e validação da US-16.1 — 22/10/2026
 
+- Base da auditoria: branch `main`, HEAD `30980577145a8f42a2310be981abadf0149dc38f`; a árvore estava limpa antes desta atualização do registro de testes. O commit contém somente alterações em `FrontEnd/`.
 - A revisão local confirmou que `backend/app/routers/dashboard.py` não declara `/dashboard/tasks-summary`; `backend/app/schemas.py` não define resposta de agregação por Task e `ActivityLogCreate` não contém `task_id`. A proposta em [Pendências — agregação de horas por Task](PENDENCIAS.md#proposta-task-hours) continua sem implementação no contrato atual.
 - A prévia de produção continua sem chamada presumida. A suíte de componentes, hook, validadores e página mantém cobertura da demonstração, filtros, descarte de respostas antigas, cancelamento, estados de erro/vazio/carregamento e separação dos indicadores gerais.
 - Foi acrescentado um caso ao cartão para fixar que `total_seconds: 0` é um valor válido, com duração zero e barra acessível em 0%, mantendo o rótulo de demonstração.
@@ -11,6 +12,7 @@ Este guia distingue verificação automatizada, build e verificações manuais a
 - `npm.cmd run lint`, `npm.cmd run format:check` e `npm.cmd run typecheck`: passaram.
 - `npm.cmd run test:coverage`: **297 testes em 58 arquivos passaram**. Cobertura V8: **93,30% statements, 89,67% branches, 95,06% functions e 95,49% lines**; os limites configurados passaram.
 - `npm.cmd run build`: passou com Vite 6.4.4; o verificador confirmou que handlers, worker e rotas dos mocks não entraram no bundle de produção.
+- `npm.cmd run test:bundle`: **4 verificações passaram** para exclusão de mocks e rotas demonstrativas no bundle.
 - `npm.cmd run test:e2e`: **32 cenários, 30 passaram, 0 falharam e 2 testes de API real foram ignorados** porque exigem serviço/credenciais configurados. Acessibilidade automatizada do Dashboard passou no E2E.
 - Não houve chamada à API real nem execução de testes de Backend/Agent. Sem contrato e rota disponíveis, a integração real, autorização/isolamento e validação dos totais no servidor permanecem pendentes.
 
