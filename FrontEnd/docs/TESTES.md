@@ -1,6 +1,18 @@
 # Testes e validação do frontend
 
-Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026**, **13/10/2026** e **16/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
+Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026**, **13/10/2026**, **16/10/2026** e **22/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
+
+## Auditoria e validação da US-16.1 — 22/10/2026
+
+- A revisão local confirmou que `backend/app/routers/dashboard.py` não declara `/dashboard/tasks-summary`; `backend/app/schemas.py` não define resposta de agregação por Task e `ActivityLogCreate` não contém `task_id`. A proposta em [Pendências — agregação de horas por Task](PENDENCIAS.md#proposta-task-hours) continua sem implementação no contrato atual.
+- A prévia de produção continua sem chamada presumida. A suíte de componentes, hook, validadores e página mantém cobertura da demonstração, filtros, descarte de respostas antigas, cancelamento, estados de erro/vazio/carregamento e separação dos indicadores gerais.
+- Foi acrescentado um caso ao cartão para fixar que `total_seconds: 0` é um valor válido, com duração zero e barra acessível em 0%, mantendo o rótulo de demonstração.
+- `npm.cmd run test -- src/features/dashboard/components/TaskSummaryCard.test.jsx`: **1 arquivo e 4 testes passaram**.
+- `npm.cmd run lint`, `npm.cmd run format:check` e `npm.cmd run typecheck`: passaram.
+- `npm.cmd run test:coverage`: **297 testes em 58 arquivos passaram**. Cobertura V8: **93,30% statements, 89,67% branches, 95,06% functions e 95,49% lines**; os limites configurados passaram.
+- `npm.cmd run build`: passou com Vite 6.4.4; o verificador confirmou que handlers, worker e rotas dos mocks não entraram no bundle de produção.
+- `npm.cmd run test:e2e`: **32 cenários, 30 passaram, 0 falharam e 2 testes de API real foram ignorados** porque exigem serviço/credenciais configurados. Acessibilidade automatizada do Dashboard passou no E2E.
+- Não houve chamada à API real nem execução de testes de Backend/Agent. Sem contrato e rota disponíveis, a integração real, autorização/isolamento e validação dos totais no servidor permanecem pendentes.
 
 ## Revalidação documental e completa — 21/10/2026
 

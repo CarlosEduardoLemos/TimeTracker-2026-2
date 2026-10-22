@@ -60,6 +60,31 @@ describe('TaskSummaryCard', () => {
     expect(screen.queryByText(/Total consolidado:/)).not.toBeInTheDocument();
   });
 
+  it('preserva uma Task válida com duração zero sem convertê-la em ausência de dados', () => {
+    render(
+      <TaskSummaryCard
+        demo
+        date={summary.date}
+        summary={{
+          ...summary,
+          tasks: [
+            {
+              task_id: '6e7b94da-5651-46a0-bf28-fcb8f4f14c04',
+              title: 'Task sem duração',
+              total_seconds: 0,
+              collaborators: [],
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByText('Task sem duração')).toBeInTheDocument();
+    expect(screen.getByText('0h 00min')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0');
+    expect(screen.getByText(/Resumo simulado.*não representa atividade real/)).toBeInTheDocument();
+  });
+
   it('distingue lista vazia, erro e carregamento com retry', () => {
     const onRetry = vi.fn();
     const { rerender } = render(<TaskSummaryCard demo date={summary.date} loading />);
