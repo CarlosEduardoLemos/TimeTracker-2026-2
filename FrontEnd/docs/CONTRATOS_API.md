@@ -1,6 +1,17 @@
 # Contratos da API do Frontend
 
-Revisado em **21/10/2026** com base nos arquivos locais de `backend/app/`, `agent/` e no código de `FrontEnd/src/shared/api/`. A PR #122 do Agent e a PR #123 de autenticação foram incorporadas à `main` da organização. A PR #128 do frontend ainda está aberta na revisão deste checkout; a existência de um contrato não significa que o servidor já o proteja.
+Revalidado em **21/10/2026** no checkout local `main`, HEAD `fc3132ab5133b2ad9ea12da1e8ce1bbb987822eb`, com base nos arquivos de `backend/app/`, `agent/` e `FrontEnd/src/shared/api/`. A PR #122 do Agent e a PR #123 de autenticação foram incorporadas à `main` da organização. A PR #128 do frontend ainda estava aberta na consulta registrada anteriormente; a existência de um contrato não significa que o servidor já o proteja.
+
+## Como interpretar os status
+
+- **IMPLEMENTADO:** rota ou comportamento presente no Backend local.
+- **DEMONSTRATIVO:** rota do MSW usada somente no ambiente local de desenvolvimento.
+- **PROPOSTO:** candidato ainda sem implementação e confirmação do Backend.
+- **PARCIAL:** parte da funcionalidade existe, mas os critérios de integração ou negócio não foram concluídos.
+- **BLOQUEADO:** depende de contrato, implementação, decisão ou ambiente externo.
+- **AGUARDANDO VALIDAÇÃO:** implementação existe, mas ainda não foi homologada contra serviço real.
+- **HISTÓRICO:** estado registrado para o checkpoint indicado, mantido para rastreabilidade.
+- **RESOLVIDO:** pendência específica concluída no escopo descrito. F-04 está resolvida somente para a rota demonstrativa do Frontend.
 
 ## Rotas usadas pelas telas do frontend
 
@@ -17,6 +28,8 @@ Revisado em **21/10/2026** com base nos arquivos locais de `backend/app/`, `agen
 | `PUT /config/`              | JSON com `capture_interval_seconds` e `idle_timeout_seconds` inteiros positivos | Objeto de configuração                                                                              | Sim                          | Configurações                      |
 
 O cliente envia `Authorization: Bearer <JWT>` nas chamadas de dados da tabela. **O backend inspecionado não exige esse header nessas rotas**; envio do token pelo frontend não equivale a autenticação/isolamento. O parâmetro `username` filtra uma consulta, mas não impõe autorização no servidor.
+
+`GET /dashboard/summary` e as exportações aplicam `date` e o filtro opcional `username` no Backend. A agregação atual usa a data de `captured_at` sem declarar `America/Sao_Paulo` nem outro fuso no schema da resposta; portanto, não confirma um dia de negócio em Brasília. Os campos `by_category` representam categorias de atividade recebida, não Task, escopo de aplicação ou jornada formal. CSV/PDF exportam esse mesmo resumo diário filtrado, não o relatório completo de RF-24/RF-25.
 
 ### Resposta realtime consumida pelo Dashboard e por Colaboradores
 
@@ -63,7 +76,9 @@ Recebe o mesmo par `email` e `password`; e-mail inválido ou credenciais incorre
 }
 ```
 
-`expires_in` é um inteiro positivo em segundos, calculado a partir da configuração do backend. A implementação usa JWT HS256 com audiência de gestor; o servidor controla assinatura e expiração.
+`expires_in` é um inteiro positivo em segundos, calculado por `ACCESS_TOKEN_EXPIRE_MINUTES`; o padrão local é 60 minutos (3.600 segundos). O JWT HS256 contém `sub`, `aud`, `iat` e `exp`, com audiência `time-tracker:manager`. A validação de assinatura, audiência e expiração é feita no servidor; o frontend não decodifica o token para conceder acesso.
+
+O contrato Backend de cadastro/login/JWT está **IMPLEMENTADO** no checkout. O fluxo de sessão no Frontend também está implementado, mas sua integração continua **AGUARDANDO VALIDAÇÃO** contra um serviço real autorizado. A API simulada de desenvolvimento não verifica senha real, não homologa o JWT do Backend e não altera o estado de autorização das rotas de dados; a issue #138 permanecia aberta na consulta de 21/10/2026.
 
 ### `GET /auth/me`
 
@@ -152,18 +167,28 @@ Não foi localizado modelo/schema/endpoint de consulta ou gravação persistente
 
 ### Rotas de demonstração local — MSW, não contratos do Backend
 
-Quando `import.meta.env.DEV` e `VITE_USE_MOCKS=true`, os handlers MSW oferecem as rotas abaixo para testar a interface. Elas não estão no Backend, não persistem e não devem ser usadas como evidência de integração real:
+Quando `import.meta.env.DEV` e `VITE_USE_MOCKS=true`, os handlers MSW oferecem as rotas abaixo para testar a interface. Elas não estão no Backend, não persistem e não devem ser usadas como evidência de integração real. As requisições de dados exigem o token fixo da identidade demonstrativa; o mock representa uma única identidade e não simula isolamento entre gestores nem `403` por escopo:
 
-| Método/rota                                               | Uso somente na demonstração local                                                                              |
-| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `POST /auth/register`, `POST /auth/login`, `GET /auth/me` | Identidade local de demonstração para navegar pelas rotas protegidas.                                          |
-| `GET /users/`                                             | Catálogo fixo de colaboradores demonstrativos.                                                                 |
-| `GET/POST /tasks/`, `PUT/DELETE /tasks/{task_id}`         | CRUD volátil; GET 200, POST 201, PUT 200, DELETE 200; sem sessão 401, payload inválido 422 e item ausente 404. |
-| `GET /dashboard/tasks-summary?date&username&task_id`      | Valida filtros e responde `{ date, timezone, tasks: [] }`, sem criar métricas.                                 |
+| Método/rota                                                      | Comportamento somente na demonstração local                                                                                                                                            |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /auth/register`, `POST /auth/login`, `GET /auth/me`        | Cadastro/login aceitam credenciais sintaticamente válidas e retornam identidade/token fixos de demonstração; não verificam senha real nem criam conta no Backend.                      |
+| `GET /users/`                                                    | Retorna catálogo fixo de colaboradores; não representa uma equipe autorizada no servidor.                                                                                              |
+| `GET /tasks/`, `POST /tasks/`                                    | Lista/cria Tasks em memória. Criação recebe `title`, `description`, `collaborator_ids`; limita IDs ao catálogo fixo. GET responde 200, POST 201, sem sessão 401 e corpo inválido 422.  |
+| `PUT /tasks/{task_id}`, `DELETE /tasks/{task_id}`                | Atualiza/remove item em memória; resposta 200. ID UUID inexistente responde 404; sem sessão 401; corpo inválido em PUT 422. Não há GET demonstrativo de item individual.               |
+| `GET /dashboard/tasks-summary?date&username&task_id`             | `date` é obrigatório; o handler valida a data e o formato UUID de `task_id`, mas não filtra por `username`/`task_id`. Responde `{ date, timezone, tasks: [] }` e não calcula métricas. |
+| `GET /dashboard/attendance?date&username`                        | Valida `date`, retorna horários ilustrativos fixos e filtra o catálogo por `username`; os horários não vêm de registros do Backend.                                                    |
+| `GET /dashboard/task-hours?start_date&end_date&username&task_id` | Valida intervalo, datas e formato UUID de `task_id`; não agrega nem filtra registros e responde com `tasks: []`.                                                                       |
+| `GET /agents/status?username`                                    | Retorna estados fixos de demonstração para dois Agents; o filtro por `username` é local ao mock e não atesta conexão real.                                                             |
 
-O payload demonstrativo de Task usa `title`, `description` e `collaborator_ids` na gravação; a resposta contém `id`, `title`, `description`, objetos de `collaborators` e timestamps. O mock exige o Bearer da sessão demonstrativa e limita os IDs ao catálogo fixo local. Ele usa uma única identidade simulada, não modela isolamento entre gestores nem respostas `403`; isso não equivale à autorização exigida por #137. Os formatos são candidatos de interface, não schemas aceitos por um servidor. A rota simulada `/tasks/` segue o caminho escrito na issue #133. Não há contrato real confirmado: a interface de produção permanece desabilitada e não chama essas rotas. A proposta atual de CRUD e resumo por Task está centralizada em [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao).
+Todas as rotas demonstrativas listadas são cobertas por handlers/testes locais, incluindo a integração `devApi.createTask()` + `setupServer` do MSW. Rotas que não têm handler caem no curinga de desenvolvimento e respondem 501 com indicação de que a chamada real foi bloqueada.
+
+Em `attendance`, data inválida responde 422 e a resposta fixa inclui `date`, `timezone`, `as_of` e usuários com timestamps ou valores nulos; 401 representa ausência do Bearer demonstrativo. Em `task-hours`, datas inválidas, intervalo invertido ou `task_id` malformado respondem 422; a resposta válida contém intervalo, fuso e lista vazia. Essas respostas servem para testar validação e estados da tela, não para documentar jornada ou duração real.
+
+Os formatos de Task são candidatos de interface, não schemas aceitos por um servidor. A rota demonstrativa `/tasks/` segue a grafia da coleção na issue #133. A issue #133 permanece aberta e descreve implementação persistente e autorizada no Backend; a issue #134 permanece aberta e pede integração da interface com essa API. A resolução local de F-04 cobre somente o caminho do POST demonstrativo. A interface de produção permanece desabilitada e não chama essas rotas. A proposta atual de CRUD, associação e resumo por Task está centralizada em [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao), com a recapitulação em [Proposta de contratos do Backend](PROPOSTA_CONTRATOS_BACKEND.md).
 
 O resumo por Task é independente dos indicadores gerais e do resumo por categoria. A interface não deriva tempo de categoria, janela ativa ou status realtime. Para implementar a rota real, Backend e Agent ainda precisam definir TaskId persistido, escopo/autorização, fuso e semântica da duração.
+
+O candidato canônico para o resumo diário é `GET /dashboard/tasks-summary?date&username&task_id`, alinhado à issue #140 e detalhado em [Pendências — I-06](PENDENCIAS.md#proposta-task-hours). `GET /dashboard/task-hours?start_date&end_date&username&task_id` só existe no mock e em um recorte histórico de proposta por período; não foi aprovado como segunda rota de produção. A consulta por período requer decisão explícita antes de qualquer implementação.
 
 Veja I-03 e I-04–I-07 em [Pendências](PENDENCIAS.md).
 

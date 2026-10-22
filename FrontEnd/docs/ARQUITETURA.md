@@ -109,7 +109,7 @@ Playwright executa os fluxos principais no Chrome, testa larguras de 375 a 1920 
 
 O diagrama mostra a fronteira entre chamadas reais e os recursos de demonstração. O caminho de mocks só existe em desenvolvimento quando VITE_USE_MOCKS=true; os handlers simulam dados e não substituem os routers do Backend.
 
-~~~mermaid
+```mermaid
 flowchart LR
   Entry[src/main.jsx] --> App[src/app/App.jsx]
   App --> Routes[src/app/routes.js]
@@ -122,22 +122,22 @@ flowchart LR
   DevClient --> Worker
   Worker --> Handlers[src/dev-mocks/handlers.js]
   Handlers -.->|respostas temporárias| Features
-~~~
+```
 
 O cliente HTTP real atende resumo, usuários, realtime, configurações, exportações e sessão do gestor. O serviço de desenvolvimento atende o CRUD de demonstração e os dados analíticos simulados. No build de produção, o verificador em scripts/verify-production-bundle.mjs impede a inclusão dos handlers, do worker e das rotas simuladas. A API real não declara roteador de Tasks, presença diária ou agregação de horas por Task; consulte [Contratos](CONTRATOS_API.md).
 
 ### Rastreabilidade por responsabilidade
 
-| Responsabilidade | Implementação principal | Testes representativos | Referências |
-| --- | --- | --- | --- |
-| Inicialização e rotas protegidas | src/main.jsx, src/app/App.jsx, src/app/routes.js, src/shared/auth/ManagerSession.jsx | src/app/App.test.jsx, src/shared/auth/ManagerSession.test.jsx | RF-02, issues #112/#138, I-01/B-01 em [Pendências](PENDENCIAS.md) |
-| Cliente HTTP e validação de contratos | src/shared/api/api.js, contracts.js, validators.js | src/shared/api/api.test.js, validators.test.js | [Contratos da API](CONTRATOS_API.md) |
-| Painel e atualização independente de fontes | src/features/dashboard/pages/DashboardPage.jsx, hooks/useDashboardData.js, hooks/useAutoRefresh.js | DashboardPage.test.jsx, useDashboardData.test.js, useAutoRefresh.test.js | RF-27, issues #98/#102/#109, I-06/I-07 |
-| Tasks demonstrativas | src/features/tasks/pages/TasksPage.jsx, hooks/useTasks.js, dev-mocks/handlers.js | TasksPage.test.jsx, useTasks.test.js, dev-mocks/handlers.test.js | RF-06/RF-11, issue #134, proposta I-03 |
-| Resumo demonstrativo por Task | src/features/dashboard/hooks/useTaskAnalytics.js, components/TaskSummaryCard.jsx | useTaskAnalytics.test.js, TaskSummaryCard.test.jsx | issue #140, proposta I-06 |
-| Colaboradores e leituras realtime | src/features/collaborators/hooks/useCollaboratorsData.js, lib/agentFilters.js | CollaboratorsPage.test.jsx, agentFilters.test.js | RF-05/RF-16, B-01/I-02/I-05 |
-| Exportações diárias | src/features/reports/hooks/useReportExport.js, src/shared/api/api.js | useReportExport.test.js, ReportsPage.test.jsx | RF-24/RF-25, CA-07, I-06/I-08 |
-| Configuração global | src/features/settings/hooks/useSettings.js, components/SettingsForm.jsx | SettingsPage.test.jsx, src/shared/api/api.test.js | RF-20/RF-21, B-04/B-09 |
+| Responsabilidade                            | Implementação principal                                                                            | Testes representativos                                                   | Referências                                                       |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| Inicialização e rotas protegidas            | src/main.jsx, src/app/App.jsx, src/app/routes.js, src/shared/auth/ManagerSession.jsx               | src/app/App.test.jsx, src/shared/auth/ManagerSession.test.jsx            | RF-02, issues #112/#138, I-01/B-01 em [Pendências](PENDENCIAS.md) |
+| Cliente HTTP e validação de contratos       | src/shared/api/api.js, contracts.js, validators.js                                                 | src/shared/api/api.test.js, validators.test.js                           | [Contratos da API](CONTRATOS_API.md)                              |
+| Painel e atualização independente de fontes | src/features/dashboard/pages/DashboardPage.jsx, hooks/useDashboardData.js, hooks/useAutoRefresh.js | DashboardPage.test.jsx, useDashboardData.test.js, useAutoRefresh.test.js | RF-27, issues #98/#102/#109, I-06/I-07                            |
+| Tasks demonstrativas                        | src/features/tasks/pages/TasksPage.jsx, hooks/useTasks.js, dev-mocks/handlers.js                   | TasksPage.test.jsx, useTasks.test.js, dev-mocks/handlers.test.js         | RF-06/RF-11, issue #134, proposta I-03                            |
+| Resumo demonstrativo por Task               | src/features/dashboard/hooks/useTaskAnalytics.js, components/TaskSummaryCard.jsx                   | useTaskAnalytics.test.js, TaskSummaryCard.test.jsx                       | issue #140, proposta I-06                                         |
+| Colaboradores e leituras realtime           | src/features/collaborators/hooks/useCollaboratorsData.js, lib/agentFilters.js                      | CollaboratorsPage.test.jsx, agentFilters.test.js                         | RF-05/RF-16, B-01/I-02/I-05                                       |
+| Exportações diárias                         | src/features/reports/hooks/useReportExport.js, src/shared/api/api.js                               | useReportExport.test.js, ReportsPage.test.jsx                            | RF-24/RF-25, CA-07, I-06/I-08                                     |
+| Configuração global                         | src/features/settings/hooks/useSettings.js, components/SettingsForm.jsx                            | SettingsPage.test.jsx, src/shared/api/api.test.js                        | RF-20/RF-21, B-04/B-09                                            |
 
 Os arquivos de teste listados exercitam a lógica do Frontend com clientes controlados ou mocks. Eles não demonstram autorização, persistência ou resposta de uma instância real. Os resultados efetivamente registrados por data estão em [Testes](TESTES.md), e as relações por issue em [Matriz](MATRIZ_ISSUES_FRONTEND.md).
 

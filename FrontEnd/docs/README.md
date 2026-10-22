@@ -40,19 +40,19 @@ Este acervo atende a quem desenvolve o Frontend, integra o Backend ou o Agent, r
 
 ## Índice do acervo
 
-| Documento | Finalidade principal |
-| --- | --- |
-| [README](README.md) | Entrada, ordem de leitura e regras de manutenção do acervo. |
-| [FUNCIONALIDADES](FUNCIONALIDADES.md) | Comportamento atual por tela, estados, requisitos, código e testes. |
-| [ARQUITETURA](ARQUITETURA.md) | Estrutura React/Vite, dependências entre camadas e fluxos executados. |
-| [CONTRATOS_API](CONTRATOS_API.md) | Rotas implementadas no Backend e comportamento observado do cliente HTTP. |
-| [PROPOSTA_CONTRATOS_BACKEND](PROPOSTA_CONTRATOS_BACKEND.md) | Alternativas técnicas ainda não aprovadas para os contratos ausentes. |
-| [PENDENCIAS](PENDENCIAS.md) | Fonte principal de bloqueios por ID, evidência, impacto, solução e aceite. |
-| [MATRIZ_ISSUES_FRONTEND](MATRIZ_ISSUES_FRONTEND.md) | Estado oficial e classificação técnica das issues, com rastreabilidade. |
-| [TESTES](TESTES.md) | Scripts, inventário, resultados datados, limites e roteiros de validação. |
-| [PLANO_EXECUCAO_FRONTEND](PLANO_EXECUCAO_FRONTEND.md) | Diagnóstico, dependências, prioridades, execução e próximos marcos. |
-| [RELATORIO_EXECUCAO_FRONTEND](RELATORIO_EXECUCAO_FRONTEND.md) | Registro verificável das auditorias e mudanças realizadas. |
-| [ALTERACOES](ALTERACOES.md) | Histórico cronológico preservado das mudanças do Frontend. |
+| Documento                                                     | Finalidade principal                                                       |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| [README](README.md)                                           | Entrada, ordem de leitura e regras de manutenção do acervo.                |
+| [FUNCIONALIDADES](FUNCIONALIDADES.md)                         | Comportamento atual por tela, estados, requisitos, código e testes.        |
+| [ARQUITETURA](ARQUITETURA.md)                                 | Estrutura React/Vite, dependências entre camadas e fluxos executados.      |
+| [CONTRATOS_API](CONTRATOS_API.md)                             | Rotas implementadas no Backend e comportamento observado do cliente HTTP.  |
+| [PROPOSTA_CONTRATOS_BACKEND](PROPOSTA_CONTRATOS_BACKEND.md)   | Alternativas técnicas ainda não aprovadas para os contratos ausentes.      |
+| [PENDENCIAS](PENDENCIAS.md)                                   | Fonte principal de bloqueios por ID, evidência, impacto, solução e aceite. |
+| [MATRIZ_ISSUES_FRONTEND](MATRIZ_ISSUES_FRONTEND.md)           | Estado oficial e classificação técnica das issues, com rastreabilidade.    |
+| [TESTES](TESTES.md)                                           | Scripts, inventário, resultados datados, limites e roteiros de validação.  |
+| [PLANO_EXECUCAO_FRONTEND](PLANO_EXECUCAO_FRONTEND.md)         | Diagnóstico, dependências, prioridades, execução e próximos marcos.        |
+| [RELATORIO_EXECUCAO_FRONTEND](RELATORIO_EXECUCAO_FRONTEND.md) | Registro verificável das auditorias e mudanças realizadas.                 |
+| [ALTERACOES](ALTERACOES.md)                                   | Histórico cronológico preservado das mudanças do Frontend.                 |
 
 ## Navegação por assunto
 
@@ -68,12 +68,13 @@ Este acervo atende a quem desenvolve o Frontend, integra o Backend ou o Agent, r
 Use as classificações no sentido abaixo ao ler ou acrescentar evidências:
 
 - **IMPLEMENTADO:** o comportamento está presente no código consultado.
-- **IMPLEMENTADO PARCIALMENTE:** há implementação, mas o fluxo ou os critérios ainda não estão completos.
+- **PARCIAL:** há implementação, mas o fluxo ou os critérios ainda não estão completos.
 - **DEMONSTRATIVO:** depende de mocks/fixtures e não comprova persistência ou integração real.
 - **PROPOSTO:** contrato ou comportamento candidato sem implementação/aceite confirmado.
 - **BLOQUEADO:** depende de outro componente, decisão ou ambiente.
 - **AGUARDANDO VALIDAÇÃO:** implementação existe, mas integração real ainda não foi comprovada.
 - **HISTÓRICO:** registro válido para o commit e contexto indicados, não necessariamente para o checkout atual.
+- **RESOLVIDO:** pendência encerrada dentro do escopo registrado; isso não altera o estado oficial de issues relacionadas. F-04 está resolvida somente para a rota demonstrativa local.
 
 O estado oficial no GitHub e a conclusão técnica são dimensões diferentes. Uma issue fechada não comprova integração; uma issue aberta não significa que nada foi implementado. Consulte a [matriz](MATRIZ_ISSUES_FRONTEND.md) para ambas.
 

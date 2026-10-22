@@ -2,7 +2,7 @@
 
 > **PROPOSTAS — NÃO SÃO CONTRATOS EXISTENTES.** As rotas, schemas, validações e exemplos deste documento são sugestões para discussão e implementação pelo responsável do Backend. A inspeção de `backend/`, `agent/` e `requisitos/` foi somente para leitura. Nenhuma chamada HTTP de produção foi adicionada ao frontend.
 
-Revisão: **13/10/2026**. Este recorte trata de Tasks, jornada diária, horas por Task e conexão do Agent. Consulte também [Contratos existentes](CONTRATOS_API.md), [propostas de integração](PENDENCIAS.md#propostas-de-contratos-de-integracao) e [Pendências](PENDENCIAS.md).
+Proposta original: **13/10/2026**. Revalidada em **21/10/2026** no HEAD local `fc3132ab5133b2ad9ea12da1e8ce1bbb987822eb`. Este recorte trata de Tasks, jornada diária, horas por Task e conexão do Agent. Consulte também [Contratos existentes](CONTRATOS_API.md), [propostas de integração](PENDENCIAS.md#propostas-de-contratos-de-integracao) e [Pendências](PENDENCIAS.md).
 
 > Este documento registra o recorte histórico de propostas de 13/10/2026. Para evitar contratos divergentes e conteúdo duplicado, consulte [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao) como fonte canônica atualizada para CRUD de Tasks, resumo por Task e demais propostas. Nenhuma das rotas candidatas nesta página foi implementada no Backend.
 
@@ -19,7 +19,7 @@ As respostas de erro mantêm o envelope FastAPI observado (`{"detail":"..."}`). 
 
 ## 1. Tasks — I-03
 
-**Atualização F-04 — 21/10/2026:** a proposta detalhada e vigente em [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao) usa `/tasks/` para GET/POST da coleção, alinhada à issue #133 e ao cliente demonstrativo corrigido. A tabela abaixo é o recorte histórico de 13/10 e conserva suas rotas `/tasks` sem barra; ela não descreve o caminho atual do mock nem um contrato de produção publicado.
+**Atualização F-04 — 21/10/2026:** a proposta detalhada e vigente em [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao) usa `/tasks/` para GET/POST da coleção, alinhada à issue #133 e ao cliente demonstrativo corrigido no commit `fc3132ab5133b2ad9ea12da1e8ce1bbb987822eb`. A tabela abaixo é o recorte histórico de 13/10 e conserva suas rotas `/tasks` sem barra; ela não descreve o caminho atual do mock nem um contrato de produção publicado.
 
 ### Rotas propostas
 
@@ -155,7 +155,7 @@ Valores candidatos de `connection_status`: `online`, `offline` ou `unknown`. Reg
 
 ## Ampliação das propostas por dependência
 
-Revisão documental em 21/10/2026. Os itens abaixo permanecem **PROPOSTA — NÃO IMPLEMENTADO**. A especificação detalhada dos critérios, exemplos, códigos de erro e decisões em aberto fica centralizada nos IDs correspondentes em [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao); esta seção resume motivação, impacto entre componentes, riscos e validação para facilitar uma revisão conjunta.
+Revisão documental em 21/10/2026, no HEAD `fc3132ab5133b2ad9ea12da1e8ce1bbb987822eb`. Os itens abaixo permanecem **PROPOSTA — NÃO IMPLEMENTADO**. A especificação detalhada dos critérios, exemplos, códigos de erro e decisões em aberto fica centralizada nos IDs correspondentes em [Pendências](PENDENCIAS.md#propostas-de-contratos-de-integracao); esta seção resume motivação, impacto entre componentes, riscos e validação para facilitar uma revisão conjunta.
 
 ### Tasks, atribuições e remoção
 

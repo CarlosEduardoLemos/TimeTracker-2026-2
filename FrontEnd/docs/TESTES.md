@@ -2,9 +2,22 @@
 
 Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026**, **13/10/2026** e **16/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
+## Revalidação documental e completa — 21/10/2026
+
+Execução no checkout local `main`, HEAD `fc3132ab5133b2ad9ea12da1e8ce1bbb987822eb`, inicialmente limpo. A primeira checagem confirmou falha de formatação somente em `docs/ARQUITETURA.md` e `docs/README.md`; ambos foram formatados com o Prettier configurado no Frontend, sem remover seções ou exemplos.
+
+- `npm.cmd run format:check`: passou; todos os arquivos verificados seguem o Prettier.
+- `npm.cmd run lint`: passou.
+- `npm.cmd run typecheck`: passou.
+- `npm.cmd run check:full`: passou, incluindo lint, format check, typecheck, cobertura, build, teste do bundle e E2E.
+- Cobertura: **296 testes em 58 arquivos passaram**. Statements: **93,30%**; branches: **89,55%**; functions: **95,06%**; lines: **95,49%**.
+- Build de produção passou com Vite 6.4.4; o verificador confirmou que handlers, worker e rotas dos mocks não entraram no bundle. As **4 verificações** do bundle passaram.
+- Playwright executou **32 cenários: 30 passaram, 0 falharam e 2 cenários de API real foram ignorados**, pois não havia serviço/credenciais autorizados configurados.
+- Os testes do Frontend cobrem a integração demonstrativa `devApi.createTask()` + `setupServer` do MSW, além dos caminhos `/tasks/`, códigos de erro e CRUD em memória. Não foram executados testes do Backend/Agent nem chamadas à API real.
+
 ## Validação funcional de F-04 — 21/10/2026
 
-O checkout começou na branch `main`, HEAD `a20750c25bb24d1665ffb965e14aa80a73f590ae`, sem mudanças locais. A execução usou `npm.cmd` porque a política do PowerShell bloqueia o wrapper `npm.ps1`.
+O checkout começou na branch `main`, baseado no HEAD `a20750c25bb24d1665ffb965e14aa80a73f590ae`, sem mudanças locais. A correção e os testes foram executados na árvore de trabalho e registrados no commit seguinte, `fc3132ab5133b2ad9ea12da1e8ce1bbb987822eb`. Foi usado `npm.cmd` porque a política do PowerShell bloqueia o wrapper `npm.ps1`.
 
 - Linha de base antes de ampliar os testes: `npm.cmd run test -- src/dev-mocks/client.test.js src/dev-mocks/handlers.test.js` — 2 arquivos e 17 testes passaram.
 - Reprodução antes da correção: o novo teste integrado chamou `devApi.createTask()` com o `setupServer` MSW ativo. O cliente enviou POST `/tasks`; o handler de fallback respondeu 501 e o teste falhou, confirmando a incompatibilidade do matcher.

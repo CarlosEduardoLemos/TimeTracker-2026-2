@@ -2,6 +2,60 @@
 
 Revisão: **21/10/2026**. Escopo autorizado: auditoria, implementação, documentação e validação dentro de `FrontEnd/`.
 
+## Revisão de formatação e contratos — 21/10/2026
+
+### A. Diagnóstico inicial
+
+- Branch `main`, HEAD `fc3132ab5133b2ad9ea12da1e8ce1bbb987822eb`, igual a `origin/main`; checkout limpo antes da revisão.
+- A primeira execução de `npm.cmd run format:check` confirmou problemas somente em `docs/ARQUITETURA.md` e `docs/README.md`. O PowerShell bloqueia `npm.ps1`; `npm.cmd` executou o mesmo script do projeto.
+- Os routers e schemas locais do Backend não incluem Tasks, associação do Agent, jornada diária ou agregação por Task. As rotas de dados existentes permanecem sem `get_current_manager` e sem isolamento por gestor.
+
+### B. Formatação
+
+- Formatados `ARQUITETURA.md` e `README.md` com o Prettier configurado no Frontend.
+- A comparação confirmou preservação dos títulos, seções, tabelas, blocos de código, Mermaid, exemplos e links existentes; somente a apresentação Markdown mudou nesses dois arquivos.
+- A checagem final de formatação passou para todos os arquivos do Frontend.
+
+### C. Contratos revisados
+
+- **Autenticação:** Backend implementa `POST /auth/register`, `POST /auth/login` e `GET /auth/me`. Registro/login usam e-mail e senha; cadastro responde 201, duplicidade 409, payload inválido 422, credenciais incorretas 401. A resposta JWT inclui `access_token`, `token_type` e `expires_in`; o padrão local é 3.600 segundos e a audiência é `time-tracker:manager`. Sessão do frontend está implementada, mas aguarda homologação real. A validação do token e a autorização permanecem responsabilidade do servidor.
+- **Autorização:** apenas `/auth/me` exige gestor autenticado. Usuários, realtime, resumo/exportações e configuração ainda não aplicam JWT nem filtram por gestor; #137 permanece aberta.
+- **Tasks:** Backend não oferece modelo, schema ou router. A demonstração MSW oferece `GET/POST /tasks/` e `PUT/DELETE /tasks/{task_id}` em memória, com payload `title`, `description`, `collaborator_ids`; não tem GET demonstrativo de item. CRUD real, escopo e associação ficam como proposta em I-03.
+- **Associação:** o cliente Agent envia `POST /associate/`, mas a rota, código, vínculo e token próprio não foram encontrados no Backend local. As issues #113–#116 e a dependência I-02 foram preservadas.
+- **Analytics:** API real fornece resumo diário por categoria, realtime e exportação CSV/PDF. Não fornece TaskId, presença diária, fuso declarado ou horas por Task. O mock de resumo Task responde vazio; `/dashboard/task-hours` por período permanece demonstrativo e sem aprovação como endpoint de produção.
+- As propostas de Task, associação, autorização, jornada, fuso e agregação continuam identificadas como `PROPOSTO — NÃO IMPLEMENTADO` em [Pendências](PENDENCIAS.md) e [Proposta de contratos](PROPOSTA_CONTRATOS_BACKEND.md).
+
+### D. F-04 e issues
+
+- No HEAD `fc3132ab5133b2ad9ea12da1e8ce1bbb987822eb`, cliente e handlers usam `GET/POST /tasks/` e `PUT/DELETE /tasks/{task_id}`. Testes presentes verificam o caminho literal do POST e a integração do cliente com MSW; a suíte completa passou.
+- F-04 está resolvida no Frontend demonstrativo. Isso não implementa #133 (CRUD Backend) nem conclui #134 (integração real da UI).
+- Consulta ao GitHub em 21/10/2026: #133, #134, #137, #138 e #140 estavam abertas. #138 tem sessão implementada localmente aguardando validação real; #140 tem interface demonstrativa sem agregação Backend.
+
+### E. Documentos atualizados
+
+`ARQUITETURA.md`, `README.md`, `CONTRATOS_API.md`, `PENDENCIAS.md`, `MATRIZ_ISSUES_FRONTEND.md`, `PROPOSTA_CONTRATOS_BACKEND.md`, `TESTES.md`, `ALTERACOES.md` e este relatório. A lista de documentos prioritários foi revisada sem reescrita geral; registros anteriores permanecem preservados.
+
+### F. Verificações
+
+- `npm.cmd run format:check`: passou.
+- `npm.cmd run lint`: passou.
+- `npm.cmd run typecheck`: passou.
+- `npm.cmd run check:full`: passou; 296 testes em 58 arquivos, cobertura de 93,30% statements, 89,55% branches, 95,06% functions e 95,49% lines; build Vite 6.4.4 e 4 verificações de bundle passaram; Playwright teve 30 aprovações, 0 falhas e 2 cenários de API real ignorados por falta de serviço/credenciais autorizados.
+- Diff e referências locais revisados; nenhum link novo aponta para arquivo inexistente.
+
+### G. Pendências restantes
+
+- #133/I-03: CRUD persistente e autorizado de Tasks, atribuições e política de retenção.
+- #134: ligar a interface ao contrato Backend homologado.
+- #137/B-01: autenticar e isolar rotas de dados por gestor.
+- #113–#116/I-02: gerar/consultar código, persistir vínculo e autenticar Agent com credencial própria.
+- #140/I-06 e I-07: persistir `task_id`, definir duração, agregar horas reais por Task e confirmar fuso.
+- A API real e os testes do Backend/Agent não foram executados nesta revisão.
+
+### H. Permissões
+
+O diff Git contém somente arquivos em `FrontEnd/docs/`; nenhum código-fonte, Backend, Agent, requisito, raiz ou arquivo externo foi alterado. `check:full` regenerou artefatos ignorados de build/cobertura nos diretórios de saída já existentes do `FrontEnd/`. Backend/Agent/requisitos foram consultados em leitura. Nenhum commit, push, PR, merge, alteração de issue ou deploy foi realizado.
+
 ## Resultado
 
 O frontend agora integra cadastro e login reais do gestor, valida identidade com `GET /auth/me`, mantém o JWT apenas em `sessionStorage`, restaura e encerra a sessão, protege as cinco páginas do gestor e envia Bearer nas chamadas privadas. O fluxo distingue `401` (sessão encerrada) de `403` (sessão mantida) e não autentica automaticamente após cadastro.

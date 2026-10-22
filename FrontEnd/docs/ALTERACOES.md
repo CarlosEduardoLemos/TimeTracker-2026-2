@@ -1,5 +1,17 @@
 # Alterações do frontend
 
+## 21/10/2026 — formatação e revalidação dos contratos
+
+- **Estado inicial:** branch `main`, HEAD `fc3132ab5133b2ad9ea12da1e8ce1bbb987822eb`, igual a `origin/main`; árvore de trabalho limpa. A primeira execução de `npm.cmd run format:check` apontou somente `docs/ARQUITETURA.md` e `docs/README.md`.
+- **Formatação:** aplicados Prettier aos dois documentos indicados; títulos, tabelas, links, exemplos e blocos Mermaid foram preservados.
+- **Contratos:** revalidados os endpoints reais de autenticação, dados, categorias e exportação; as rotas MSW de Tasks/jornada/Agent foram separadas dos contratos Backend; as propostas de CRUD, associação e agregação continuam marcadas como não implementadas.
+- **F-04:** confirmados `GET/POST /tasks/` no cliente demonstrativo e nos handlers; `PUT/DELETE /tasks/{task_id}` também coincidem. Testes existentes cobrem o ciclo de CRUD demonstrativo e a integração do cliente com MSW. A pendência permanece resolvida apenas no Frontend local.
+- **Issues:** consulta ao GitHub em 21/10/2026 confirmou #133, #134, #137, #138 e #140 abertas. #133 aguarda CRUD Backend; #134 tem interface parcial e depende da integração; #137 aguarda autorização/isolamento; #138 aguarda homologação da sessão com API real; #140 aguarda agregação Backend.
+- **Documentos atualizados:** `ARQUITETURA.md`, `README.md`, `CONTRATOS_API.md`, `PENDENCIAS.md`, `MATRIZ_ISSUES_FRONTEND.md`, `PROPOSTA_CONTRATOS_BACKEND.md`, `TESTES.md`, este histórico e `RELATORIO_EXECUCAO_FRONTEND.md`.
+- **Verificações:** Prettier, ESLint e typecheck passaram. `npm.cmd run check:full` passou: 296 testes em 58 arquivos, cobertura 93,30% statements / 89,55% branches / 95,06% functions / 95,49% lines, 4 verificações de bundle e E2E com 30 aprovados e 2 cenários de API real ignorados.
+- **Limites:** não foi chamada API real nem executado teste do Backend/Agent. As rotas de dados continuam sem autorização por gestor no Backend; Tasks persistentes e associação seguem ausentes.
+- **Permissões:** `git diff` contém alterações somente em `FrontEnd/docs/`; nenhum código-fonte ou arquivo externo foi alterado. `check:full` regenerou artefatos ignorados de build/cobertura nas pastas de saída já existentes de `FrontEnd/`. Não houve commit, push, PR, merge, alteração de issue ou deploy.
+
 ## 21/10/2026 — correção e encerramento local de F-04
 
 - **Diagnóstico:** em `a20750c` na branch `main`, `devApi.createTask()` enviava POST `/tasks`, enquanto o handler MSW declarava `/tasks/`. O teste integrado reproduziu a falha: o handler curinga respondeu 501.
