@@ -11,6 +11,16 @@ Este guia distingue verificação automatizada, build e verificações manuais a
 - `npm.cmd run test:e2e`: **30 passaram, 0 falharam e 2 testes de API real foram ignorados** porque dependem de serviço/credenciais. As verificações automatizadas de acessibilidade passaram. Um seletor E2E do status do filtro foi delimitado ao texto esperado porque o card acrescentou uma mensagem acessível ao Dashboard.
 - Não houve chamada a API real nem homologação integrada. A cópia só fica habilitada quando um serviço futuro fornecer uma string válida de seis dígitos; consulta autenticada permanece pendente do contrato Backend.
 
+### Revalidação do commit da US-06.2 — 22/10/2026
+
+- Checkout verificado: branch `main`, HEAD `38c53581351d8c2038350cb1ed63eab44080f9ca` (`origin/main`); `git status --short` estava vazio antes das verificações.
+- Contrato revalidado no Backend local: `GET /auth/me` exige JWT e retorna `ManagerOut` com `id`, `email` e `created_at`; não inclui `association_code`. Os routers, schemas, modelos, CRUD e testes de autenticação consultados não declaram rota de consulta do código.
+- `npm.cmd run check`: passou (lint, format:check, typecheck, cobertura, build e test:bundle). Vitest: **319 testes em 59 arquivos passaram**; cobertura de 93,34% statements, 89,66% branches, 94,77% functions e 95,50% lines. Bundle: **4 verificações passaram**.
+- `npm.cmd run test:e2e`: **30 passaram, 0 falharam e 2 foram ignorados** por dependerem de API real/credenciais; verificações E2E de acessibilidade e layouts móveis passaram.
+- Os testes de código de associação continuam usando adapter simulado no Frontend; não houve chamada à API real. As issues #105, #113 e #114 não puderam ser consultadas nesta sessão (`Cache miss`).
+- A orientação para compartilhar o código aparece somente quando a resposta contém uma string válida de seis dígitos; testes cobrem os estados válido, inválido e pendente.
+- Resultado: frontend visual implementado e testado; homologação integrada depende do contrato de consulta autenticada do Backend.
+
 ## Continuação da US-16.1 — 22/10/2026
 
 - Base local: branch `main`, HEAD `b9d78e515d6e65fbf5076309ecee1a89e8bf9cf0`; a árvore estava limpa antes desta rodada. A implementação e a documentação desta rodada estão limitadas a `FrontEnd/`.

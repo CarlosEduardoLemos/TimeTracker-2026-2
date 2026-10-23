@@ -64,7 +64,11 @@ export function AssociationCodeCard({
             Código de associação indisponível.
           </p>
         )}
-        <p className="mt-1 text-xs muted">Compartilhe este código com os membros da sua equipe.</p>
+        {validCode && (
+          <p className="mt-1 text-xs muted">
+            Compartilhe este código com os membros da sua equipe.
+          </p>
+        )}
         <p
           className="mt-2 min-h-5 text-sm"
           role={feedback ? 'status' : undefined}

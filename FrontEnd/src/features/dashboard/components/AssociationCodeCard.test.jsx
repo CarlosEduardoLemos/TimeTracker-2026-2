@@ -15,6 +15,7 @@ describe('AssociationCodeCard', () => {
     render(<AssociationCodeCard code="001234" />);
 
     expect(screen.getByText('001234')).toBeInTheDocument();
+    expect(screen.getByText('Compartilhe este código com os membros da sua equipe.')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Copiar código de associação' })).toBeEnabled();
   });
 
@@ -55,6 +56,9 @@ describe('AssociationCodeCard', () => {
 
     expect(screen.getByText(/Código de associação indisponível/)).toBeInTheDocument();
     expect(screen.queryByText('12345')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Compartilhe este código com os membros da sua equipe.'),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Copiar código de associação' })).toBeDisabled();
   });
 
@@ -109,6 +113,9 @@ describe('AssociationCodeCard', () => {
       'polite',
     );
     expect(screen.queryByText(/^\d{6}$/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Compartilhe este código com os membros da sua equipe.'),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Copiar código de associação' })).toBeDisabled();
   });
 
