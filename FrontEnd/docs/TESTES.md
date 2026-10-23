@@ -2,6 +2,15 @@
 
 Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026**, **13/10/2026**, **16/10/2026** e **22/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
+## US-06.2 — Código de associação no Dashboard — 22/10/2026
+
+- Base local: branch `main`, HEAD `d49e71febbc69482b5682af1f26832ea136f33c6`; árvore limpa antes da implementação. Todas as alterações desta rodada ficaram em `FrontEnd/`.
+- Backend consultado somente para leitura: `GET /auth/me` responde o `ManagerOut` com `id`, `email` e `created_at`; não inclui `association_code`. Nenhum endpoint/modelo/schema de consulta do código foi encontrado. As issues #105, #113 e #114 retornaram `Cache miss`; a página do repositório abriu, mas o código local foi a fonte da implementação.
+- O card foi integrado ao Dashboard autenticado; sem contrato, informa a pendência e não exibe código. Os testes simulam somente o adapter de UI, sem criar endpoint ou dado demonstrativo de produção.
+- `npm.cmd run check`: passou (ESLint, Prettier, typecheck, build e verificação do bundle). Cobertura Vitest: **319 testes em 59 arquivos passaram**; 93,28% statements, 89,66% branches, 94,77% functions e 95,50% lines. Teste do bundle: **4 passaram**.
+- `npm.cmd run test:e2e`: **30 passaram, 0 falharam e 2 testes de API real foram ignorados** porque dependem de serviço/credenciais. As verificações automatizadas de acessibilidade passaram. Um seletor E2E do status do filtro foi delimitado ao texto esperado porque o card acrescentou uma mensagem acessível ao Dashboard.
+- Não houve chamada a API real nem homologação integrada. A cópia só fica habilitada quando um serviço futuro fornecer uma string válida de seis dígitos; consulta autenticada permanece pendente do contrato Backend.
+
 ## Continuação da US-16.1 — 22/10/2026
 
 - Base local: branch `main`, HEAD `b9d78e515d6e65fbf5076309ecee1a89e8bf9cf0`; a árvore estava limpa antes desta rodada. A implementação e a documentação desta rodada estão limitadas a `FrontEnd/`.

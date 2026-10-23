@@ -153,7 +153,7 @@ Payload enviado pelo Agent:
 
 Logo, o endpoint e payload acima são o comportamento do cliente Agent, não contrato confirmado do servidor. As issues #113 e #114 descrevem gerar/consultar e exibir o código, mas não confirmam rota nem resposta. `GET /auth/me` é uma rota real para identidade do gestor, não uma consulta de código.
 
-O JWT do gestor e o token do Agent são credenciais distintas. O frontend não deve reutilizar o token do Agent. `AssociationCodeCard` permanece um componente de apresentação com prop de código; continua fora do Dashboard do MVP e não faz requisições. Não conectar a resposta de `/auth/me` ao card.
+O JWT do gestor e o token do Agent são credenciais distintas. O frontend não reutiliza o token do Agent. `AssociationCodeCard` agora aparece no Dashboard somente quando `App` fornece a identidade autenticada do gestor. Como não existe contrato de consulta, o card mostra a dependência pendente e não exibe valor demonstrativo. `GET /auth/me` fornece apenas identidade; seu `ManagerOut` e o validador frontend não aceitam `association_code`. Não conectar esse payload ao card nem assumir uma rota. O Frontend mantém apenas um adapter opcional simulado nos testes; não há consulta de código no cliente HTTP de produção.
 
 ## Autorização e isolamento de dados
 
