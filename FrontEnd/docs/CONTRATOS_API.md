@@ -1,6 +1,6 @@
 # Contratos da API do Frontend
 
-Revalidado em **21/10/2026** no checkout local `main`, HEAD `fc3132ab5133b2ad9ea12da1e8ce1bbb987822eb`, com base nos arquivos de `backend/app/`, `agent/` e `FrontEnd/src/shared/api/`. A PR #122 do Agent e a PR #123 de autenticação foram incorporadas à `main` da organização. A PR #128 do frontend ainda estava aberta na consulta registrada anteriormente; a existência de um contrato não significa que o servidor já o proteja.
+Revalidado em **22/10/2026** no checkout local `main`, HEAD `b9d78e515d6e65fbf5076309ecee1a89e8bf9cf0`, com base nos arquivos de `backend/app/`, `agent/` e `FrontEnd/src/shared/api/`. As páginas GitHub das issues #132 e #140 não carregaram nesta sessão (`Cache miss`), então os status externos não foram atualizados. A existência de um contrato frontend ou mock não significa que o servidor o implemente ou proteja.
 
 ## Como interpretar os status
 
@@ -15,7 +15,7 @@ Revalidado em **21/10/2026** no checkout local `main`, HEAD `fc3132ab5133b2ad9ea
 
 ## Rotas usadas pelas telas do frontend
 
-`VITE_API_URL` define a origem da API; sem configuração, o cliente usa `http://localhost:8000`. A sessão do gestor envia Bearer nas rotas de dados abaixo; o Backend atual ainda não exige esses tokens.
+`VITE_API_URL` define a origem da API. Sem configuração, o cliente usa `http://localhost:8000` somente durante o desenvolvimento; em produção, usa a mesma origem do Frontend (por exemplo, com proxy reverso). Para uma API em outra origem, configure a URL no ambiente de build. Em páginas HTTPS, a origem configurada também precisa usar HTTPS. A sessão do gestor envia Bearer nas rotas de dados abaixo; o Backend local consultado ainda não exige esses tokens.
 
 | Método e rota               | Parâmetros/corpo                                                                | Resposta                                                                                            | Bearer enviado pelo frontend | Consumidor                         |
 | --------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------- | ---------------------------------- |

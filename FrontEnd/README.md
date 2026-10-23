@@ -103,7 +103,7 @@ Copy-Item .env.example .env
 npm run dev
 ```
 
-`VITE_API_URL` define a origem da API; o padrão é `http://localhost:8000`. O backend precisa estar em execução e permitir a origem do frontend em CORS.
+`VITE_API_URL` define a origem da API. Se estiver vazia, o desenvolvimento usa `http://localhost:8000` e o build de produção usa a mesma origem do Frontend, adequada a um proxy reverso. Quando a API estiver em outra origem, configure a URL no ambiente de build; em páginas HTTPS, essa origem também deve usar HTTPS. A API precisa permitir a origem do Frontend em CORS quando forem origens distintas.
 
 ## Validar
 

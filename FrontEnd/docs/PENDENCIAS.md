@@ -1,6 +1,6 @@
 # Pendências do frontend e dependências externas
 
-Revisão: **21/10/2026**. `backend/`, `agent/` e `requisitos/` foram consultados somente para leitura. Os IDs em **Problema/requisito** apontam para [RN/RF](../../requisitos/requisitos/rn_rf.md), [RNF](../../requisitos/requisitos/rnf.md), [critérios de aceite](../../requisitos/requisitos/ca.md) ou [RBAC](../../requisitos/rbac.md). Situação e prioridade refletem o código e os contratos observados neste checkout.
+Revisão: **22/10/2026**. `backend/`, `agent/` e `requisitos/` foram consultados somente para leitura. Os IDs em **Problema/requisito** apontam para [RN/RF](../../requisitos/requisitos/rn_rf.md), [RNF](../../requisitos/requisitos/rnf.md), [critérios de aceite](../../requisitos/requisitos/ca.md) ou [RBAC](../../requisitos/rbac.md). Situação e prioridade refletem o código e os contratos observados neste checkout.
 
 As PRs #122 (Agent, merge `e43673b4dca212eaa991308d14c9dc25b6c64061`) e #123 (autenticação do backend, merge `0fc4e7b7333ceb4fdd120f7f1f753f9836163e30`) já foram incorporadas à `main` da organização. A issue #138 de 21/10 e esta revisão integram a sessão do gestor no frontend. A apresentação aprovada em 13/10 permanece como registro histórico; ela não elimina o novo fluxo. Associação no backend continua ausente.
 
@@ -53,11 +53,13 @@ O resultado atual do `npm audit` não listou Vite, embora advisories oficiais do
 
 Os bloqueios funcionais impedem concluir o recorte anunciado como utilizável somente com o frontend atual. A apresentação de status realtime e o resumo por categoria continuam sendo fontes distintas; nenhuma delas é convertida em jornada ou Task.
 
-### Entregas frontend desta revisão — 21/10/2026
+### Entregas frontend desta revisão — 22/10/2026
 
 - O filtro de aplicativo deriva opções dos `process_name` recebidos no realtime e filtra somente a tabela atual de última atividade. Pode ser combinado com o usuário selecionado; não altera os indicadores ou o resumo diário e não responde a perguntas históricas de uso.
 - A demonstração de Tasks em desenvolvimento oferece lista, criação, edição e exclusão em memória, título/descrição, seleção múltipla de colaboradores, busca e ordenação. Produção apresenta a prévia desabilitada enquanto o CRUD backend não existe.
-- O Dashboard tem filtro e card de resumo por Task isolados dos indicadores gerais. O mock de `/dashboard/tasks-summary` responde vazio, sem fabricar métricas. A autenticação demonstrativa também é local ao MSW e não altera as chamadas de produção.
+- O Dashboard tem filtro e card de resumo por Task isolados dos indicadores gerais. O mock de `/dashboard/tasks-summary` responde vazio, sem fabricar métricas. O card agora consegue apresentar um resumo recebido e distingue origem da API, demonstração, erro, carregamento e ausência de registros; a página de produção ainda não fornece esse resumo e mantém o aviso de integração pendente.
+- A resolução de `VITE_API_URL` usa `http://localhost:8000` somente durante o desenvolvimento e usa a mesma origem em produção quando não configurada. Uma origem separada continua sendo fornecida no build e depende de CORS/HTTPS no ambiente publicado.
+- A leitura do Backend local confirmou que `/dashboard/tasks-summary`, `TaskId` em `ActivityLog` e a resposta de agregação por Task continuam ausentes. A integração de produção segue bloqueada; a proposta candidata de contrato não é uma rota implementada.
 
 <a id="resumo-das-pendencias"></a>
 
@@ -138,9 +140,9 @@ As seções abaixo trazem requisitos, motivo e trabalho necessário para cada ID
 - **Problema/requisito:** política de origem ampla e transmissão segura ainda dependente da implantação; [RNF-03](../../requisitos/requisitos/rnf.md#rnf-03--comunicação-segura)/[CA-09](../../requisitos/requisitos/ca.md#ca-09--privacidade-e-segurança).
 - **Frontend afetado:** `src/shared/api/api.js` e todas as requisições.
 - **Backend relacionado:** `app/main.py`, configuração de serviço/reverse proxy externa.
-- **Atual/impacto:** `allow_origins=["*"]` com `allow_credentials=True`; origem padrão de desenvolvimento HTTP. O ambiente real não foi validado.
+- **Atual/impacto:** `allow_origins=["*"]` com `allow_credentials=True`; o cliente usa `localhost:8000` somente no desenvolvimento e a mesma origem no build de produção sem variável configurada. O ambiente real não foi validado.
 - **Alteração necessária:** definir origens, credenciais e HTTPS por ambiente; fornecer a origem correta para `VITE_API_URL`.
-- **Workaround frontend:** configurar a URL já é possível; isso não cria TLS nem corrige CORS no servidor.
+- **Workaround frontend:** `VITE_API_URL` pode ser configurada no build quando a API tem origem separada; a mesma origem pode ser usada por proxy reverso. Isso não cria TLS nem corrige CORS no servidor.
 - **Motivo do bloqueio:** infraestrutura e política de resposta HTTP estão fora de `FrontEnd`.
 
 ### B-03 — Seed incompatível com chave UUID — Alta
