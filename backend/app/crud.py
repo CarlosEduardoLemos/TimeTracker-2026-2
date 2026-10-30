@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from . import models, schemas, security
-from .utils import MAX_IDLE_SECONDS
+from .utils import MAX_IDLE_SECONDS, generate_association_code
 
 REALTIME_DISPLAY_WINDOW_HOURS = 24  # até quando um colaborador some da lista por falta de dados
 IDLE_AFTER_SECONDS = 300     # >5min sem novo evento -> "ausente"
@@ -52,6 +52,31 @@ def get_manager_by_email(db: Session, email: str) -> models.Manager | None:
     )
 
 
+MAX_ASSOCIATION_CODE_ATTEMPTS = 10
+
+
+class AssociationCodeUnavailableError(Exception):
+    """Não foi possível gerar um código de associação único"""
+
+
+def _association_code_in_use(db: Session, code: str) -> bool:
+    return (
+        db.query(models.Manager.id)
+          .filter(models.Manager.association_code == code)
+          .first()
+    ) is not None
+
+
+def _new_unused_association_code(db: Session) -> str:
+    for _ in range(MAX_ASSOCIATION_CODE_ATTEMPTS):
+        code = generate_association_code()
+
+        if not _association_code_in_use(db, code):
+            return code
+
+    raise AssociationCodeUnavailableError()
+
+
 def create_manager(
         db: Session,
         manager: schemas.ManagerCreate
@@ -59,23 +84,63 @@ def create_manager(
     if get_manager_by_email(db, manager.email):
         raise EmailAlreadyRegisteredError(manager.email)
 
-    db_manager = models.Manager(
-        email=manager.email,
-        password_hash=security.hash_password(manager.password),
-    )
+    password_hash = security.hash_password(manager.password)
 
-    db.add(db_manager)
+    for _ in range(MAX_ASSOCIATION_CODE_ATTEMPTS):
+        code = _new_unused_association_code(db)
+        db_manager = models.Manager(
+            email=manager.email,
+            password_hash=password_hash,
+            association_code=code,
+        )
 
-    try:
-        db.commit()
-    except IntegrityError:
-        # Cadastro simultâneo do mesmo e-mail (índice único do banco).
-        db.rollback()
-        raise EmailAlreadyRegisteredError(manager.email) from None
+        db.add(db_manager)
 
-    db.refresh(db_manager)
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
 
-    return db_manager
+            # Duas violações possíveis no índice único: o código sorteado
+            # foi usado por outra requisição simultânea (tenta de novo) ou
+            # o e-mail foi cadastrado simultaneamente (409).
+            if _association_code_in_use(db, code):
+                continue
+
+            raise EmailAlreadyRegisteredError(manager.email) from None
+
+        db.refresh(db_manager)
+
+        return db_manager
+
+    raise AssociationCodeUnavailableError()
+
+
+def ensure_association_code(
+        db: Session,
+        manager: models.Manager
+) -> models.Manager:
+    """
+    Garante que o gestor tenha um código de associação (gestores criados
+    antes desta funcionalidade, caso a migração ainda não tenha rodado)
+    """
+    if manager.association_code:
+        return manager
+
+    for _ in range(MAX_ASSOCIATION_CODE_ATTEMPTS):
+        manager.association_code = _new_unused_association_code(db)
+
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            continue
+
+        db.refresh(manager)
+
+        return manager
+
+    raise AssociationCodeUnavailableError()
 
 
 def authenticate_manager(
