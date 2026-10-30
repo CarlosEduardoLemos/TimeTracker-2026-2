@@ -1,6 +1,6 @@
 # Pendências e estado de integração — 30/10/2026
 
-**Revisão vigente:** branch `main`, checkout `04a272798219dd56a424847e73fad02298a0b3e3` (referência solicitada nesta auditoria).
+**Revisão vigente:** branch `main`, checkout `eec089a976cd2678473ad2f992269538fd1a4a57`. A auditoria de resiliência e acessibilidade de 30/10/2026 confirmou que as pendências externas abaixo continuam vigentes.
 
 Este snapshot substitui os checkpoints anteriores deste documento. As afirmações históricas de que o backend não tinha CRUD de Tasks, código de associação ou associação colaborador–gestor deixaram de representar o checkout: PRs #142, #145 e #146 estão incorporados na branch. Seus merges locais são `5b72a3e`, `dffb107` e `cccc5ac`, respectivamente. O PR #144 do Agent também está incorporado (`189a7e9`), mas seus caminhos de API ainda não correspondem ao backend atual. O snapshot anterior completo foi preservado ao final deste arquivo com status histórico identificado.
 

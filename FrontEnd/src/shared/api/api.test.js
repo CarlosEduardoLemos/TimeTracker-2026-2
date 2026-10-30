@@ -14,6 +14,34 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+describe('mensagens HTTP seguras', () => {
+  it.each([
+    [400, 'Os dados enviados são inválidos. Revise as informações e tente novamente.'],
+    [401, 'Não foi possível autenticar. Confira seu e-mail e sua senha.'],
+    [403, 'Você não tem permissão para realizar esta operação.'],
+    [404, 'O recurso solicitado não foi encontrado.'],
+    [409, 'Já existe um registro com esses dados. Revise as informações e tente novamente.'],
+    [422, 'Confira os campos informados e tente novamente.'],
+    [429, 'Muitas solicitações foram feitas. Aguarde um pouco e tente novamente.'],
+    [500, 'O serviço está temporariamente indisponível. Tente novamente em instantes.'],
+    [503, 'O serviço está temporariamente indisponível. Tente novamente em instantes.'],
+  ])('HTTP %i não expõe o detalhe do servidor', async (status, message) => {
+    const secret = 'internal traceback, bearer eyJhbGciOi...';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: false,
+        status,
+        json: async () => ({ detail: secret }),
+      })),
+    );
+
+    const error = await api.users().catch((cause) => cause);
+    expect(error).toMatchObject({ status, message });
+    expect(error.message).not.toContain(secret);
+  });
+});
+
 describe('cliente da API', () => {
   it('usa localhost como padrão apenas no desenvolvimento', () => {
     expect(resolveApiBaseUrl(undefined, true, 'http://localhost:8000')).toBe(
@@ -253,7 +281,9 @@ describe('cliente da API', () => {
       .registerManager({ email: 'gestor@empresa.com', password: 'SenhaSegura123!' })
       .catch((error) => error);
     expect(failure).toMatchObject({ type: 'client', status: 409, detail: null });
-    expect(failure.message).toBe('API respondeu 409');
+    expect(failure.message).toBe(
+      'Já existe um registro com esses dados. Revise as informações e tente novamente.',
+    );
     expect(json).not.toHaveBeenCalled();
   });
 
@@ -268,7 +298,7 @@ describe('cliente da API', () => {
       .registerManager({ email: 'inválido', password: 'SenhaFraca!' })
       .catch((error) => error);
     expect(failure).toMatchObject({ type: 'client', status: 422, detail: null });
-    expect(failure.message).toBe('API respondeu 422');
+    expect(failure.message).toBe('Confira os campos informados e tente novamente.');
     expect(json).not.toHaveBeenCalled();
   });
 
@@ -452,7 +482,9 @@ describe('cliente da API', () => {
       'fetch',
       vi.fn(async () => ({ ok: false, status: 403, json })),
     );
-    await expect(api.users()).rejects.toThrow('API respondeu 403');
+    await expect(api.users()).rejects.toThrow(
+      'Você não tem permissão para realizar esta operação.',
+    );
     expect(json).toHaveBeenCalledOnce();
   });
 
@@ -487,7 +519,7 @@ describe('cliente da API', () => {
       status: 404,
       statusText: 'Not Found',
       detail: 'Regra não encontrada',
-      message: 'Regra não encontrada',
+      message: 'O recurso solicitado não foi encontrado.',
     });
   });
 
@@ -500,7 +532,10 @@ describe('cliente da API', () => {
         json: async () => ({ detail: [{ msg: 'valor inválido' }] }),
       })),
     );
-    await expect(api.users()).rejects.toMatchObject({ type: 'client', message: 'valor inválido' });
+    await expect(api.users()).rejects.toMatchObject({
+      type: 'client',
+      message: 'Confira os campos informados e tente novamente.',
+    });
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => ({ ok: false, status: 503, json: async () => ({}) })),

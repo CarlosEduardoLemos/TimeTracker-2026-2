@@ -400,9 +400,11 @@ test('menu móvel aceita teclado e tema escuro', async ({ page }) => {
 });
 
 for (const [width, height] of [
+  [320, 568],
   [375, 667],
   [390, 844],
   [768, 1024],
+  [1024, 768],
   [1366, 768],
   [1920, 1080],
 ]) {

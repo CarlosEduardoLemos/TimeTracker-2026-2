@@ -1,6 +1,27 @@
 # Testes e validação do frontend
 
-## Auditoria de regressão — 30/10/2026
+## Auditoria atual de qualidade — 30/10/2026
+
+**Checkout analisado:** branch `main`, HEAD `eec089a976cd2678473ad2f992269538fd1a4a57`. A árvore inicial estava limpa; a linha de base anterior no mesmo checkout foi confirmada com 338 testes Vitest aprovados.
+
+| Comando/verificação         | Resultado                                                                                                                  |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `npm.cmd run lint`          | Aprovado.                                                                                                                  |
+| `npm.cmd run format:check`  | Aprovado; todos os arquivos mantêm o estilo Prettier.                                                                      |
+| `npm.cmd run typecheck`     | Aprovado.                                                                                                                  |
+| `npm.cmd run test:coverage` | 61 arquivos e 348 testes aprovados. Statements 93,16%; branches 89,60%; funções 94,79%; linhas 95,60%.                     |
+| `npm.cmd run build`         | Aprovado; o bundle de produção exclui handlers, worker e rotas de mocks.                                                   |
+| `npm.cmd run test:bundle`   | 4 verificações aprovadas.                                                                                                  |
+| `npm.cmd run test:e2e`      | 36 cenários: 34 aprovados, 0 falhas e 2 testes opt-in de API real ignorados por falta de ambiente/credenciais autorizados. |
+| API real                    | Não executada. Os testes interceptados não comprovam CORS, persistência ou autorização no servidor.                        |
+
+Os scans Axe passaram sem violações detectadas nas páginas de Painel, Tasks, Colaboradores, Relatórios, Configurações e login, além dos estados mobile escuro e de erro. Os scans cobrem WCAG 2.2 A/AA e versões anteriores; isso não substitui avaliação manual. A regressão de layout passou em 320, 375, 390, 768, 1024, 1366 e 1920 px, e a ampliação CSS de 200%. A largura de 320 px também verifica o reflow equivalente a 400% de uma viewport de 1280 px.
+
+O primeiro ciclo da suíte após as mudanças revelou somente expectativas antigas de testes que ainda aguardavam o texto bruto do servidor; elas foram atualizadas para as mensagens HTTP seguras e a execução completa posterior passou.
+
+O baseline E2E foi executado em uma cópia temporária de `FrontEnd/` no próprio HEAD `eec089a`: 32 cenários, 30 aprovados, 0 falhas e 2 testes de API real ignorados. Essa cópia foi removida após a execução. O baseline Vitest no checkout original também passou com 338 testes.
+
+## Execução anterior registrada — 30/10/2026
 
 **Checkout analisado:** branch `main`, HEAD `04a272798219dd56a424847e73fad02298a0b3e3`, referência desta auditoria.
 

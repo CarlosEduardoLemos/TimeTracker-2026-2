@@ -47,17 +47,23 @@ export class ApiError extends Error {
   }
 }
 
-/** @param {unknown} detail */
-function detailMessage(detail) {
-  if (typeof detail === 'string') return detail.trim().slice(0, 500);
-  if (Array.isArray(detail)) {
-    return detail
-      .map((item) => (typeof item?.msg === 'string' ? item.msg : ''))
-      .filter(Boolean)
-      .join('; ')
-      .slice(0, 500);
-  }
-  return '';
+/** @param {number} status */
+function httpErrorMessage(status) {
+  const messages = {
+    400: 'Os dados enviados são inválidos. Revise as informações e tente novamente.',
+    401: 'Não foi possível autenticar. Confira seu e-mail e sua senha.',
+    403: 'Você não tem permissão para realizar esta operação.',
+    404: 'O recurso solicitado não foi encontrado.',
+    409: 'Já existe um registro com esses dados. Revise as informações e tente novamente.',
+    422: 'Confira os campos informados e tente novamente.',
+    429: 'Muitas solicitações foram feitas. Aguarde um pouco e tente novamente.',
+  };
+  return (
+    messages[status] ||
+    (status >= 500
+      ? 'O serviço está temporariamente indisponível. Tente novamente em instantes.'
+      : 'Não foi possível concluir a solicitação. Revise as informações e tente novamente.')
+  );
 }
 
 /** @param {Response} response */
@@ -71,7 +77,7 @@ async function httpError(response, includeDetail = true) {
       // An empty or non-JSON error body still preserves the HTTP status.
     }
   }
-  return new ApiError(detailMessage(detail) || `API respondeu ${response.status}`, {
+  return new ApiError(httpErrorMessage(response.status), {
     type: response.status >= 500 ? 'server' : 'client',
     status: response.status,
     statusText: response.statusText || '',

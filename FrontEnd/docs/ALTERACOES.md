@@ -1,5 +1,19 @@
 # Alterações do frontend
 
+## 30/10/2026 — resiliência e acessibilidade do frontend
+
+**Base auditada:** branch `main`, HEAD `eec089a976cd2678473ad2f992269538fd1a4a57`; a árvore inicial estava limpa. Todas as alterações permaneceram em `FrontEnd/`.
+
+- A camada HTTP agora traduz os status 400, 401, 403, 404, 409, 422, 429 e 5xx em mensagens seguras e compreensíveis, sem refletir `detail` do servidor na mensagem exibida. Os fluxos de autenticação continuam usando mensagens de contexto próprio.
+- Atualizações parciais de Colaboradores mantêm a última resposta válida da fonte que falhou, com o estado parcial/erro e a hora válida já anunciados pela página.
+- Axe passou a verificar WCAG 2.2 A/AA e passou a cobrir Tasks e login. E2E acrescentou reflow em 320 px e 1024 px.
+- Adicionados testes de status HTTP seguros e de retenção de dados válidos em falha parcial.
+- Nenhum contrato foi criado. O backend continua sem consulta autenticada de colaboradores por gestor; a seleção de colaboradores reais em Tasks permanece bloqueada. API real não foi homologada.
+
+**Arquivos desta rodada:** `src/shared/api/api.js`, `src/shared/api/api.test.js`, `src/dev-mocks/client.test.js`, `src/features/collaborators/hooks/useCollaboratorsData.js`, `src/features/collaborators/hooks/useCollaboratorsData.test.js`, `e2e/accessibility.spec.js`, `e2e/accessibility-auth.spec.js`, `e2e/app.spec.js`, `docs/TESTES.md`, `docs/PENDENCIAS.md`, `docs/CONTRATOS_API.md` e este documento.
+
+**Validação:** o baseline de `eec089a` foi confirmado em cópia temporária dentro de `FrontEnd/`: Vitest 338 aprovados e Playwright 30 aprovados + 2 testes de API real ignorados. Nesta rodada, lint, format:check, typecheck, build e test:bundle passaram; Vitest aprovou 348 testes em 61 arquivos (93,16% statements, 89,60% branches, 94,79% funções, 95,60% linhas). Playwright aprovou 34 cenários, falhou em 0 e ignorou 2 testes opt-in de API real. Axe não detectou violações nas oito varreduras executadas. Nenhuma API real foi chamada.
+
 ## 30/10/2026 — auditoria de regressão após CRUD autenticado
 
 **Base auditada:** HEAD e referência solicitada são `04a272798219dd56a424847e73fad02298a0b3e3`; a árvore inicial estava limpa. As alterações desta auditoria ficaram em `FrontEnd/`.

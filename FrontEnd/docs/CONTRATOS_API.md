@@ -1,6 +1,6 @@
 # Contratos da API do Frontend
 
-**Snapshot auditado:** 30/10/2026. **Checkout:** branch main, commit `04a272798219dd56a424847e73fad02298a0b3e3` (referência desta auditoria).
+**Snapshot auditado:** 30/10/2026. **Checkout:** branch main, commit `eec089a976cd2678473ad2f992269538fd1a4a57`. Contratos descritos continuam limitados às rotas confirmadas no backend; o comportamento seguro de mensagens HTTP pertence ao frontend.
 
 Este snapshot substitui as conclusões dos checkpoints históricos arquivados ao final deste arquivo. A fonte de verdade desta revisão é o código local em backend/app, agent/ e FrontEnd/src/shared/api. PRs #142, #145 e #146 estão incorporados na ancestralidade Git local pelos merges 5b72a3e, dffb107 e cccc5ac. PR #144 do Agent está incorporado em 189a7e9.
 

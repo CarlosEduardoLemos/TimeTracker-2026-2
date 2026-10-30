@@ -77,7 +77,7 @@ describe('cliente isolado dos mocks de desenvolvimento', () => {
     await expect(devApi.createTask(payload)).rejects.toMatchObject({
       type: 'client',
       status: 422,
-      message: 'Invalid task payload',
+      message: 'Confira os campos informados e tente novamente.',
     });
     vi.stubGlobal(
       'fetch',
@@ -163,7 +163,7 @@ describe('cliente isolado dos mocks de desenvolvimento', () => {
     }));
     vi.stubGlobal('fetch', fetchMock);
     await expect(devApi.taskHours('2026-10-01', '2026-10-13')).rejects.toThrow(
-      'Consulta indisponível',
+      'O serviço está temporariamente indisponível. Tente novamente em instantes.',
     );
     expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/dashboard/task-hours');
     expect(() => devApi.taskHours('2026-10-13', '2026-10-01')).toThrow('período válido');
