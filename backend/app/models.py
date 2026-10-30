@@ -61,6 +61,11 @@ class Manager(Base):
     # Sempre salvo em minúsculas (normalizado no schema).
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
+    # Código de 6 dígitos que o colaborador informa no Agente para se
+    # associar à equipe. Sempre preenchido na criação; a coluna é anulável
+    # só para permitir a migração de bancos antigos (veja schema_upgrades).
+    association_code = Column(String(6), unique=True, nullable=True,
+                              index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(),
                         nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(),

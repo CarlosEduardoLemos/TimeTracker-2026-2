@@ -18,7 +18,10 @@ router = APIRouter(prefix="/auth", tags=["Autenticação"])
         "é armazenada somente como hash bcrypt."
     ),
     responses={
-        status.HTTP_409_CONFLICT: {"description": "E-mail já cadastrado."}
+        status.HTTP_409_CONFLICT: {"description": "E-mail já cadastrado."},
+        status.HTTP_503_SERVICE_UNAVAILABLE: {
+            "description": "Não foi possível gerar o código de associação."
+        },
     },
 )
 def register(
@@ -31,6 +34,12 @@ def register(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="E-mail já cadastrado.",
+        ) from None
+    except crud.AssociationCodeUnavailableError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Não foi possível gerar o código de associação. "
+                   "Tente novamente.",
         ) from None
 
 
@@ -70,9 +79,13 @@ def login(
 
 @router.get(
     "/me",
-    response_model=schemas.ManagerOut,
-    summary="Retorna o gestor autenticado",
-    description="Rota protegida: exige token JWT válido.",
+    response_model=schemas.ManagerProfileOut,
+    summary="Retorna o gestor autenticado e seu código de associação",
+    description=(
+        "Rota protegida: exige token JWT válido. Além dos dados do gestor, "
+        "devolve o `association_code` (6 dígitos) que os colaboradores "
+        "informam no Agente Desktop. Cada gestor só vê o próprio código."
+    ),
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Token ausente, inválido ou expirado."
@@ -80,6 +93,14 @@ def login(
     },
 )
 def read_current_manager(
-    manager: models.Manager = Depends(security.get_current_manager)
+    manager: models.Manager = Depends(security.get_current_manager),
+    db: Session = Depends(get_db),
 ):
-    return manager
+    try:
+        return crud.ensure_association_code(db, manager)
+    except crud.AssociationCodeUnavailableError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Não foi possível gerar o código de associação. "
+                   "Tente novamente.",
+        ) from None

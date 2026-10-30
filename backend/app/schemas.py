@@ -83,6 +83,15 @@ class ManagerOut(BaseModel):
     created_at: datetime
 
 
+class ManagerProfileOut(ManagerOut):
+    """Gestor autenticado, incluindo o código de associação da equipe"""
+
+    association_code: str = Field(
+        pattern=r"^\d{6}$",
+        description="Código de 6 dígitos para o colaborador se associar.",
+    )
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
