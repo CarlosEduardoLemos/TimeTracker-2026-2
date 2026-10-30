@@ -38,6 +38,8 @@ class User(Base):
     username = Column(String(150), unique=True, nullable=False, index=True)
     full_name = Column(String(255), nullable=True)
     department = Column(String(150), nullable=True)
+    # Nome da máquina informado pelo Agente na última associação
+    machine_name = Column(String(150), nullable=True)
     # Gestor responsável pelo colaborador (equipe). Nulo até a associação
     manager_id = Column(Uuid(as_uuid=True), ForeignKey("managers.id"),
                         nullable=True, index=True)

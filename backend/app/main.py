@@ -80,6 +80,7 @@ app.include_router(categories.router)
 app.include_router(config.router)
 app.include_router(tasks.router)
 app.include_router(users.router)
+app.include_router(users.collaborators_router)
 
 
 @app.get("/", tags=["Status"], summary="Healthcheck da API")

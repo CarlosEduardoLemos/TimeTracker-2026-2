@@ -26,18 +26,23 @@ logger = logging.getLogger(__name__)
 
 JWT_ALGORITHM = "HS256"
 # Audiência do token: evita que outro tipo de token assinado com a mesma chave
-# (ex.: futuro token do agente) seja aceito como sessão de gestor.
+# (ex.: futuro token do agente) seja aceito como sessão de gestor
 JWT_AUDIENCE = "time-tracker:manager"
+# Token do Agente Desktop: audiência própria, para que um token de agente
+# nunca seja aceito como sessão de gestor (e vice-versa)
+AGENT_JWT_AUDIENCE = "time-tracker:agent"
 
 MIN_SECRET_KEY_LENGTH = 32
 DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = 60
+# O Agente não tem tela de login: o token dura bem mais que o do gestor
+DEFAULT_AGENT_TOKEN_EXPIRE_MINUTES = 60 * 24 * 30
 
-# bcrypt só considera os 72 primeiros bytes da senha.
+# bcrypt só considera os 72 primeiros bytes da senha
 MAX_PASSWORD_BYTES = 72
 
 # Hash válido de uma senha aleatória descartada. Usado no login quando o
 # e-mail não existe, para que o tempo de resposta não revele quais e-mails
-# estão cadastrados.
+# estão cadastrados
 DUMMY_PASSWORD_HASH = (
     "$2b$12$8hiys1htiV3e1Ew.a7.3zeSE1.dl0O32jFQGtbLrqYJ/CH3G0BEEC"
 )
@@ -69,9 +74,13 @@ def _resolve_secret_key(raw: str | None) -> str:
     return key
 
 
-def _resolve_expire_minutes(raw: str | None) -> int:
+def _resolve_expire_minutes(
+    raw: str | None,
+    default: int = DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES,
+    name: str = "ACCESS_TOKEN_EXPIRE_MINUTES",
+) -> int:
     if raw is None or not raw.strip():
-        return DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES
+        return default
 
     try:
         minutes = int(raw)
@@ -79,9 +88,7 @@ def _resolve_expire_minutes(raw: str | None) -> int:
         minutes = 0
 
     if minutes <= 0:
-        raise RuntimeError(
-            "ACCESS_TOKEN_EXPIRE_MINUTES deve ser um inteiro maior que zero."
-        )
+        raise RuntimeError(f"{name} deve ser um inteiro maior que zero.")
 
     return minutes
 
@@ -89,6 +96,11 @@ def _resolve_expire_minutes(raw: str | None) -> int:
 JWT_SECRET_KEY = _resolve_secret_key(getenv("JWT_SECRET_KEY"))
 ACCESS_TOKEN_EXPIRE_MINUTES = _resolve_expire_minutes(
     getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+)
+AGENT_TOKEN_EXPIRE_MINUTES = _resolve_expire_minutes(
+    getenv("AGENT_TOKEN_EXPIRE_MINUTES"),
+    default=DEFAULT_AGENT_TOKEN_EXPIRE_MINUTES,
+    name="AGENT_TOKEN_EXPIRE_MINUTES",
 )
 
 
@@ -152,6 +164,49 @@ def decode_access_token(token: str) -> uuid.UUID:
             JWT_SECRET_KEY,
             algorithms=[JWT_ALGORITHM],  # fixo: impede troca de algoritmo
             audience=JWT_AUDIENCE,
+            options={"require": ["exp", "iat", "sub", "aud"]},
+        )
+        return uuid.UUID(payload["sub"])
+    except (jwt.PyJWTError, KeyError, TypeError, ValueError) as exc:
+        raise InvalidTokenError("Token inválido ou expirado.") from exc
+
+
+def create_agent_token(
+    subject: uuid.UUID | str,
+    expires_delta: timedelta | None = None,
+) -> str:
+    """
+    Emite o JWT do Agente Desktop para o colaborador `subject` (id do
+    `User`). Mesmas claims do token do gestor, mas com audiência própria e
+    validade de AGENT_TOKEN_EXPIRE_MINUTES
+    """
+    now = datetime.now(timezone.utc)
+
+    if expires_delta is None:
+        expires_delta = timedelta(minutes=AGENT_TOKEN_EXPIRE_MINUTES)
+
+    payload = {
+        "sub": str(subject),
+        "aud": AGENT_JWT_AUDIENCE,
+        "iat": now,
+        "exp": now + expires_delta,
+    }
+
+    return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+
+
+def decode_agent_token(token: str) -> uuid.UUID:
+    """
+    Valida o JWT do Agente e devolve o id do colaborador. Levanta
+    InvalidTokenError para qualquer token inválido, expirado ou que não
+    seja de agente.
+    """
+    try:
+        payload = jwt.decode(
+            token,
+            JWT_SECRET_KEY,
+            algorithms=[JWT_ALGORITHM],
+            audience=AGENT_JWT_AUDIENCE,
             options={"require": ["exp", "iat", "sub", "aud"]},
         )
         return uuid.UUID(payload["sub"])
