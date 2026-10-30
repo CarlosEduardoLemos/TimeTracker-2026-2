@@ -42,14 +42,15 @@ app/
   models.py        # entidades: User, Manager, Category, CategorizationRule, ActivityLog, SystemSettings
   schemas.py       # schemas Pydantic (request/response)
   crud.py          # lógica de acesso a dados + motor de categorização (RF07)
-  security.py      # hash de senha (bcrypt), JWT e dependência get_current_manager
+  security.py      # hash de senha (bcrypt), JWT (gestor e agente) e dependência get_current_manager
+  rate_limit.py    # limite de tentativas inválidas do código de associação
   routers/
     auth.py        # POST /auth/register, POST /auth/login, GET /auth/me (RF-02)
     activities.py  # POST /activities (RF01/RF02) e GET /activities/realtime (RF09)
     dashboard.py   # GET /dashboard/summary (RF10) e exportações CSV/PDF (RF11)
     categories.py  # categorias e regras de categorização (RF07/RF08)
     config.py      # GET/PUT /config (RF06 - config remota do agente)
-    users.py       # listagem de colaboradores
+    users.py       # listagem de colaboradores e POST /collaborators/associate (RF-04)
 seed.py            # popula categorias/regras/config padrão
 tests/             # testes automatizados (pytest)
 ```
@@ -60,7 +61,8 @@ tests/             # testes automatizados (pytest)
 |---|---|---|---|
 | POST | `/auth/register` | Cria a conta do gestor (e-mail e senha) | RF-02 |
 | POST | `/auth/login` | Login do gestor; retorna token JWT | RF-02 |
-| GET | `/auth/me` | Gestor autenticado (rota protegida) | RF-02 |
+| GET | `/auth/me` | Gestor autenticado e seu código de associação (rota protegida) | RF-02, RF-03 |
+| POST | `/collaborators/associate` | Agente associa o colaborador ao gestor pelo código de 6 dígitos e recebe o token do Agente | RF-01, RF-04 |
 | POST | `/activities/` | Agente envia leitura da janela ativa | RF01, RF02, RF05 |
 | GET | `/activities/realtime` | Painel em tempo real | RF09 |
 | GET | `/dashboard/summary?date=` | Sumário diário por categoria | RF10 |
@@ -79,6 +81,7 @@ Variáveis de ambiente (veja `.env.example`):
 |---|---|---|
 | `JWT_SECRET_KEY` | *(vazia)* | Chave de assinatura dos tokens, mínimo de 32 caracteres. Gere com `python -c "import secrets; print(secrets.token_urlsafe(64))"`. Se vazia, o servidor gera uma chave temporária e avisa no log: os tokens deixam de valer a cada reinício. **Defina em produção.** |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `60` | Validade do token de acesso, em minutos. |
+| `AGENT_TOKEN_EXPIRE_MINUTES` | `43200` (30 dias) | Validade do token do Agente Desktop, em minutos. |
 
 ### Contrato (para o Frontend)
 
@@ -92,15 +95,39 @@ POST /auth/login      {"email": "gestor@empresa.com", "password": "..."}
 → 401 {"detail": "E-mail ou senha inválidos."}   (mensagem igual para e-mail inexistente e senha errada)
 
 GET /auth/me          Authorization: Bearer <jwt>
-→ 200 {"id": "...", "email": "...", "created_at": "..."}
+→ 200 {"id": "...", "email": "...", "created_at": "...", "association_code": "048215"}
 → 401 token ausente, inválido ou expirado
+→ 503 não foi possível gerar o código de associação (muito improvável; tente de novo)
 ```
+
+- `association_code` é o código de **6 dígitos** (string, com zeros à esquerda) que o colaborador informa no Agente. É gerado no cadastro, único no sistema e **não muda** entre logins. Cada gestor só enxerga o próprio código.
+- O `POST /auth/register` **não** devolve o código; o Dashboard o obtém em `GET /auth/me` após o login.
+- Bancos criados antes desta funcionalidade são atualizados na inicialização (`schema_upgrades.py`): a coluna é adicionada e cada gestor existente recebe um código único.
 
 - O corpo do login é **JSON** (não `x-www-form-urlencoded`).
 - E-mails são normalizados para minúsculas e domínios reservados (`.test`, `.local`, `localhost`) são recusados com `422`; a senha tem no máximo 72 bytes (limite do bcrypt).
 - O token **não é renovado**: ao expirar (`401`), o gestor precisa fazer login novamente.
 - Erros `422` em campos de senha não devolvem o valor enviado.
 - No Swagger (`/docs`), use **Authorize** e cole o `access_token` para testar rotas protegidas.
+
+### Associação do colaborador (Agente Desktop)
+
+```http
+POST /collaborators/associate   (sem autenticação)
+{"association_code": "048215", "username": "joao", "machine_name": "PC-JOAO-01"}
+→ 200 {"access_token": "<jwt>", "token_type": "bearer", "expires_in": 2592000,
+       "collaborator_id": "<uuid>", "username": "joao", "machine_name": "PC-JOAO-01",
+       "manager_id": "<uuid>", "already_associated": false}
+→ 404 código inexistente (nada é gravado e nenhum token é emitido)
+→ 409 colaborador já pertence a outro gestor (o vínculo não é transferido)
+→ 422 formato inválido (código com 6 dígitos; usuário e máquina obrigatórios)
+→ 429 muitas tentativas inválidas da mesma origem (cabeçalho Retry-After)
+```
+
+- É **idempotente**: repetir com o mesmo gestor responde 200 com `already_associated: true`, atualiza `machine_name` e emite um novo token.
+- O colaborador é identificado por `username` (único). O token do Agente tem audiência própria (`time-tracker:agent`) e **não** vale como sessão de gestor, nem o contrário.
+- Após 10 tentativas com código inexistente em 15 minutos, a origem recebe 429. O contador é por processo e usa o IP da conexão; atrás de proxy/túnel, configure o proxy para repassar o IP real (ex.: `uvicorn --proxy-headers`).
+- A validação do token do Agente nas demais rotas (`get_current_agent`) fica para a US-15.1.
 
 ### Protegendo rotas
 

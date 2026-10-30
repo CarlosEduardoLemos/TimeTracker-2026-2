@@ -39,6 +39,90 @@ def list_users(db: Session) -> list[models.User]:
     )
 
 
+# Associação do colaborador ao gestor
+class InvalidAssociationCodeError(Exception):
+    """Nenhum gestor possui o código informado"""
+
+
+class AlreadyAssociatedError(Exception):
+    """O colaborador já pertence à equipe de outro gestor"""
+
+
+def get_manager_by_association_code(
+        db: Session,
+        code: str
+) -> models.Manager | None:
+    return (
+        db.query(models.Manager)
+          .filter(models.Manager.association_code == code)
+          .first()
+    )
+
+
+def associate_collaborator(
+        db: Session,
+        association_code: str,
+        username: str,
+        machine_name: str,
+) -> tuple[models.User, bool]:
+    """
+    Vincula o colaborador (identificado pelo usuário Windows) ao gestor dono
+    do código. Devolve (colaborador, já_associado)
+
+    - Código inexistente: InvalidAssociationCodeError, nada é gravado.
+    - Já pertence a este gestor: idempotente, só atualiza a máquina.
+    - Pertence a outro gestor: AlreadyAssociatedError (o vínculo não é
+      transferido por quem apenas conhece um código).
+    """
+    manager = get_manager_by_association_code(db, association_code)
+
+    if manager is None:
+        raise InvalidAssociationCodeError()
+
+    for attempt in range(2):
+        user = (
+            db.query(models.User)
+              .filter(models.User.username == username)
+              .first()
+        )
+
+        if user is not None:
+            if user.manager_id == manager.id:
+                already = True
+            elif user.manager_id is None:
+                already = False
+            else:
+                raise AlreadyAssociatedError()
+
+            user.manager_id = manager.id
+            user.machine_name = machine_name
+            db.commit()
+            db.refresh(user)
+
+            return user, already
+
+        user = models.User(
+            username=username,
+            machine_name=machine_name,
+            manager_id=manager.id,
+        )
+
+        db.add(user)
+
+        try:
+            db.commit()
+        except IntegrityError:
+            # Mesmo usuário registrado simultaneamente: relê e segue o fluxo
+            db.rollback()
+            continue
+
+        db.refresh(user)
+
+        return user, False
+
+    raise AlreadyAssociatedError()
+
+
 # Managers (autenticação do gestor)
 class EmailAlreadyRegisteredError(Exception):
     """Já existe um gestor com este e-mail"""

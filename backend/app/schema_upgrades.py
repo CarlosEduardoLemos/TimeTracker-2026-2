@@ -88,7 +88,26 @@ def _add_managers_association_code(engine: Engine) -> None:
         ))
 
 
+def _add_users_machine_name(engine: Engine) -> None:
+    """users.machine_name: nome da máquina informado pelo Agente"""
+    inspector = inspect(engine)
+
+    if "users" not in inspector.get_table_names():
+        return
+
+    columns = {c["name"] for c in inspector.get_columns("users")}
+
+    if "machine_name" in columns:
+        return
+
+    with engine.begin() as conn:
+        conn.execute(text(
+            "ALTER TABLE users ADD COLUMN machine_name VARCHAR(150)"
+        ))
+
+
 def apply_schema_upgrades(engine: Engine) -> None:
     """Chame depois de `Base.metadata.create_all`"""
     _add_users_manager_id(engine)
+    _add_users_machine_name(engine)
     _add_managers_association_code(engine)

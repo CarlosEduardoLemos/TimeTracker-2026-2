@@ -37,6 +37,58 @@ class UserOut(UserBase):
     created_at: datetime
 
 
+# Associação do colaborador (Agente Desktop)
+ASSOCIATION_FIELD_MAX = 150
+
+
+def _clean_identifier(value: str) -> str:
+    cleaned = value.strip()
+
+    if not cleaned:
+        raise ValueError("Não pode ser vazio.")
+
+    if any(ord(char) < 32 or ord(char) == 127 for char in cleaned):
+        raise ValueError("Não pode conter caracteres de controle.")
+
+    return cleaned
+
+
+class AssociationRequest(BaseModel):
+    association_code: str = Field(
+        pattern=r"^\d{6}$",
+        description="Código de 6 dígitos exibido no Dashboard do gestor.",
+    )
+    username: str = Field(
+        min_length=1,
+        max_length=ASSOCIATION_FIELD_MAX,
+        description="Usuário Windows do colaborador.",
+    )
+    machine_name: str = Field(
+        min_length=1,
+        max_length=ASSOCIATION_FIELD_MAX,
+        description="Nome da máquina do colaborador.",
+    )
+
+    @field_validator("username", "machine_name")
+    @classmethod
+    def clean(cls, value: str) -> str:
+        return _clean_identifier(value)
+
+
+class AssociationOut(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int = Field(description="Validade do token, em segundos.")
+    collaborator_id: uuid.UUID
+    username: str
+    machine_name: str
+    manager_id: uuid.UUID
+    already_associated: bool = Field(
+        description="True quando o colaborador já pertencia a este gestor "
+                    "(apenas revalidação)."
+    )
+
+
 # Auth (gestor)
 def _normalize_email(value: str) -> str:
     return value.strip().lower()
