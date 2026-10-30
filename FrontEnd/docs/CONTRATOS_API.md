@@ -1,6 +1,6 @@
 # Contratos da API do Frontend
 
-**Snapshot auditado:** 30/10/2026. **Checkout:** branch main, commit cccc5ac2bf6f7482fc65ba28cb7443bc02a633de.
+**Snapshot auditado:** 30/10/2026. **Checkout:** branch main, commit `04a272798219dd56a424847e73fad02298a0b3e3` (referência desta auditoria).
 
 Este snapshot substitui as conclusões dos checkpoints históricos arquivados ao final deste arquivo. A fonte de verdade desta revisão é o código local em backend/app, agent/ e FrontEnd/src/shared/api. PRs #142, #145 e #146 estão incorporados na ancestralidade Git local pelos merges 5b72a3e, dffb107 e cccc5ac. PR #144 do Agent está incorporado em 189a7e9.
 
@@ -34,7 +34,7 @@ Todas as rotas abaixo exigem JWT de gestor. O router verifica o escopo do gestor
 
 TaskCreate aceita title obrigatório não vazio (máximo 200), description opcional/nula (máximo 5.000) e collaborator_ids opcional, lista de UUIDs, padrão vazio. TaskUpdate aceita campos omitidos para preservar valores; description nula limpa a descrição; collaborator_ids substitui a lista completa e [] remove todas as atribuições. Embora use PUT, a atualização é parcial no backend atual.
 
-TaskResponse contém id, title, description nula ou string, collaborators, created_at e updated_at. Não contém manager_id nem collaborator_ids. Cada TaskCollaboratorOut contém id, username e full_name opcional/nulo. Uma Task sem colaboradores é válida. O frontend valida esses formatos, envia Bearer, valida UUIDs, impede mutações concorrentes, atualiza o estado apenas após resposta válida e trata DELETE 204 sem ler JSON.
+TaskResponse contém id, title, description nula ou string, collaborators, created_at e updated_at. Não contém manager_id nem collaborator_ids. Cada TaskCollaboratorOut contém id, username e full_name opcional/nulo. Uma Task sem colaboradores é válida. O frontend valida esses formatos, envia Bearer, valida UUIDs, impede mutações concorrentes, atualiza o estado apenas após resposta válida e trata DELETE 204 sem ler JSON. A ordenação padrão da tela acompanha `created_at` decrescente e, em empate, UUID decrescente, como `crud.list_tasks`.
 
 O backend valida no momento de criar/atualizar que cada collaborator_id pertence à equipe do gestor e rejeita a operação inteira se um ID for inválido. Isso não fornece ao frontend uma consulta segura para montar a equipe.
 
@@ -47,6 +47,8 @@ O backend valida no momento de criar/atualizar que cada collaborator_id pertence
 A rota associa o usuário ao gestor dono do código e emite token com audiência do Agent; não é uma rota de sessão web. GET /users/ não é autenticado nem isolado: retorna usuários globais. Por isso, o frontend não oferece seleção de membros usando essa rota e não filtra uma lista global no cliente como substituto de autorização. Não foi encontrado endpoint autenticado que liste somente a equipe do gestor.
 
 O Agent local ainda usa outro caminho/payload: associate/ com code, username e hostname; o backend espera /collaborators/associate com association_code, username e machine_name. O frontend pode exibir o código correto, mas a associação ponta a ponta depende da adaptação do Agent.
+
+A bandeja do Agent também solicita `GET /tasks/my-tasks`, rota que o backend não declara. O caminho é capturado como `/tasks/{task_id}` e falha na validação UUID com `422`; a lista `/tasks/` existente exige token de gestor e não aceita o token do Agent.
 
 ## Atividades, Dashboard, relatórios, configurações e categorias
 

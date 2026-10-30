@@ -224,6 +224,38 @@ describe('useTasks', () => {
     });
   });
 
+  it.each(['update', 'delete'])(
+    'cancela uma %s pendente ao desmontar o hook',
+    async (operation) => {
+      let finish;
+      let signal;
+      taskService[`${operation}Task`].mockImplementation((...args) => {
+        signal = args.at(-1);
+        return new Promise((resolve) => {
+          finish = resolve;
+        });
+      });
+      const { result, unmount } = renderHook(() => useTasks(taskService));
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      let pending;
+      await act(async () => {
+        pending =
+          operation === 'update'
+            ? result.current.updateTask(demoTask.id, { title: 'Atualizada' })
+            : result.current.deleteTask(demoTask.id);
+      });
+      expect(signal).toBeInstanceOf(AbortSignal);
+      unmount();
+      expect(signal.aborted).toBe(true);
+
+      await act(async () => {
+        finish(operation === 'update' ? demoTask : undefined);
+        await expect(pending).resolves.toBe(false);
+      });
+    },
+  );
+
   it('não consulta nem modifica dados quando nenhum serviço está injetado', async () => {
     const { result } = renderHook(() => useTasks(null));
     expect(result.current.loading).toBe(false);

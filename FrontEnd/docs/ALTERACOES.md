@@ -1,5 +1,25 @@
 # Alterações do frontend
 
+## 30/10/2026 — auditoria de regressão após CRUD autenticado
+
+**Base auditada:** HEAD e referência solicitada são `04a272798219dd56a424847e73fad02298a0b3e3`; a árvore inicial estava limpa. As alterações desta auditoria ficaram em `FrontEnd/`.
+
+### Correções e verificações
+
+- Corrigido o desempate da ordenação padrão de Tasks: datas iguais agora usam UUID decrescente, igual ao `order_by(created_at DESC, id DESC)` do backend. Não foi necessário refazer a listagem após mutações bem-sucedidas: POST/PUT retornam a Task validada e DELETE confirma `204`; o recarregamento permanece disponível para conciliar estado após falha ambígua de rede.
+- Acrescentados testes de sessão que iniciam listagem e criação pendentes, fazem logout e login de outro gestor e confirmam cancelamento e descarte das respostas antigas. Testes do hook cobrem cancelamento de criação, edição e exclusão ao desmontar. Os fluxos de listagem e de todas as mutações percorrem `401`, remoção do token e desmontagem do conteúdo protegido.
+- Confirmados por leitura os contratos backend de `/auth/*`, CRUD `/tasks/`, `GET /users/` e associação. A atribuição real segue bloqueada: `GET /users/` é global e não há endpoint autenticado de equipe.
+- Reconfirmadas as divergências Agent/backend: associação do Agent usa `associate/` com `code` e `hostname`, enquanto o backend usa `/collaborators/associate` com `association_code` e `machine_name`; `GET /tasks/my-tasks` não existe no backend e o CRUD atual exige JWT de gestor. Pendências AG-01/AG-02 permanecem externas.
+
+### Arquivos alterados
+
+- `src/features/tasks/lib/taskList.js` e `taskList.test.js`.
+- `src/features/tasks/hooks/useTasks.test.js` e `useTasks.session.test.jsx`.
+- `src/shared/auth/ManagerSession.test.jsx`.
+- `docs/PENDENCIAS.md`, `docs/CONTRATOS_API.md`, `docs/TESTES.md` e este documento.
+
+`npm.cmd run check` passou: lint, Prettier, typecheck, 338 testes Vitest, build e 4 verificações de bundle. `npm.cmd run test:e2e` executou 32 cenários: 30 passaram e 2 testes de API real foram ignorados por não haver ambiente/credenciais autorizados configurados. Nenhuma API real foi chamada; backend, Agent e arquivos fora de `FrontEnd/` foram somente leitura. Nenhum commit, PR ou push foi criado.
+
 ## 30/10/2026 — integração com os contratos atuais do Backend
 
 **Base verificada:** branch main, HEAD cccc5ac2bf6f7482fc65ba28cb7443bc02a633de. Todos os arquivos alterados nesta tarefa pertencem a FrontEnd/.

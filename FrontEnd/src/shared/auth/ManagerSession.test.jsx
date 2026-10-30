@@ -34,6 +34,7 @@ function SessionControls() {
 afterEach(() => {
   sessionStorage.clear();
   window.location.hash = '';
+  vi.unstubAllGlobals();
 });
 
 it('restores the manager identity from the API and clears the session on logout', async () => {

@@ -1,10 +1,30 @@
 # Testes e validação do frontend
 
-## Execução vigente — 30/10/2026
+## Auditoria de regressão — 30/10/2026
+
+**Checkout analisado:** branch `main`, HEAD `04a272798219dd56a424847e73fad02298a0b3e3`, referência desta auditoria.
+
+**Escopo:** somente `FrontEnd/`. Nenhuma chamada à API real nem gravação em banco externo foi feita.
+
+| Comando/verificação         | Resultado                                                                                                                                               |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm.cmd run check`         | Passou: lint, format:check, typecheck, cobertura, build e test:bundle.                                                                                  |
+| Vitest/cobertura            | 60 arquivos e 338 testes passaram. Statements 93,17%; branches 89,62%; funções 94,80%; linhas 95,61%.                                                   |
+| Build/test:bundle           | Build de produção passou; 4 verificações confirmaram que mocks, handlers e worker não entraram no bundle.                                               |
+| `npm.cmd run test:e2e`      | 32 cenários: 30 passaram, 0 falharam e 2 testes opt-in de API real foram ignorados por falta de ambiente/credenciais configurados.                      |
+| Homologação contra API real | Não executada. Não havia ambiente de teste autorizado configurado; os testes interceptados não comprovam CORS, persistência ou autorização no servidor. |
+
+### Regressões exercitadas nesta rodada
+
+- Listagem e criação pendentes são canceladas no logout; respostas resolvidas depois não aparecem após login de outro gestor.
+- Criação, edição e exclusão pendentes têm testes de cancelamento do hook ao desmontar; o fluxo de logout integra listagem e criação.
+- `401` em listagem, criação, edição ou exclusão de Tasks limpa o token, aborta a requisição e desmonta o conteúdo protegido.
+- Tasks com o mesmo `created_at` seguem o desempate UUID decrescente do backend.
+- A suíte existente preserva os testes de criação, edição, exclusão, erros, recargas e concorrência; E2E confirma que Tasks não chama a lista global de `/users/`.
+
+## Execução anterior registrada — 30/10/2026
 
 **Checkout analisado:** branch main, HEAD cccc5ac2bf6f7482fc65ba28cb7443bc02a633de.
-
-**Escopo:** somente FrontEnd. Nenhuma chamada à API real nem gravação em banco externo foi feita.
 
 | Comando                     | Resultado                                                                                                                                                                                                                                                                                                                                          |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

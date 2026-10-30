@@ -1,6 +1,6 @@
 # Pendências e estado de integração — 30/10/2026
 
-**Revisão vigente:** branch `main`, commit `cccc5ac2bf6f7482fc65ba28cb7443bc02a633de`.
+**Revisão vigente:** branch `main`, checkout `04a272798219dd56a424847e73fad02298a0b3e3` (referência solicitada nesta auditoria).
 
 Este snapshot substitui os checkpoints anteriores deste documento. As afirmações históricas de que o backend não tinha CRUD de Tasks, código de associação ou associação colaborador–gestor deixaram de representar o checkout: PRs #142, #145 e #146 estão incorporados na branch. Seus merges locais são `5b72a3e`, `dffb107` e `cccc5ac`, respectivamente. O PR #144 do Agent também está incorporado (`189a7e9`), mas seus caminhos de API ainda não correspondem ao backend atual. O snapshot anterior completo foi preservado ao final deste arquivo com status histórico identificado.
 
@@ -33,14 +33,14 @@ Este snapshot substitui os checkpoints anteriores deste documento. As afirmaçõ
 
 - **Responsável / prioridade / status:** Frontend; Alta; **IMPLEMENTADO, AGUARDANDO HOMOLOGAÇÃO REAL**.
 - **Descrição técnica:** integrar lista, detalhe, criação, atualização parcial e exclusão à API real, usando JWT do gestor, validação de payload/resposta, cancelamento e tratamento de `DELETE 204`.
-- **Comportamento atual comprovado:** `api.tasks`, `api.getTask`, `api.createTask`, `api.updateTask` e `api.deleteTask` consomem `/tasks/` e `/tasks/{task_id}`. O hook só altera a lista após resposta válida; bloqueia mutações duplicadas e ignora listagens antigas. Produção permite Task sem descrição ou colaboradores. O editor real omite `collaborator_ids` em atualizações para preservar atribuições existentes.
+- **Comportamento atual comprovado:** `api.tasks`, `api.getTask`, `api.createTask`, `api.updateTask` e `api.deleteTask` consomem `/tasks/` e `/tasks/{task_id}`. O hook só altera a lista após resposta válida; bloqueia mutações duplicadas e ignora listagens antigas. Produção permite Task sem descrição ou colaboradores. O editor real omite `collaborator_ids` em atualizações para preservar atribuições existentes. A ordenação padrão agora desempata `created_at` igual por UUID decrescente, conforme `crud.list_tasks`.
 - **Comportamento esperado:** CRUD persistente por gestor; erros `401`, `403`, `404` e `422` sem feedback de sucesso; cancelamento e respostas atrasadas sem corromper a lista.
 - **Impacto no Frontend:** tela Tasks habilitada para CRUD. A atribuição de novas pessoas continua bloqueada conforme BE-02.
 - **Endpoints/schemas:** `GET/POST /tasks/`, `GET/PUT/DELETE /tasks/{task_id}`, `TaskCreate`, `TaskUpdate`, `TaskResponse`, `TaskCollaboratorOut`.
 - **Evidências:** `FrontEnd/src/shared/api/api.js`, `validators.js`, `features/tasks/hooks/useTasks.js`, `features/tasks/pages/TasksPage.jsx`; backend `backend/app/routers/tasks.py`, `schemas.py`, `crud.py`.
 - **Dependências:** sessão JWT válida; endpoint seguro de equipe para habilitar atribuições; ambiente de integração para homologação real.
 - **Critérios de aceite:** sucesso somente após resposta confirmada; lista não muda em erro; `204` não tenta ler JSON; título >200 e descrição >5.000 são recusados no cliente; vazio/nulo de descrição e lista vazia de colaboradores são aceitos.
-- **Testes necessários:** Vitest de schemas/API/hook/tela, MSW, E2E com respostas HTTP interceptadas e E2E real read-only em ambiente autorizado.
+- **Testes necessários:** Vitest de schemas/API/hook/tela, MSW, E2E com respostas HTTP interceptadas e E2E real read-only em ambiente autorizado. A auditoria de 30/10 adicionou cobertura para logout/troca de gestor com listagem e mutação pendentes, cancelamento de criação/edição/exclusão, `401` em listagem e todas as mutações, e desempate de ordenação.
 - **Issue/PR confirmada:** PR #142 mergeado em `5b72a3e`; não foi confirmada Issue associada nesta auditoria.
 
 ### FE-02 — Código de associação na sessão do gestor
@@ -219,7 +219,7 @@ Este snapshot substitui os checkpoints anteriores deste documento. As afirmaçõ
 
 - **Responsável / prioridade / status:** Backend e Agent; Alta; **DEPENDENTE DO BACKEND E DO AGENT**.
 - **Descrição técnica:** bandeja do Agent consome `/tasks/my-tasks`; backend expõe apenas `/tasks/` com `get_current_manager`.
-- **Comportamento atual comprovado:** `GET /tasks/my-tasks` não existe no router; `GET /tasks/` requer JWT com audiência de gestor, distinto do token de Agent.
+- **Comportamento atual comprovado:** não existe rota literal `GET /tasks/my-tasks`; o caminho coincide com `GET /tasks/{task_id}` e a validação UUID do backend responde `422`. `GET /tasks/` requer JWT com audiência de gestor, distinto do token de Agent.
 - **Comportamento esperado:** endpoint autenticado por token de Agent, consulta atribuídas ao colaborador do token e retorna apenas IDs/títulos/descrições permitidos; agente adapta URL e trata erros/expiração.
 - **Impacto no Frontend:** Tasks podem ser criadas/atribuídas pelo gestor, mas a bandeja do Agent não consegue buscar essa lista pelo contrato atual.
 - **Endpoints/schemas:** backend `tasks.py`, `security.decode_agent_token`; Agent `appsettings.json:MyTasks`, `ApiClient.GetMyTasksAsync`, `TaskDto`.
