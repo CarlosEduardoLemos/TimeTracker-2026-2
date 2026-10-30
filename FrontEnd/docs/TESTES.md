@@ -1,5 +1,49 @@
 # Testes e validação do frontend
 
+## Execução vigente — 30/10/2026
+
+**Checkout analisado:** branch main, HEAD cccc5ac2bf6f7482fc65ba28cb7443bc02a633de.
+
+**Escopo:** somente FrontEnd. Nenhuma chamada à API real nem gravação em banco externo foi feita.
+
+| Comando                     | Resultado                                                                                                                                                                                                                                                                                                                                          |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| npm ci                      | Concluído com cache direcionado a FrontEnd/.npm-cache; 487 pacotes instalados. A primeira tentativa no modo restrito falhou ao remover cache local bloqueado por EPERM. A tentativa autorizada seguinte concluiu. npm informou que scripts postinstall de esbuild e msw ainda não estão aprovados; build, testes e E2E executados depois passaram. |
+| npm run check               | Aprovado: lint, format:check, typecheck, test:coverage, build e test:bundle.                                                                                                                                                                                                                                                                       |
+| Vitest / cobertura          | 59 arquivos e 330 testes aprovados, 0 falhos. Statements 93,22%; branches 89,60%; funções 94,79%; linhas 95,61%.                                                                                                                                                                                                                                   |
+| Build de produção           | Aprovado; verificador confirmou que handlers, worker e rotas demonstrativas não estão no bundle.                                                                                                                                                                                                                                                   |
+| test:bundle                 | 4 verificações aprovadas, 0 falhas.                                                                                                                                                                                                                                                                                                                |
+| npm run test:e2e            | 32 cenários: 30 aprovados, 0 falhos e 2 testes opt-in de API real ignorados por ausência de ambiente/credenciais configurados.                                                                                                                                                                                                                     |
+| Acessibilidade E2E          | 6 cenários aprovados, incluindo axe-core, navegação/contraste e estados de erro.                                                                                                                                                                                                                                                                   |
+| Homologação contra API real | Não executada. RUN_REAL_API, credenciais autorizadas e ambiente de teste descartável não estavam configurados.                                                                                                                                                                                                                                     |
+
+### Cenários de integração cobertos
+
+Vitest verifica cadastro com ManagerOut sem código, perfil /auth/me com association_code de seis dígitos preservando zeros à esquerda, código ausente/inválido, sessão/logout/troca de gestor, cancelamento e respostas assíncronas fora de ordem. A camada HTTP cobre Bearer, validação de UUID e payload, resposta inválida, erro de conexão, atualização parcial e DELETE 204 sem leitura de JSON.
+
+A tela de Tasks é coberta para lista/criação/edição/exclusão, descrição nula ou opcional, zero colaboradores, substituição/remoção de atribuições no modo permitido por teste/mock, prevenção de mutações simultâneas e resposta fora de ordem. Em produção, a interface não oferece seleção da lista global de /users/. O E2E do navegador cria uma Task com JWT interceptado, confirma o payload sem descrição/colaboradores e verifica que entrar na tela Tasks não dispara outra chamada a /users/.
+
+Os testes de Dashboard, colaboradores, filtros, relatórios, configurações, navegação, responsividade e acessibilidade continuam cobertos por cliente interceptado. Esses testes comprovam o frontend e os contratos de resposta simulados, não autorização, isolamento, persistência ou CORS de uma API implantada.
+
+### Falhas observadas e resolução
+
+- A primeira execução de npm run check revelou dois textos de teste ainda vinculados ao antigo estado do código de associação e erros de tipagem JSDoc nos novos payloads, no perfil e no leitor 204. As asserções foram alinhadas ao estado atual e os tipos explícitos foram corrigidos; a execução completa final passou.
+- A primeira execução E2E do novo fluxo de Task revelou que a fixture incluía manager_id e collaborator_ids, campos que não existem em TaskResponse; a fixture foi alinhada ao schema real. O E2E de acessibilidade também usava perfil sem association_code e falhava na validação de sessão; a fixture recebeu o perfil válido. As suítes completas finais passaram.
+
+### Não executado e limites
+
+- Os dois cenários de e2e/real-api.spec.js foram ignorados pelo guard opt-in. Não há evidência de login, CORS, persistência, isolamento por gestor ou exportações contra o backend real.
+- Testes do backend, Agent, banco e migrações não foram executados nem alterados nesta tarefa.
+- A auditoria identificou que rotas de Dashboard, atividade, usuários, exportações, configuração e categorias não exigem JWT nem aplicam escopo de gestor. A homologação e o contrato seguro seguem pendentes; consulte [PENDENCIAS.md](PENDENCIAS.md).
+- Nenhum teste foi alterado para ocultar incompatibilidade. As fixtures E2E foram atualizadas para corresponder ao contrato comprovado e asserções de UI desatualizadas foram corrigidas.
+
+## Histórico de execuções anteriores
+
+As seções abaixo preservam registros de checkpoints anteriores à incorporação local dos PRs #142, #145 e #146. Seus resultados continuam válidos para os commits e o código indicados em cada registro, mas não descrevem esta execução atual.
+---
+
+# Testes e validação do frontend
+
 Este guia distingue verificação automatizada, build e verificações manuais ainda pendentes. Há validações registradas em **05/10/2026**, **07/10/2026**, **09/10/2026**, **13/10/2026**, **16/10/2026** e **22/10/2026**. Resultados anteriores permanecem identificados pela data e pelo estado do código em que foram obtidos. O inventário completo das alterações está em [Alterações](ALTERACOES.md).
 
 ## US-06.2 — Código de associação no Dashboard — 22/10/2026

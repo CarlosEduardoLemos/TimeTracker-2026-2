@@ -6,6 +6,7 @@ const manager = {
   id: 'b06e3df5-c23b-49ec-9a40-081a451620b3',
   email: 'gestor@empresa.com',
   created_at: '2026-10-21T12:00:00Z',
+  association_code: '001234',
 };
 
 test.beforeEach(async ({ page }) => {

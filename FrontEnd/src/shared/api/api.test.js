@@ -77,6 +77,7 @@ describe('cliente da API', () => {
       id: 'b06e3df5-c23b-49ec-9a40-081a451620b3',
       email: 'gestor@empresa.com',
       created_at: '2026-10-13T12:00:00Z',
+      association_code: '001234',
     };
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => manager }));
     vi.stubGlobal('fetch', fetchMock);
@@ -84,6 +85,112 @@ describe('cliente da API', () => {
     await expect(api.getCurrentManager(token)).resolves.toEqual(manager);
     expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/auth/me');
     expect(fetchMock.mock.calls[0][1].headers.get('Authorization')).toBe(`Bearer ${token}`);
+  });
+
+  it('reads the six-digit association code from the authenticated manager profile', async () => {
+    const manager = {
+      id: 'b06e3df5-c23b-49ec-9a40-081a451620b3',
+      email: 'gestor@empresa.com',
+      created_at: '2026-10-30T12:00:00Z',
+      association_code: '001234',
+    };
+    const fetchMock = vi.fn(async () => ({ ok: true, status: 200, json: async () => manager }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(api.getAssociationCode()).resolves.toBe('001234');
+    expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/auth/me');
+    expect(fetchMock.mock.calls[0][1].headers.get('Authorization')).toBe(`Bearer ${ACCESS_TOKEN}`);
+  });
+
+  it('integra o CRUD autenticado de Tasks e aceita DELETE 204 sem tentar ler JSON', async () => {
+    const taskId = '6e7b94da-5651-46a0-bf28-fcb8f4f14c04';
+    const task = {
+      id: taskId,
+      title: 'Planejar sprint',
+      description: null,
+      collaborators: [],
+      created_at: '2026-10-30T12:00:00',
+      updated_at: '2026-10-30T12:00:00',
+    };
+    const fetchMock = vi.fn(async (url, options) => {
+      const method = options.method || 'GET';
+      if (method === 'DELETE') return { ok: true, status: 204 };
+      if (method === 'PUT') {
+        return { ok: true, status: 200, json: async () => ({ ...task, title: 'Sprint' }) };
+      }
+      if (method === 'POST') return { ok: true, status: 201, json: async () => task };
+      if (method === 'GET' && url.endsWith('/tasks/')) {
+        return { ok: true, status: 200, json: async () => [task] };
+      }
+      return { ok: true, status: 200, json: async () => task };
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(api.tasks()).resolves.toEqual([task]);
+    await expect(api.getTask(taskId)).resolves.toEqual(task);
+    await expect(
+      api.createTask({ title: 'Planejar sprint', description: null, collaborator_ids: [] }),
+    ).resolves.toEqual(task);
+    await expect(api.updateTask(taskId, { title: 'Sprint' })).resolves.toEqual({
+      ...task,
+      title: 'Sprint',
+    });
+    await expect(api.deleteTask(taskId)).resolves.toBeUndefined();
+
+    expect(fetchMock.mock.calls.map(([, options]) => options.method || 'GET')).toEqual([
+      'GET',
+      'GET',
+      'POST',
+      'PUT',
+      'DELETE',
+    ]);
+    expect(fetchMock.mock.calls.map(([, options]) => options.headers.get('Authorization'))).toEqual(
+      Array(5).fill(`Bearer ${ACCESS_TOKEN}`),
+    );
+    expect(JSON.parse(fetchMock.mock.calls[2][1].body)).toEqual({
+      title: 'Planejar sprint',
+      description: null,
+      collaborator_ids: [],
+    });
+    expect(JSON.parse(fetchMock.mock.calls[3][1].body)).toEqual({ title: 'Sprint' });
+  });
+
+  it('rejeita IDs e payloads de Task inválidos antes de enviar a requisição', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(api.getTask('bad-id')).rejects.toMatchObject({ type: 'client' });
+    await expect(api.updateTask('bad-id', { title: 'A' })).rejects.toMatchObject({
+      type: 'client',
+    });
+    await expect(api.deleteTask('bad-id')).rejects.toMatchObject({ type: 'client' });
+    await expect(api.createTask({ title: 'x'.repeat(201) })).rejects.toMatchObject({
+      type: 'client',
+    });
+    await expect(api.updateTask('6e7b94da-5651-46a0-bf28-fcb8f4f14c04', {})).rejects.toMatchObject({
+      type: 'client',
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('preserva erros HTTP de Tasks e rejeita sucesso DELETE que não seja 204', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        json: async () => ({ detail: 'Task não encontrada' }),
+      })
+      .mockResolvedValueOnce({ ok: true, status: 200 });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(api.deleteTask('6e7b94da-5651-46a0-bf28-fcb8f4f14c04')).rejects.toMatchObject({
+      status: 404,
+    });
+    await expect(api.deleteTask('6e7b94da-5651-46a0-bf28-fcb8f4f14c04')).rejects.toMatchObject({
+      type: 'invalid-response',
+    });
   });
 
   it('adds the session bearer to private data requests but not to public authentication', async () => {

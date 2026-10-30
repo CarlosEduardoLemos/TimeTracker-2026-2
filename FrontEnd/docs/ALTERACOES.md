@@ -1,5 +1,49 @@
 # Alterações do frontend
 
+## 30/10/2026 — integração com os contratos atuais do Backend
+
+**Base verificada:** branch main, HEAD cccc5ac2bf6f7482fc65ba28cb7443bc02a633de. Todos os arquivos alterados nesta tarefa pertencem a FrontEnd/.
+
+### Integrações e correções
+
+- Integração autenticada de Tasks com GET/POST /tasks/, GET/PUT/DELETE /tasks/{task_id}, validação de payload/resposta, UUID, cancelamento, prevenção de envios duplicados, concorrência e DELETE 204.
+- Compatibilidade de schemas: título até 200 caracteres; descrição opcional/nula até 5.000 caracteres; criação sem colaboradores; update parcial por PUT; omissão preserva atribuições; lista vazia remove atribuições quando enviada.
+- Interface de seleção de colaboradores mantida somente em desenvolvimento/testes. Em produção, o GET /users/ global não é usado para sugerir equipe; a Task pode ser criada sem colaboradores e as atribuições existentes ficam visíveis sem edição.
+- Integração do association_code do ManagerProfileOut no fluxo de sessão. Código de seis dígitos é validado como string, zeros à esquerda são preservados, valor da sessão é reutilizado sem GET /auth/me redundante e o estado é descartado ao trocar identidade/sessão.
+- Avisos de Dashboard, colaboradores, relatórios e configurações esclarecem que as rotas globais atuais não validam nem isolam dados por gestor. A interface não afirma que tais registros ou exportações representam a equipe do gestor autenticado.
+- Mocks de desenvolvimento e testes atualizados para distinguir ManagerOut de cadastro e ManagerProfileOut de /auth/me, simular payload/response de Task coerentes e responder DELETE com 204. O verificador de produção continua excluindo handlers e rotas demonstrativas.
+- Documentação atualizada com os contratos confirmados, pendências e resultados de execução, preservando snapshots históricos.
+
+### Arquivos modificados nesta rodada
+
+- src/shared/api/api.js, contracts.js, validators.js e testes correspondentes.
+- src/shared/auth/ManagerSession.test.jsx.
+- src/features/dashboard: DashboardPage, AssociationCodeCard, DashboardStatusNotice, useAssociationCode e testes.
+- src/features/tasks: TaskForm, TaskList, TasksPage, useTasks e testes.
+- src/features/collaborators/pages/CollaboratorsPage.jsx.
+- src/features/reports/pages/ReportsPage.jsx.
+- src/features/settings/pages/SettingsPage.jsx.
+- src/dev-mocks/client.js, handlers.js e testes.
+- src/app/App.test.jsx.
+- e2e/app.spec.js e e2e/accessibility.spec.js.
+- docs/PENDENCIAS.md, docs/CONTRATOS_API.md, docs/TESTES.md e este documento.
+
+A lista exata de arquivos e os resultados automatizados estão registrados em TESTES.md e no diff desta alteração. Não foram alterados backend/, agent/, requisitos/ ou arquivos fora de FrontEnd/. Nenhum commit, push ou PR foi criado.
+
+### Pendências que permanecem
+
+- Backend: autorização e escopo por gestor em usuários, atividade, Dashboard, exportações e configuração; endpoint seguro da equipe; CORS/origem de implantação; timezone, idempotência, status por máquina, config singleton/seed e agregação por Task/jornada.
+- Agent: caminho e campos de associação ainda não correspondem ao backend; listagem de Tasks via token do Agent e envio de task_id/idempotente para atividade não estão implementados ponta a ponta.
+- Homologação real: depende de API, banco descartável, CORS e credenciais de teste autorizadas. Status e issues externas não confirmados nesta sessão.
+- Detalhes, evidências e critérios de aceite estão em [PENDENCIAS.md](PENDENCIAS.md); contratos atuais e propostas estão separados em [CONTRATOS_API.md](CONTRATOS_API.md).
+
+## Histórico
+
+As entradas anteriores abaixo foram preservadas. Estados anteriores que descrevem Tasks como indisponíveis e /auth/me sem association_code são snapshots dos commits indicados e foram superados pela auditoria de 30/10/2026.
+---
+
+# Alterações do frontend
+
 ## 22/10/2026 — auditoria e validação da US-16.1
 
 - **Contrato:** a leitura do backend local confirmou que `/dashboard/tasks-summary` não existe em `backend/app/routers/dashboard.py`; o schema de atividade também não recebe `task_id`. A forma de resposta e os parâmetros de agregação permanecem proposta, descrita em [Pendências — agregação de horas por Task](PENDENCIAS.md#proposta-task-hours). Nenhuma chamada de produção foi criada com esse contrato candidato.

@@ -41,7 +41,7 @@ beforeEach(() => {
 describe('useTasks', () => {
   it('carrega Tasks e colaboradores e cria uma Task pelo serviço injetado', async () => {
     taskService.tasks.mockResolvedValue([demoTask]);
-    const { result } = renderHook(() => useTasks(taskService));
+    const { result } = renderHook(() => useTasks(taskService, { demo: true }));
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.tasks).toEqual([demoTask]);
     expect(result.current.collaborators).toEqual([ana, bruno]);
@@ -59,7 +59,7 @@ describe('useTasks', () => {
 
   it('atualiza e exclui Tasks pela camada de serviço', async () => {
     taskService.tasks.mockResolvedValue([demoTask]);
-    const { result } = renderHook(() => useTasks(taskService));
+    const { result } = renderHook(() => useTasks(taskService, { demo: true }));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     const payload = {
@@ -229,5 +229,39 @@ describe('useTasks', () => {
     expect(result.current.loading).toBe(false);
     await act(async () => expect(await result.current.createTask({})).toBe(false));
     expect(result.current.tasks).toEqual([]);
+  });
+
+  it('não consulta /users quando o cliente real não oferece listagem segura da equipe', async () => {
+    const managerApi = {
+      tasks: vi.fn().mockResolvedValue([demoTask]),
+      createTask: vi.fn().mockResolvedValue({ ...createdTask, collaborators: [] }),
+      updateTask: vi.fn(),
+      deleteTask: vi.fn().mockResolvedValue(undefined),
+    };
+    const { result } = renderHook(() => useTasks(managerApi));
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.tasks).toEqual([demoTask]);
+    expect(result.current.collaborators).toEqual([]);
+    expect(result.current.collaboratorsError).toBeNull();
+    expect(managerApi.tasks).toHaveBeenCalledOnce();
+    expect(managerApi).not.toHaveProperty('collaborators');
+
+    await act(async () =>
+      expect(
+        await result.current.createTask({ title: 'Task sem atribuição', collaborator_ids: [] }),
+      ).toBe(true),
+    );
+    expect(result.current.mutationSuccess).toBe('Task criada.');
+  });
+
+  it('valida ID de Task antes de mutação e não confirma falha', async () => {
+    const { result } = renderHook(() => useTasks(taskService));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    await act(async () => expect(await result.current.deleteTask('id-invalido')).toBe(false));
+    expect(taskService.deleteTask).not.toHaveBeenCalled();
+    expect(result.current.mutationError).toBe('ID de Task inválido.');
+    expect(result.current.mutationSuccess).toBeNull();
   });
 });

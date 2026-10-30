@@ -2,8 +2,14 @@ import { isIsoDate } from '../lib/date';
 import { notifyAuthenticationRequired, readManagerAccessToken } from '../auth/sessionStorage';
 import {
   validManager,
+  validManagerProfile,
   validManagerToken,
   validJwtAccessToken,
+  validTask,
+  validTaskCreatePayload,
+  validTasks,
+  validTaskUpdatePayload,
+  validUuid,
   validRealtime,
   validSettings,
   validSummary,
@@ -181,6 +187,20 @@ export function requestValidated(path, validator, options = {}) {
   return validateResponse(request(path, options), validator);
 }
 
+/**
+ * Performs a request whose successful response must not contain a body.
+ * @param {string} path
+ * @param {RequestInit & { omitErrorDetails?: boolean, authenticated?: boolean }} [options]
+ * @returns {Promise<void>}
+ */
+export function requestNoContent(path, options = {}) {
+  return request(path, options, async (response) => {
+    if (response.status !== 204) {
+      throw new ApiError('Resposta inválida da API', { type: 'invalid-response' });
+    }
+  });
+}
+
 /** @param {unknown} credentials */
 function managerCredentialsBody(credentials) {
   if (!credentials || typeof credentials !== 'object' || Array.isArray(credentials)) {
@@ -272,8 +292,61 @@ export const api = {
         headers: { Authorization: `Bearer ${accessToken}` },
         omitErrorDetails: true,
       }),
-      validManager,
+      validManagerProfile,
     );
+  },
+  getAssociationCode: async (signal) => {
+    const manager = await validateResponse(
+      request('/auth/me', { signal, authenticated: true, omitErrorDetails: true }),
+      validManagerProfile,
+    );
+    return manager.association_code;
+  },
+  tasks: (signal) =>
+    validateResponse(request('/tasks/', { signal, authenticated: true }), validTasks),
+  getTask: async (taskId, signal) => {
+    if (!validUuid(taskId)) throw new ApiError('ID de Task inválido', { type: 'client' });
+    return validateResponse(
+      request(`/tasks/${taskId}`, { signal, authenticated: true }),
+      validTask,
+    );
+  },
+  createTask: async (payload, signal) => {
+    if (!validTaskCreatePayload(payload)) {
+      throw new ApiError('Dados inválidos para criar a Task', { type: 'client' });
+    }
+    return validateResponse(
+      request('/tasks/', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        signal,
+        authenticated: true,
+      }),
+      validTask,
+    );
+  },
+  updateTask: async (taskId, payload, signal) => {
+    if (!validUuid(taskId)) throw new ApiError('ID de Task inválido', { type: 'client' });
+    if (!validTaskUpdatePayload(payload)) {
+      throw new ApiError('Dados inválidos para atualizar a Task', { type: 'client' });
+    }
+    return validateResponse(
+      request(`/tasks/${taskId}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+        signal,
+        authenticated: true,
+      }),
+      validTask,
+    );
+  },
+  deleteTask: async (taskId, signal) => {
+    if (!validUuid(taskId)) throw new ApiError('ID de Task inválido', { type: 'client' });
+    return requestNoContent(`/tasks/${taskId}`, {
+      method: 'DELETE',
+      signal,
+      authenticated: true,
+    });
   },
   async exportFile(format, date, username = '', signal) {
     return request(
